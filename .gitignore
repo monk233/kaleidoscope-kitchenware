@@ -1,0 +1,20 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Minecraft run directory
+run/
+logs/
+
+# Local mod dependency jars (Kaleidoscope Cookery and other non-redistributable files)
+libs/*.jar
+
+# OS files
+Thumbs.db
+.DS_Store
