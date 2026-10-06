@@ -1,0 +1,10 @@
+{
+  "parent": "minecraft:block/stairs",
+  "textures": {
+    "bottom": "kaleidoscope_kitchenware:block/blue_roof_tile",
+    "top": "kaleidoscope_kitchenware:block/blue_roof_tile",
+    "side": "kaleidoscope_kitchenware:block/blue_roof_tile",
+    "wall": "kaleidoscope_kitchenware:block/blue_roof_tile",
+    "particle": "kaleidoscope_kitchenware:block/blue_roof_tile"
+  }
+}

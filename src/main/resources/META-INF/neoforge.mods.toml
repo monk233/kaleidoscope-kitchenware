@@ -1,0 +1,33 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "BSD-3-Clause"
+
+[[mods]]
+modId = "kaleidoscope_kitchenware"
+version = "0.1.0"
+displayName = "Kaleidoscope Kitchenware"
+authors = "kaleidoscope_kitchenware contributors"
+description = '''
+A traditional Chinese kitchen furniture and building blocks addon for Kaleidoscope Cookery.
+'''
+
+[[dependencies.kaleidoscope_kitchenware]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.kaleidoscope_kitchenware]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.kaleidoscope_kitchenware]]
+modId = "kaleidoscope_cookery"
+type = "optional"
+versionRange = "[1.6.0,)"
+ordering = "AFTER"
+side = "BOTH"

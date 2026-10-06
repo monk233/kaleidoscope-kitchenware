@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "kaleidoscope_kitchenware:block/blue_roof_tile_slab"
+    },
+    "type=double": {
+      "model": "kaleidoscope_kitchenware:block/blue_roof_tile"
+    },
+    "type=top": {
+      "model": "kaleidoscope_kitchenware:block/blue_roof_tile_slab_top"
+    }
+  }
+}

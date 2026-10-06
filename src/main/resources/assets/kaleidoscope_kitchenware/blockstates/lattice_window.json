@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "kaleidoscope_kitchenware:block/lattice_window"
+    },
+    "facing=east": {
+      "model": "kaleidoscope_kitchenware:block/lattice_window",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "kaleidoscope_kitchenware:block/lattice_window",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "kaleidoscope_kitchenware:block/lattice_window",
+      "y": 270
+    }
+  }
+}
