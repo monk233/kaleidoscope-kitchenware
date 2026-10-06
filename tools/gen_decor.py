@@ -592,24 +592,46 @@ def build_containers(textures_dir: Path) -> None:
             cupboard_variants[f"facing={facing},open={'true' if opened else 'false'}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "cupboard.json", {"variants": cupboard_variants})
 
-    # spice rack: empty board grows two jars per fill step
-    for filled in range(5):
-        elements = [box([0, 0, 12], [16, 16, 14], "#0"),
-                    box([0, 8, 2], [16, 10, 14], "#0"),
-                    box([0, 15, 2], [16, 16, 14], "#0")]
+    # spice rack: back panel flat against the far face, two shelves, jars fill up with use
+    RACK_BACK = [0, 0, 14, 16, 16, 16]
+    RACK_SHELF_LOW = [0, 8, 2, 16, 10, 16]
+    RACK_SHELF_TOP = [0, 15, 2, 16, 16, 16]
+    RACK_CORNER_LEFT = [0, 0, 2, 2, 16, 16]
+    RACK_CORNER_RIGHT = [14, 0, 2, 16, 16, 16]
+
+    def rack_elements(corner: str, filled: int) -> list:
+        boxes = [box(RACK_BACK[:3], RACK_BACK[3:], "#0"),
+                 box(RACK_SHELF_LOW[:3], RACK_SHELF_LOW[3:], "#0"),
+                 box(RACK_SHELF_TOP[:3], RACK_SHELF_TOP[3:], "#0")]
+        if corner == "left":
+            boxes.append(box(RACK_CORNER_LEFT[:3], RACK_CORNER_LEFT[3:], "#0"))
+        elif corner == "right":
+            boxes.append(box(RACK_CORNER_RIGHT[:3], RACK_CORNER_RIGHT[3:], "#0"))
         for spot in JAR_SPOTS[:filled * 2]:
             x, y = spot
-            elements.append(box([x, y, 4], [x + 2.5, y + 3, 6.5], "#1", uv=[0, 0, 3, 3]))
-        write_json(RES / "assets" / NS / "models" / "block" / f"spice_rack_{filled}.json",
-                   {"textures": {"0": tex("rack_board"), "1": tex("spice_jar"),
-                                 "particle": tex("rack_board")}, "elements": elements})
+            boxes.append(box([x, y, 4], [x + 2.5, y + 3, 6.5], "#1", uv=[0, 0, 3, 3]))
+        return boxes
+
+    for corner in ("", "left", "right"):
+        suffix = f"_{corner}" if corner else ""
+        for filled in range(5):
+            write_json(RES / "assets" / NS / "models" / "block" / f"spice_rack{suffix}_{filled}.json",
+                       {"textures": {"0": tex("rack_board"), "1": tex("spice_jar"),
+                                     "particle": tex("rack_board")},
+                        "elements": rack_elements(corner, filled)})
+
+    # corner shapes reuse the left/right panel models, exactly how the blockstate maps them
+    RACK_SHAPES = ("straight", "inner_left", "inner_right", "outer_left", "outer_right")
     rack_variants = {}
     for facing, y in FACING_Y:
         for filled in range(5):
-            model = {"model": f"{NS}:block/spice_rack_{filled}"}
-            if y:
-                model["y"] = y
-            rack_variants[f"facing={facing},filled={filled}"] = model
+            for shape_name in RACK_SHAPES:
+                corner = {"straight": "", "inner_left": "_left", "outer_left": "_left",
+                          "inner_right": "_right", "outer_right": "_right"}[shape_name]
+                model = {"model": f"{NS}:block/spice_rack{corner}_{filled}"}
+                if y:
+                    model["y"] = y
+                rack_variants[f"facing={facing},filled={filled},shape={shape_name}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "spice_rack.json", {"variants": rack_variants})
 
     # kitchen counter: stone worktop sitting on a panelled body
