@@ -1,18 +1,17 @@
 package com.kaleidoscope.kitchenware.block;
 
 import com.kaleidoscope.kitchenware.blockentity.SpiceJarBlockEntity;
+import com.kaleidoscope.kitchenware.item.SpiceJarItem;
 import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import com.kaleidoscope.kitchenware.registry.ModItems;
 import com.kaleidoscope.kitchenware.util.NoGuiStorage;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
@@ -33,33 +32,33 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 /**
- * Spice jar: a small glass jar that sits on the worktop like a teacup, holding 16 stacks.
+ * Spice jars: up to four squat jars share one block, the way teacups stack.
  *
- * Stock it and empty it with right-clicks (no GUI), and pick the whole jar up again with
- * the base mod's kitchen shovel, contents and all.
+ * Right-click with a jar to add another one, store and take seasonings with plain
+ * right-clicks (no GUI), and scoop the whole lot back up with the kitchen shovel.
  */
 public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final MapCodec<SpiceJarBlock> CODEC = simpleCodec(SpiceJarBlock::new);
-    /** Set while the jar holds anything, so the model can show a filled jar. */
+    public static final int MAX_COUNT = 4;
+    public static final IntegerProperty COUNT = IntegerProperty.create("count", 1, MAX_COUNT);
+    /** Set while the stack holds anything, so the models can show filled jars. */
     public static final BooleanProperty FILLED = BooleanProperty.create("filled");
 
-    public static final String MOD_ID = "kaleidoscope_kitchenware";
     private static final TagKey<Item> KITCHEN_SHOVEL = TagKey.create(Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("kaleidoscope_cookery", "kitchen_shovel"));
-    private static final VoxelShape SHAPE = Block.box(4, 0, 4, 12, 10, 12);
+    private static final VoxelShape SHAPE = Block.box(1, 0, 1, 15, 7, 15);
 
     public SpiceJarBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any()
-                .setValue(FACING, Direction.NORTH)
+                .setValue(COUNT, 1)
                 .setValue(FILLED, false));
     }
 
@@ -70,7 +69,7 @@ public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityB
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, FILLED);
+        builder.add(COUNT, FILLED);
     }
 
     @Override
@@ -80,7 +79,7 @@ public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityB
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        return defaultBlockState();
     }
 
     @Nullable
@@ -96,12 +95,29 @@ public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityB
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        // scoop the whole jar up, contents included
+        // stack another jar onto the block, like adding a teacup
+        if (stack.getItem() instanceof SpiceJarItem) {
+            int count = state.getValue(COUNT);
+            if (count >= MAX_COUNT) {
+                return ItemInteractionResult.CONSUME;
+            }
+            level.setBlockAndUpdate(pos, state.setValue(COUNT, count + 1));
+            level.playSound(null, pos, SoundEvents.GLASS_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            if (!player.getAbilities().instabuild) {
+                stack.shrink(1);
+            }
+            return ItemInteractionResult.SUCCESS;
+        }
+
+        // scoop every jar up, contents included
         if (stack.is(KITCHEN_SHOVEL) || stack.is(ItemTags.SHOVELS)) {
-            if (level instanceof ServerLevel serverLevel) {
-                ItemStack picked = jarStack(jar, serverLevel.registryAccess());
+            if (!level.isClientSide) {
+                int count = state.getValue(COUNT);
+                Block.popResource(level, pos, jarStack(jar, level.registryAccess()));
+                for (int i = 1; i < count; i++) {
+                    Block.popResource(level, pos, new ItemStack(ModItems.SPICE_JAR.get()));
+                }
                 level.removeBlock(pos, false);
-                player.getInventory().placeItemBackInInventory(picked);
                 level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.7F, 1.2F);
             }
             return ItemInteractionResult.SUCCESS;
@@ -110,7 +126,7 @@ public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityB
         return NoGuiStorage.interact(stack, level, pos, player, hand, jar);
     }
 
-    /** The jar as an item, carrying whatever it holds. */
+    /** One jar as an item, carrying whatever the block holds. */
     public static ItemStack jarStack(SpiceJarBlockEntity jar, RegistryAccess access) {
         ItemStack stack = new ItemStack(ModItems.SPICE_JAR.get());
         CompoundTag contents = jar.saveCustomOnly(access);
@@ -120,15 +136,16 @@ public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityB
         return stack;
     }
 
-    /**
-     * Drops the jar with its contents, whatever removed the block. The loot table stays
-     * empty on purpose so nothing is dropped twice.
-     */
+    /** Drops one jar with the contents plus the empties; the loot table stays empty. */
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide
                 && level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar) {
+            int count = state.getValue(COUNT);
             Block.popResource(level, pos, jarStack(jar, level.registryAccess()));
+            for (int i = 1; i < count; i++) {
+                Block.popResource(level, pos, new ItemStack(ModItems.SPICE_JAR.get()));
+            }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

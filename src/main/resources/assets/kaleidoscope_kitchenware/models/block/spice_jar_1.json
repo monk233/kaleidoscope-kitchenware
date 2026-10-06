@@ -1,0 +1,87 @@
+{
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "0": "kaleidoscope_kitchenware:block/jar_side",
+    "1": "kaleidoscope_kitchenware:block/jar_top",
+    "particle": "kaleidoscope_kitchenware:block/jar_side"
+  },
+  "elements": [
+    {
+      "from": [
+        5.0,
+        0,
+        5.0
+      ],
+      "to": [
+        11.0,
+        6.0,
+        11.0
+      ],
+      "rotation": {
+        "angle": 8,
+        "axis": "y",
+        "origin": [
+          8.0,
+          0,
+          8.0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#0"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#0"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#1"
+        }
+      }
+    }
+  ]
+}
