@@ -71,4 +71,21 @@ if problems:
         print(" -", problem)
     sys.exit(1)
 
+# every item/block model must point at a model that actually exists
+models_dir = RES / "assets" / NS / "models"
+for folder in ("item", "block"):
+    for model_file in (models_dir / folder).glob("*.json"):
+        parent = json.loads(model_file.read_text(encoding="utf-8")).get("parent", "")
+        if not parent.startswith(f"{NS}:block/"):
+            continue
+        target = models_dir / "block" / (parent.split(":", 1)[1].split("/", 1)[1] + ".json")
+        if not target.exists():
+            problems.append(f"{folder}/{model_file.name} points at missing model {parent}")
+
+if problems:
+    print("FAILED (model references)")
+    for problem in problems:
+        print(" -", problem)
+    sys.exit(1)
+
 print(f"OK: {len(DECOR)} blocks, all json parsed, textures and lang entries present")

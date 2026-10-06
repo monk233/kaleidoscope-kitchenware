@@ -541,8 +541,10 @@ def build_containers(textures_dir: Path) -> None:
     write_json(RES / "assets" / NS / "blockstates" / "spice_rack.json", {"variants": rack_variants})
 
     for name in ("water_vat", "cupboard", "spice_rack"):
+        # the item form shows a specific variant: a full vat, a full rack, a closed cupboard
+        item_parent = {"water_vat": "water_vat_3", "spice_rack": "spice_rack_4"}.get(name, name)
         write_json(RES / "assets" / NS / "models" / "item" / f"{name}.json",
-                   {"parent": f"{NS}:block/{name}{'_3' if name == 'water_vat' else ''}"})
+                   {"parent": f"{NS}:block/{item_parent}"})
         write_json(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json", loot_table(name))
 
 
