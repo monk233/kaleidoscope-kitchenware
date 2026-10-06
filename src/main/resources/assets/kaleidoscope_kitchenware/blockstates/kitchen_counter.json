@@ -1,18 +1,7 @@
 {
   "variants": {
-    "axis=y": {
+    "": {
       "model": "kaleidoscope_kitchenware:block/kitchen_counter"
-    },
-    "axis=z": {
-      "model": "kaleidoscope_kitchenware:block/kitchen_counter",
-      "x": 90,
-      "uvlock": true
-    },
-    "axis=x": {
-      "model": "kaleidoscope_kitchenware:block/kitchen_counter",
-      "x": 90,
-      "y": 90,
-      "uvlock": true
     }
   }
 }

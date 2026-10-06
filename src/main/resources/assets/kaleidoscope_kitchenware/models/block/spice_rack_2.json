@@ -1,8 +1,8 @@
 {
   "textures": {
-    "0": "kaleidoscope_kitchenware:block/rack_side",
-    "1": "kaleidoscope_kitchenware:block/jar",
-    "particle": "kaleidoscope_kitchenware:block/rack_side"
+    "0": "kaleidoscope_kitchenware:block/rack_board",
+    "1": "kaleidoscope_kitchenware:block/spice_jar",
+    "particle": "kaleidoscope_kitchenware:block/rack_board"
   },
   "elements": [
     {

@@ -60,7 +60,6 @@ DECOR = [
     ("wooden_rafter", "椽木", "Wooden Rafter", "pillar", {"kind": "plank", "species": "oak"}),
     ("lattice_window", "木格窗", "Lattice Window", "thin", {"kind": "lattice", "species": "oak"}),
     ("bamboo_curtain", "竹帘", "Bamboo Curtain", "thin", {"kind": "curtain", "species": "bamboo"}),
-    ("kitchen_counter", "料理台", "Kitchen Counter", "pillar", {"kind": "plank", "species": "spruce"}),
 ]
 
 BASE_OF = {
@@ -218,6 +217,103 @@ def draw_wood_pile(img, ramp, rng):
                 img.putpixel((x, y), ramp[1])
 
 
+GOLD = (0xBD, 0x95, 0x38, 255)
+PORCELAIN = (0xEF, 0xEE, 0xE2, 255)
+PORCELAIN_SHADE = (0xD8, 0xD3, 0xC6, 255)
+
+
+def draw_cabinet_front(img, ramp, rng):
+    """Cabinet doors: frame, two leaves with a centre gap, brass handles."""
+    size = img.width
+    mid = size // 2
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), ramp[1])
+    for i in range(size):
+        img.putpixel((i, 0), ramp[-1])
+        img.putpixel((i, size - 1), ramp[-1])
+        img.putpixel((0, i), ramp[-1])
+        img.putpixel((size - 1, i), ramp[-1])
+    for y in range(1, size - 1):
+        img.putpixel((mid, y), ramp[-1])
+        img.putpixel((mid - 1, y), ramp[0])
+        img.putpixel((mid + 1, y), ramp[0])
+    for y in range(3, size - 4):
+        img.putpixel((2, y), ramp[0])
+        img.putpixel((size - 3, y), ramp[0])
+    for y in range(size // 2 - 1, size // 2 + 2):
+        img.putpixel((mid - 3, y), GOLD)
+        img.putpixel((mid + 3, y), GOLD)
+
+
+def draw_cabinet_open(img, ramp, rng):
+    """Open cupboard: dark interior, a shelf, two stacked bowls."""
+    size = img.width
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), ramp[-1])
+    for i in range(size):
+        img.putpixel((i, 0), ramp[1])
+        img.putpixel((i, size - 1), ramp[1])
+        img.putpixel((0, i), ramp[1])
+        img.putpixel((size - 1, i), ramp[1])
+    for x in range(2, size - 2):
+        img.putpixel((x, size // 2), ramp[2] if len(ramp) > 2 else ramp[0])
+    for base_y in (size // 2 + 3, size - 5):
+        for x in range(4, size - 4):
+            img.putpixel((x, base_y), PORCELAIN_SHADE)
+            img.putpixel((x, base_y + 1), PORCELAIN)
+            img.putpixel((x, base_y + 2), PORCELAIN_SHADE)
+
+
+def draw_spice_jar(img, ramp, rng):
+    """Small ceramic jar for the spice rack."""
+    size = img.width
+    for y in range(size):
+        for x in range(size):
+            edge = x in (0, size - 1) or y == size - 1
+            if edge:
+                img.putpixel((x, y), ramp[-1])
+            elif y <= 1:
+                img.putpixel((x, y), ramp[-1] if 2 <= x <= size - 3 else ramp[1])
+            elif x <= 1 or x >= size - 2:
+                img.putpixel((x, y), ramp[1])
+            else:
+                img.putpixel((x, y), ramp[0])
+    for y in range(3, size - 3):
+        img.putpixel((3, y), PORCELAIN_SHADE)
+
+
+def draw_counter_top(img, ramp, rng):
+    """Counter worktop: stone slab with a wooden rim."""
+    size = img.width
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), ramp[0] if (x + y) % 5 else ramp[1])
+    for i in range(size):
+        img.putpixel((i, 0), ramp[2] if len(ramp) > 2 else ramp[-1])
+        img.putpixel((i, size - 1), ramp[2] if len(ramp) > 2 else ramp[-1])
+        img.putpixel((0, i), ramp[2] if len(ramp) > 2 else ramp[-1])
+        img.putpixel((size - 1, i), ramp[2] if len(ramp) > 2 else ramp[-1])
+
+
+def draw_counter_side(img, ramp, rng):
+    """Counter body: panelled wood with a drawer seam and a brass pull."""
+    size = img.width
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), ramp[0] if (y % 4) else ramp[1])
+    for i in range(size):
+        img.putpixel((0, i), ramp[-1])
+        img.putpixel((size - 1, i), ramp[-1])
+        img.putpixel((i, 0), ramp[-1])
+        img.putpixel((i, size - 1), ramp[-1])
+    for x in range(1, size - 1):
+        img.putpixel((x, size // 2), ramp[-1])
+    for x in range(size // 2 - 3, size // 2 + 4):
+        img.putpixel((x, size // 2 + 3), GOLD)
+
+
 PATTERNS = {
     "brick": draw_brick,
     "roof_tile": draw_roof_tile,
@@ -229,6 +325,11 @@ PATTERNS = {
     "stove_face": draw_stove_face,
     "stove_face_lit": draw_stove_face_lit,
     "wood_pile": draw_wood_pile,
+    "cabinet_front": draw_cabinet_front,
+    "cabinet_open": draw_cabinet_open,
+    "spice_jar": draw_spice_jar,
+    "counter_top": draw_counter_top,
+    "counter_side": draw_counter_side,
 }
 
 
@@ -360,8 +461,6 @@ FUNCTIONAL_TEXTURES = {
     "stove_top": {"kind": "tile_floor", "ramp": FLOOR_TILE},
     "pile_side": {"kind": "plank", "species": "spruce"},
     "pile_top": {"kind": "wood_pile", "species": "spruce"},
-    "hood_body": {"kind": "tile_floor", "ramp": ["#8B8B8B", "#747474", "#606572", "#3F4447"]},
-    "hood_active": {"kind": "tile_floor", "ramp": ["#C2C7CB", "#93A3A3", "#6E7179", "#4E5E60"]},
 }
 
 FACING_Y = (("north", 0), ("east", 90), ("south", 180), ("west", 270))
@@ -427,36 +526,7 @@ def build_functional(textures_dir: Path) -> None:
     for name in ("firewood_stove", "firewood_pile"):
         write_json(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json", loot_table(name))
 
-    # range hood: a canopy under a duct, the canopy texture brightens while it runs
-    hood_elements = [
-        {"from": [0, 12, 0], "to": [16, 16, 16],
-         "faces": {face: {"uv": [0, 0, 16, 4 if face in ("north", "south", "east", "west") else 16],
-                          "texture": "#0" if face != "down" else "#1"}
-                   for face in ("north", "south", "east", "west", "up", "down")}},
-        {"from": [4, 4, 4], "to": [12, 12, 12],
-         "faces": {face: {"uv": [0, 0, 8, 8], "texture": "#0"}
-                   for face in ("north", "south", "east", "west", "up", "down")}},
-    ]
-    for active in (False, True):
-        write_json(RES / "assets" / NS / "models" / "block" / f"range_hood{'_active' if active else ''}.json", {
-            "render_type": "minecraft:cutout",
-            "textures": {"0": tex("hood_active" if active else "hood_body"), "1": tex("hood_body"),
-                         "particle": tex("hood_body")},
-            "elements": hood_elements,
-        })
-    hood_variants = {}
-    for facing, y in FACING_Y:
-        for powered in (False, True):
-            for active in (False, True):
-                model = {"model": f"{NS}:block/range_hood{'_active' if active else ''}"}
-                if y:
-                    model["y"] = y
-                hood_variants[f"facing={facing},powered={'true' if powered else 'false'},"
-                              f"active={'true' if active else 'false'}"] = model
-    write_json(RES / "assets" / NS / "blockstates" / "range_hood.json", {"variants": hood_variants})
-    write_json(RES / "assets" / NS / "models" / "item" / "range_hood.json",
-               {"parent": f"{NS}:block/range_hood"})
-    write_json(RES / "data" / NS / "loot_table" / "blocks" / "range_hood.json", loot_table("range_hood"))
+    # range hood was removed: venting turned out to be a gimmick nobody asked for
 
 
 # --- containers and vat -------------------------------------------------------
@@ -465,10 +535,12 @@ CONTAINER_TEXTURES = {
     "vat_side": {"kind": "brick", "ramp": ["#A3814F", "#8A6A47", "#6E523A"]},
     "vat_top": {"kind": "plaster", "ramp": ["#4FA3D1", "#3B82AC", "#2A5F80"]},
     "cupboard_side": {"kind": "plank", "species": "spruce"},
-    "cupboard_front": {"kind": "plank", "species": "oak"},
-    "cupboard_front_open": {"kind": "brick", "ramp": ["#6D442F", "#5E3723", "#3B3020"]},
-    "rack_side": {"kind": "plank", "species": "oak"},
-    "jar": {"kind": "tile_floor", "ramp": ["#C2A166", "#937544", "#5E3723"]},
+    "cupboard_front": {"kind": "cabinet_front", "species": "oak"},
+    "cupboard_front_open": {"kind": "cabinet_open", "species": "oak"},
+    "rack_board": {"kind": "plank", "species": "spruce"},
+    "spice_jar": {"kind": "spice_jar", "species": "oak"},
+    "counter_top": {"kind": "counter_top", "ramp": ["#B9B4A5", "#93A3A3", "#55636C", "#3F4447"]},
+    "counter_side": {"kind": "counter_side", "species": "spruce"},
 }
 
 VAT_WATER_HEIGHT = {0: 4, 1: 8, 2: 12, 3: 14}
@@ -529,8 +601,8 @@ def build_containers(textures_dir: Path) -> None:
             x, y = spot
             elements.append(box([x, y, 4], [x + 2.5, y + 3, 6.5], "#1", uv=[0, 0, 3, 3]))
         write_json(RES / "assets" / NS / "models" / "block" / f"spice_rack_{filled}.json",
-                   {"textures": {"0": tex("rack_side"), "1": tex("jar"), "particle": tex("rack_side")},
-                    "elements": elements})
+                   {"textures": {"0": tex("rack_board"), "1": tex("spice_jar"),
+                                 "particle": tex("rack_board")}, "elements": elements})
     rack_variants = {}
     for facing, y in FACING_Y:
         for filled in range(5):
@@ -540,7 +612,27 @@ def build_containers(textures_dir: Path) -> None:
             rack_variants[f"facing={facing},filled={filled}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "spice_rack.json", {"variants": rack_variants})
 
-    for name in ("water_vat", "cupboard", "spice_rack"):
+    # kitchen counter: stone worktop sitting on a panelled body
+    write_json(RES / "assets" / NS / "models" / "block" / "kitchen_counter.json", {
+        "textures": {"0": tex("counter_side"), "1": tex("counter_top"),
+                     "particle": tex("counter_side")},
+        "elements": [
+            {"from": [0, 12, 0], "to": [16, 16, 16],
+             "faces": {"up": {"uv": [0, 0, 16, 16], "texture": "#1"},
+                       "down": {"uv": [0, 0, 16, 16], "texture": "#0"},
+                       "north": {"uv": [0, 12, 16, 16], "texture": "#0"},
+                       "south": {"uv": [0, 12, 16, 16], "texture": "#0"},
+                       "east": {"uv": [0, 12, 16, 16], "texture": "#0"},
+                       "west": {"uv": [0, 12, 16, 16], "texture": "#0"}}},
+            {"from": [1, 0, 1], "to": [15, 12, 15],
+             "faces": {face: {"uv": [0, 0, 14, 12], "texture": "#0"}
+                       for face in ("north", "south", "east", "west", "up", "down")}},
+        ],
+    })
+    write_json(RES / "assets" / NS / "blockstates" / "kitchen_counter.json",
+               {"variants": {"": {"model": f"{NS}:block/kitchen_counter"}}})
+
+    for name in ("water_vat", "cupboard", "spice_rack", "kitchen_counter"):
         # the item form shows a specific variant: a full vat, a full rack, a closed cupboard
         item_parent = {"water_vat": "water_vat_3", "spice_rack": "spice_rack_4"}.get(name, name)
         write_json(RES / "assets" / NS / "models" / "item" / f"{name}.json",
@@ -575,7 +667,7 @@ def main() -> None:
     build_functional(textures_dir)
     build_containers(textures_dir)
 
-    merge_lang(RES / "assets" / NS / "lang" / "zh_cn.json",
+    write_json(RES / "assets" / NS / "lang" / "zh_cn.json",
                {f"block.{NS}.{n}": zh for n, zh, _, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "森罗物语：家什"}
                | {"block." + NS + ".firewood_stove": "柴火灶",
@@ -588,21 +680,16 @@ def main() -> None:
                   f"state.{NS}.fuel_left": "剩余燃料 %s 秒（%s）",
                   f"state.{NS}.need_fuel": "灶里没有柴火",
                   f"state.{NS}.pile_take": "取出一根柴",
-                  "block." + NS + ".range_hood": "抽油烟机",
-                  f"state.{NS}.hood_active": "油烟机工作中",
-                  f"state.{NS}.hood_unpowered": "油烟机未通电",
-                  f"state.{NS}.hood_no_stove": "油烟机下方没有柴火灶",
-                  f"state.{NS}.hood_efficiency": "排烟效率：%s%%",
                   "block." + NS + ".water_vat": "水缸",
                   "block." + NS + ".cupboard": "碗柜",
                   "block." + NS + ".spice_rack": "调料架",
+                  "block." + NS + ".kitchen_counter": "料理台",
                   f"state.{NS}.storage_full": "已经塞满了",
                   f"state.{NS}.storage_empty": "里面是空的",
                   f"state.{NS}.storage_rejects": "这个放不进去",
                   f"state.{NS}.vat_empty": "缸里没水了",
-                  f"state.{NS}.vat_hint": "拿空桶或空瓶来打水",
-                  f"effect.{NS}.smoke_cough": "油烟呛咳"})
-    merge_lang(RES / "assets" / NS / "lang" / "en_us.json",
+                  f"state.{NS}.vat_hint": "拿空桶或空瓶来打水"})
+    write_json(RES / "assets" / NS / "lang" / "en_us.json",
                {f"block.{NS}.{n}": en for n, _, en, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "Kaleidoscope Kitchenware"}
                | {"block." + NS + ".firewood_stove": "Firewood Stove",
@@ -615,22 +702,17 @@ def main() -> None:
                   f"state.{NS}.fuel_left": "Fuel left: %s s (%s)",
                   f"state.{NS}.need_fuel": "No firewood in the stove",
                   f"state.{NS}.pile_take": "Took one piece of firewood",
-                  "block." + NS + ".range_hood": "Range Hood",
-                  f"state.{NS}.hood_active": "Range hood running",
-                  f"state.{NS}.hood_unpowered": "Range hood has no redstone signal",
-                  f"state.{NS}.hood_no_stove": "No firewood stove under this range hood",
-                  f"state.{NS}.hood_efficiency": "Venting efficiency: %s%%",
                   "block." + NS + ".water_vat": "Water Vat",
                   "block." + NS + ".cupboard": "Cupboard",
                   "block." + NS + ".spice_rack": "Spice Rack",
+                  "block." + NS + ".kitchen_counter": "Kitchen Counter",
                   f"state.{NS}.storage_full": "It is full",
                   f"state.{NS}.storage_empty": "It is empty",
                   f"state.{NS}.storage_rejects": "That does not belong in here",
                   f"state.{NS}.vat_empty": "The vat is empty",
-                  f"state.{NS}.vat_hint": "Bring a bucket or a bottle",
-                  f"effect.{NS}.smoke_cough": "Smoke Cough"})
+                  f"state.{NS}.vat_hint": "Bring a bucket or a bottle"})
 
-    print(f"generated {len(DECOR)} decorative blocks and 2 functional blocks into {RES}")
+    print(f"generated {len(DECOR)} decorative blocks and 4 functional blocks into {RES}")
 
 
 if __name__ == "__main__":

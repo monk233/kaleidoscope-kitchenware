@@ -7,10 +7,6 @@ public final class KitchenwareConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     public static final ModConfigSpec.DoubleValue FUEL_BURN_MULTIPLIER;
-    public static final ModConfigSpec.BooleanValue HOOD_TIER_BONUS;
-    public static final ModConfigSpec.BooleanValue ENABLE_SMOKE_COUGH;
-    public static final ModConfigSpec.IntValue CHIMNEY_EFFICIENCY;
-    public static final ModConfigSpec.IntValue NO_CHIMNEY_EFFICIENCY;
     public static final ModConfigSpec.BooleanValue VAT_CONSUMES_LEVEL;
     public static final ModConfigSpec.IntValue CUPBOARD_CAPACITY;
     public static final ModConfigSpec.IntValue SPICE_RACK_CAPACITY;
@@ -20,21 +16,6 @@ public final class KitchenwareConfig {
         FUEL_BURN_MULTIPLIER = BUILDER
                 .comment("Multiplier on how long one fuel item keeps the firewood stove lit.")
                 .defineInRange("fuelBurnMultiplier", 1.0D, 0.1D, 10.0D);
-        HOOD_TIER_BONUS = BUILDER
-                .comment("Whether a working range hood pushes the stove one fire tier higher.")
-                .define("hoodTierBonus", true);
-        BUILDER.pop();
-
-        BUILDER.push("rangeHood");
-        ENABLE_SMOKE_COUGH = BUILDER
-                .comment("Whether standing by an unvented lit stove gives the smoke cough effect.")
-                .define("enableSmokeCough", true);
-        CHIMNEY_EFFICIENCY = BUILDER
-                .comment("Venting efficiency percent when a chimney sits above the range hood.")
-                .defineInRange("chimneyEfficiency", 100, 0, 100);
-        NO_CHIMNEY_EFFICIENCY = BUILDER
-                .comment("Venting efficiency percent when there is no chimney.")
-                .defineInRange("noChimneyEfficiency", 50, 0, 100);
         BUILDER.pop();
 
         BUILDER.push("waterVat");

@@ -5,7 +5,6 @@ import com.kaleidoscope.kitchenware.block.CupboardBlock;
 import com.kaleidoscope.kitchenware.block.FacingThinBlock;
 import com.kaleidoscope.kitchenware.block.FirewoodPileBlock;
 import com.kaleidoscope.kitchenware.block.FirewoodStoveBlock;
-import com.kaleidoscope.kitchenware.block.RangeHoodBlock;
 import com.kaleidoscope.kitchenware.block.SpiceRackBlock;
 import com.kaleidoscope.kitchenware.block.WaterVatBlock;
 import net.minecraft.world.level.block.Block;
@@ -66,11 +65,9 @@ public final class ModBlocks {
             () -> new FirewoodStoveBlock(stone().randomTicks()));
     public static final DeferredHolder<Block, FirewoodPileBlock> FIREWOOD_PILE = reg("firewood_pile",
             () -> new FirewoodPileBlock(wood().noOcclusion().strength(0.6F)));
-    /** Plain pillar block: the chimney only exists so the hood can find it above itself. */
+    /** Plain pillar block, decorative: keeps the chimney line above a stove looking finished. */
     public static final DeferredHolder<Block, RotatedPillarBlock> CHIMNEY = reg("chimney",
             () -> new RotatedPillarBlock(stone()));
-    public static final DeferredHolder<Block, RangeHoodBlock> RANGE_HOOD = reg("range_hood",
-            () -> new RangeHoodBlock(stone().noOcclusion().strength(2.0F, 4.0F)));
     public static final DeferredHolder<Block, WaterVatBlock> WATER_VAT = reg("water_vat",
             () -> new WaterVatBlock(stone().noOcclusion().strength(1.5F, 4.0F)));
     /** 16 slots of bowls and flower pots, no GUI anywhere. */
@@ -78,9 +75,9 @@ public final class ModBlocks {
             () -> new CupboardBlock(wood().strength(2.0F, 3.0F)));
     public static final DeferredHolder<Block, SpiceRackBlock> SPICE_RACK = reg("spice_rack",
             () -> new SpiceRackBlock(wood().noOcclusion().strength(1.0F)));
-    /** Plain pillar block; the boards tile so a row of them reads as one continuous counter. */
-    public static final DeferredHolder<Block, RotatedPillarBlock> KITCHEN_COUNTER = reg("kitchen_counter",
-            () -> new RotatedPillarBlock(wood()));
+    /** Plain block; the boards tile so a row of them reads as one continuous counter. */
+    public static final DeferredHolder<Block, Block> KITCHEN_COUNTER = reg("kitchen_counter",
+            () -> new Block(wood().noOcclusion()));
 
     private ModBlocks() {
     }
