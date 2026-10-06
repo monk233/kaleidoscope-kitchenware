@@ -18,7 +18,7 @@
         11.0
       ],
       "rotation": {
-        "angle": -10,
+        "angle": -22.5,
         "axis": "y",
         "origin": [
           5.0,
@@ -95,7 +95,7 @@
         11.0
       ],
       "rotation": {
-        "angle": 12,
+        "angle": 22.5,
         "axis": "y",
         "origin": [
           11.0,

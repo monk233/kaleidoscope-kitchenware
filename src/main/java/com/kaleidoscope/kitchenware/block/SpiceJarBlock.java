@@ -9,6 +9,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -126,13 +127,21 @@ public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityB
         return NoGuiStorage.interact(stack, level, pos, player, hand, jar);
     }
 
-    /** One jar as an item, carrying whatever the block holds. */
+    /**
+     * One jar as an item, carrying whatever the block holds.
+     *
+     * An empty jar stays a plain stack so it stacks normally. A stocked one carries the
+     * block entity data, which must include the block entity id or saving the player
+     * inventory blows up.
+     */
     public static ItemStack jarStack(SpiceJarBlockEntity jar, RegistryAccess access) {
         ItemStack stack = new ItemStack(ModItems.SPICE_JAR.get());
-        CompoundTag contents = jar.saveCustomOnly(access);
-        if (!contents.isEmpty()) {
-            stack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(contents));
+        if (jar.isEmpty()) {
+            return stack;
         }
+        CompoundTag contents = jar.saveCustomOnly(access);
+        contents.putString("id", BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(jar.getType()).toString());
+        stack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(contents));
         return stack;
     }
 

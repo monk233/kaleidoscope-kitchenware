@@ -73,14 +73,20 @@ if problems:
 
 # every item/block model must point at a model that actually exists
 models_dir = RES / "assets" / NS / "models"
+ALLOWED_ANGLES = {-45.0, -22.5, 0.0, 22.5, 45.0}
 for folder in ("item", "block"):
     for model_file in (models_dir / folder).glob("*.json"):
-        parent = json.loads(model_file.read_text(encoding="utf-8")).get("parent", "")
-        if not parent.startswith(f"{NS}:block/"):
-            continue
-        target = models_dir / "block" / (parent.split(":", 1)[1].split("/", 1)[1] + ".json")
-        if not target.exists():
-            problems.append(f"{folder}/{model_file.name} points at missing model {parent}")
+        body = json.loads(model_file.read_text(encoding="utf-8"))
+        parent = body.get("parent", "")
+        if parent.startswith(f"{NS}:block/"):
+            target = models_dir / "block" / (parent.split(":", 1)[1].split("/", 1)[1] + ".json")
+            if not target.exists():
+                problems.append(f"{folder}/{model_file.name} points at missing model {parent}")
+        for element in body.get("elements", []):
+            rotation = element.get("rotation")
+            if isinstance(rotation, dict) and float(rotation.get("angle", 0)) not in ALLOWED_ANGLES:
+                problems.append(f"{folder}/{model_file.name} uses illegal element rotation "
+                                f"{rotation.get('angle')} (only -45/-22.5/0/22.5/45 are allowed)")
 
 if problems:
     print("FAILED (model references)")

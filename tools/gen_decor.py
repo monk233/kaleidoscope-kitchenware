@@ -664,13 +664,14 @@ def build_containers(textures_dir: Path) -> None:
             cupboard_variants[f"facing={facing},open={'true' if opened else 'false'}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "cupboard.json", {"variants": cupboard_variants})
 
-    # spice jars: up to four squat jars share a block, each turned a little, like teacups
+    # spice jars: up to four squat jars share a block, each turned a little, like teacups.
+    # Minecraft only accepts -45/-22.5/0/22.5/45 for element rotation, nothing else.
     jar_size = 6.0
     jar_spots = {
-        1: [(5.0, 5.0, 8)],
-        2: [(2.0, 5.0, -10), (8.0, 5.0, 12)],
-        3: [(2.5, 2.0, 6), (8.0, 3.0, -14), (5.0, 8.5, 18)],
-        4: [(1.5, 1.5, 5), (8.5, 1.5, -12), (1.5, 8.5, 14), (8.5, 8.5, -6)],
+        1: [(5.0, 5.0, 22.5)],
+        2: [(2.0, 5.0, -22.5), (8.0, 5.0, 22.5)],
+        3: [(2.5, 2.0, 22.5), (8.0, 3.0, -22.5), (5.0, 8.5, 45)],
+        4: [(1.5, 1.5, 22.5), (8.5, 1.5, -22.5), (1.5, 8.5, 45), (8.5, 8.5, -45)],
     }
 
     def jar_element(x: float, z: float, angle: float) -> dict:
