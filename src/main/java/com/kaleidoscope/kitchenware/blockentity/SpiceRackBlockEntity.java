@@ -1,5 +1,6 @@
 package com.kaleidoscope.kitchenware.blockentity;
 
+import com.kaleidoscope.kitchenware.config.KitchenwareConfig;
 import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
@@ -11,7 +12,7 @@ public class SpiceRackBlockEntity extends StorageBlockEntity {
     public static final int DEFAULT_CAPACITY = 8;
 
     public SpiceRackBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.SPICE_RACK.get(), pos, state, DEFAULT_CAPACITY);
+        super(ModBlockEntities.SPICE_RACK.get(), pos, state, KitchenwareConfig.SPICE_RACK_CAPACITY.get());
     }
 
     @Override

@@ -148,7 +148,7 @@ public boolean hasHeatSource(Level level) {
 | 5 | `water_vat` | 水缸 | `facing`, `level`(0-3) | 否 | 手持空桶/空瓶右键装满；空手右键提示；默认满水无限取用 | 32×32，四档水位贴图 |
 | 6 | `cupboard` | 碗柜 | `facing`, `open` | 是：16 格，仅接受碗与花盆 | 手持可存物右键存入一个；空手右键取出一个；Shift + 右键强制取出一个 | 32×32，双开门两态 |
 | 7 | `spice_rack` | 调料架 | `facing`, `filled`(0-8) | 是：8 格 | 同碗柜规则 | 32×32，按存量切换模型 |
-| 8 | `kitchen_counter` | 料理台 | `axis`, `position`, `waterlogged` | 否 | 台面可放置与取回物品，不掉落 | 32×32 |
+| 8 | `kitchen_counter` | 料理台 | `axis` | 否 | 平铺台面，贴图无缝相接，排成一行即成一条长台面 | 16×16 |
 
 配方思路（沿用本体材料体系）：柴火灶 = 圆石/石砖 + 营火 + 铁锭；柴火堆 = 木棍 + 原木；水缸 = 陶瓦 + 铁桶 + 石砖；碗柜 = 木板 + 木台阶 + 铁粒；抽油烟机 = 铁锭 + 漏斗 + 铜锭；烟囱 = 青砖；料理台 = 木板 + 石砖。
 
@@ -215,8 +215,8 @@ public boolean hasHeatSource(Level level) {
 
 ### 6.6 料理台
 
-- 台面为可拼接平面结构（走 `position` 属性），相邻放置时自动连接。
-- 台面上可放置物品，取回后不掉落，用于陈列已烹饪的菜品。
+- 台面为可平铺方块（走 `axis` 属性），贴图设计为无缝相接，排成一行即为一条完整台面。
+- 台面陈列物品需要方块实体渲染器，本版本不做，列入 v2 待办。
 
 ## 7. 工程结构
 
@@ -265,23 +265,27 @@ kaleidoscope_kitchenware/
 
 ## 10. 配置项
 
+`config/kaleidoscope_kitchenware-common.toml`，共 8 项。
+
 | 配置 | 默认 | 说明 |
 | --- | --- | --- |
-| `stove.fuelBurnMultiplier` | 1.0 | 柴火灶燃料消耗倍率 |
-| `stove.fireTierBonusEnabled` | true | 是否启用猛火额外加成 |
-| `rangeHood.chimneyEfficiency` | 100 | 有烟囱时的效率百分比 |
-| `rangeHood.noChimneyEfficiency` | 50 | 无烟囱时的效率百分比 |
+| `stove.fuelBurnMultiplier` | 1.0 | 柴火灶燃料燃烧时长倍率 |
+| `stove.hoodTierBonus` | true | 抽油烟机是否给灶提升一档火力 |
 | `rangeHood.enableSmokeCough` | true | 是否启用「油烟呛咳」负面效果 |
-| `waterVat.consumesLevel` | false | 取水是否消耗水位 |
-| `cupboard.capacity` | 16 | 碗柜容量（最高 27） |
-| `spiceRack.capacity` | 8 | 调料架容量（最高 16） |
-| `decor.enableBricks` 等分组开关 | true | 建材各组开关（青砖/青瓦/墙地/木构） |
+| `rangeHood.chimneyEfficiency` | 100 | 有烟囱时的排烟效率百分比 |
+| `rangeHood.noChimneyEfficiency` | 50 | 无烟囱时的排烟效率百分比 |
+| `waterVat.consumesLevel` | false | 打水是否消耗水位 |
+| `storage.cupboardCapacity` | 16 | 碗柜格数（上限 27） |
+| `storage.spiceRackCapacity` | 8 | 调料架格数（上限 16） |
 
-## 11. v2 待办（需 Mixin，作为可关闭模块）
+建材分组开关不提供配置项：注册阶段读取配置不安全，且关掉方块注册会让已放置的方块变成空气。需要裁剪建材时建议用数据包或整合包工具处理。
+
+## 11. v2 待办
 
 1. 火力档影响熟制速度：Mixin `PotBlockEntity` / `StockpotBlockEntity` / `SteamerBlockEntity` 的 `tick`，按灶档位施加倍率（文火 0.75x、中火 1x、猛火 1.5x）。
 2. 一灶多锅：Mixin `hasHeatSource`，改为检查灶方块周围 3 格内的锅具。
-3. 两项均通过配置开关控制，默认关闭，并在 README 说明兼容风险。
+3. 料理台陈列物品：加方块实体与渲染器，让台面能摆放菜品。
+4. 以上三项均通过配置开关控制，默认关闭，并在 README 说明兼容风险。
 
 ## 12. 验收标准
 

@@ -1,5 +1,6 @@
 package com.kaleidoscope.kitchenware.block;
 
+import com.kaleidoscope.kitchenware.config.KitchenwareConfig;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,14 +27,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 /**
  * Water vat: fill a bucket or a bottle from it, no GUI anywhere.
  *
- * ponytail: the vat is an infinite source and does not drain by default. Set
- * DRAINS_WATER to true (or promote it to a config value) when refilling should matter.
+ * By default the vat is an endless source and does not drain; set
+ * waterVat.consumesLevel to true when refilling the vat should matter.
  */
 public class WaterVatBlock extends HorizontalDirectionalBlock {
     public static final MapCodec<WaterVatBlock> CODEC = simpleCodec(WaterVatBlock::new);
     /** 0 = empty, 3 = full. */
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 3);
-    public static final boolean DRAINS_WATER = false;
     private static final VoxelShape SHAPE = Shapes.box(0.125, 0, 0.125, 0.875, 0.75, 0.875);
 
     public WaterVatBlock(Properties properties) {
@@ -89,7 +89,7 @@ public class WaterVatBlock extends HorizontalDirectionalBlock {
         level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
         held.shrink(1);
         player.getInventory().placeItemBackInInventory(filled);
-        if (DRAINS_WATER) {
+        if (KitchenwareConfig.VAT_CONSUMES_LEVEL.get()) {
             level.setBlockAndUpdate(pos, state.setValue(LEVEL, state.getValue(LEVEL) - 1));
         }
         return ItemInteractionResult.SUCCESS;

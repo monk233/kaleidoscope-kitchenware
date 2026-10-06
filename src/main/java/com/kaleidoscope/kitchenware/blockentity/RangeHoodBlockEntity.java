@@ -2,6 +2,7 @@ package com.kaleidoscope.kitchenware.blockentity;
 
 import com.kaleidoscope.kitchenware.block.RangeHoodBlock;
 import com.kaleidoscope.kitchenware.blockentity.FirewoodStoveBlockEntity;
+import com.kaleidoscope.kitchenware.config.KitchenwareConfig;
 import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import com.kaleidoscope.kitchenware.util.RangeHoodSupport;
 import net.minecraft.core.BlockPos;
@@ -36,7 +37,11 @@ public class RangeHoodBlockEntity extends BlockEntity {
 
         FirewoodStoveBlockEntity stove = findStove(level);
         boolean working = powered && stove != null;
-        efficiency = working ? (RangeHoodSupport.hasChimney(level, worldPosition) ? 100 : 50) : 0;
+        efficiency = working
+                ? (RangeHoodSupport.hasChimney(level, worldPosition)
+                        ? KitchenwareConfig.CHIMNEY_EFFICIENCY.get()
+                        : KitchenwareConfig.NO_CHIMNEY_EFFICIENCY.get())
+                : 0;
 
         if (servedStove != stove) {
             if (servedStove != null) {

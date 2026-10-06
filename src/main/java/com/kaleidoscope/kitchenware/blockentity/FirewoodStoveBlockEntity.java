@@ -1,5 +1,6 @@
 package com.kaleidoscope.kitchenware.blockentity;
 
+import com.kaleidoscope.kitchenware.config.KitchenwareConfig;
 import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import com.kaleidoscope.kitchenware.registry.ModEffects;
 import com.kaleidoscope.kitchenware.util.FuelTier;
@@ -59,7 +60,7 @@ public class FirewoodStoveBlockEntity extends BlockEntity {
 
     /** Tier as shown to the player: a working range hood pushes it one step higher. */
     public FuelTier effectiveTier() {
-        if (!hoodBoost || hoodEfficiency <= 0) {
+        if (!hoodBoost || hoodEfficiency <= 0 || !KitchenwareConfig.HOOD_TIER_BONUS.get()) {
             return tier;
         }
         return switch (tier) {
@@ -130,7 +131,9 @@ public class FirewoodStoveBlockEntity extends BlockEntity {
     }
 
     private void tickSmoke(Level level) {
-        if (level.getGameTime() % SMOKE_INTERVAL != 0 || RangeHoodSupport.hasWorkingHood(level, worldPosition)) {
+        if (!KitchenwareConfig.ENABLE_SMOKE_COUGH.get()
+                || level.getGameTime() % SMOKE_INTERVAL != 0
+                || RangeHoodSupport.hasWorkingHood(level, worldPosition)) {
             return;
         }
         AABB area = new AABB(worldPosition).inflate(COUGH_RADIUS);

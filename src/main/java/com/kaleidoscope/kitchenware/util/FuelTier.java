@@ -21,10 +21,11 @@ public enum FuelTier {
         this.burnFactor = burnFactor;
     }
 
-    /** Ticks the stack keeps the stove lit, after the tier modifier. */
+    /** Ticks the stack keeps the stove lit, after the tier modifier and the config multiplier. */
     public int burnTicks(ItemStack stack) {
         int base = stack.getBurnTime(null);
-        return Math.max(40, (int) (base * burnFactor));
+        double multiplier = com.kaleidoscope.kitchenware.config.KitchenwareConfig.FUEL_BURN_MULTIPLIER.get();
+        return Math.max(40, (int) (base * burnFactor * multiplier));
     }
 
     public static FuelTier of(ItemStack stack) {

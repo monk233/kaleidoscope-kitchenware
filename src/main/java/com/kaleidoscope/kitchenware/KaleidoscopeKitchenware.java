@@ -17,6 +17,8 @@ public class KaleidoscopeKitchenware {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public KaleidoscopeKitchenware(IEventBus modEventBus, ModContainer modContainer) {
+        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.COMMON,
+                com.kaleidoscope.kitchenware.config.KitchenwareConfig.SPEC);
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModBlockEntities.register(modEventBus);

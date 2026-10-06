@@ -1,6 +1,7 @@
 package com.kaleidoscope.kitchenware.blockentity;
 
 import com.kaleidoscope.kitchenware.block.CupboardBlock;
+import com.kaleidoscope.kitchenware.config.KitchenwareConfig;
 import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -13,7 +14,7 @@ public class CupboardBlockEntity extends StorageBlockEntity {
     private long closeAt = Long.MIN_VALUE;
 
     public CupboardBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.CUPBOARD.get(), pos, state, 16);
+        super(ModBlockEntities.CUPBOARD.get(), pos, state, KitchenwareConfig.CUPBOARD_CAPACITY.get());
     }
 
     @Override
