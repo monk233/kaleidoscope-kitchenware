@@ -2,6 +2,7 @@ package com.kaleidoscope.kitchenware.block;
 
 import com.kaleidoscope.kitchenware.blockentity.FirewoodStoveBlockEntity;
 import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
+import com.kaleidoscope.kitchenware.util.RangeHoodSupport;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -135,6 +136,9 @@ public class FirewoodStoveBlock extends HorizontalDirectionalBlock implements En
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         if (!state.getValue(LIT)) {
             return;
+        }
+        if (RangeHoodSupport.hasWorkingHood(level, pos)) {
+            return; // smoke is being drawn up the hood instead
         }
         double x = pos.getX() + 0.5;
         double y = pos.getY() + 0.5;

@@ -3,6 +3,7 @@ package com.kaleidoscope.kitchenware;
 import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import com.kaleidoscope.kitchenware.registry.ModBlocks;
 import com.kaleidoscope.kitchenware.registry.ModCreativeTabs;
+import com.kaleidoscope.kitchenware.registry.ModEffects;
 import com.kaleidoscope.kitchenware.registry.ModItems;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
@@ -19,6 +20,7 @@ public class KaleidoscopeKitchenware {
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModBlockEntities.register(modEventBus);
+        ModEffects.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
     }
 }

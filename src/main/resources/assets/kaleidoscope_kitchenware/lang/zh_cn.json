@@ -25,5 +25,21 @@
   "state.kaleidoscope_kitchenware.status": "%s",
   "state.kaleidoscope_kitchenware.fuel_left": "剩余燃料 %s 秒（%s）",
   "state.kaleidoscope_kitchenware.need_fuel": "灶里没有柴火",
-  "state.kaleidoscope_kitchenware.pile_take": "取出一根柴"
+  "state.kaleidoscope_kitchenware.pile_take": "取出一根柴",
+  "block.kaleidoscope_kitchenware.chimney": "烟囱",
+  "block.kaleidoscope_kitchenware.range_hood": "抽油烟机",
+  "state.kaleidoscope_kitchenware.hood_active": "油烟机工作中",
+  "state.kaleidoscope_kitchenware.hood_unpowered": "油烟机未通电",
+  "state.kaleidoscope_kitchenware.hood_no_stove": "油烟机下方没有柴火灶",
+  "state.kaleidoscope_kitchenware.hood_efficiency": "排烟效率：%s%%",
+  "effect.kaleidoscope_kitchenware.smoke_cough": "油烟呛咳",
+  "block.kaleidoscope_kitchenware.kitchen_counter": "料理台",
+  "block.kaleidoscope_kitchenware.water_vat": "水缸",
+  "block.kaleidoscope_kitchenware.cupboard": "碗柜",
+  "block.kaleidoscope_kitchenware.spice_rack": "调料架",
+  "state.kaleidoscope_kitchenware.storage_full": "已经塞满了",
+  "state.kaleidoscope_kitchenware.storage_empty": "里面是空的",
+  "state.kaleidoscope_kitchenware.storage_rejects": "这个放不进去",
+  "state.kaleidoscope_kitchenware.vat_empty": "缸里没水了",
+  "state.kaleidoscope_kitchenware.vat_hint": "拿空桶或空瓶来打水"
 }

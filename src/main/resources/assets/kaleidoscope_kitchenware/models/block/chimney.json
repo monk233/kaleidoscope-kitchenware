@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "kaleidoscope_kitchenware:block/chimney",
+    "side": "kaleidoscope_kitchenware:block/chimney"
+  }
+}

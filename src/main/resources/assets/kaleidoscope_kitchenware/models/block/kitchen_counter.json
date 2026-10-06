@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "kaleidoscope_kitchenware:block/kitchen_counter",
+    "side": "kaleidoscope_kitchenware:block/kitchen_counter"
+  }
+}

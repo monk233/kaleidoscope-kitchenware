@@ -1,0 +1,79 @@
+{
+  "variants": {
+    "facing=north,filled=0": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_0"
+    },
+    "facing=north,filled=1": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_1"
+    },
+    "facing=north,filled=2": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_2"
+    },
+    "facing=north,filled=3": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_3"
+    },
+    "facing=north,filled=4": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_4"
+    },
+    "facing=east,filled=0": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_0",
+      "y": 90
+    },
+    "facing=east,filled=1": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_1",
+      "y": 90
+    },
+    "facing=east,filled=2": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_2",
+      "y": 90
+    },
+    "facing=east,filled=3": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_3",
+      "y": 90
+    },
+    "facing=east,filled=4": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_4",
+      "y": 90
+    },
+    "facing=south,filled=0": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_0",
+      "y": 180
+    },
+    "facing=south,filled=1": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_1",
+      "y": 180
+    },
+    "facing=south,filled=2": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_2",
+      "y": 180
+    },
+    "facing=south,filled=3": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_3",
+      "y": 180
+    },
+    "facing=south,filled=4": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_4",
+      "y": 180
+    },
+    "facing=west,filled=0": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_0",
+      "y": 270
+    },
+    "facing=west,filled=1": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_1",
+      "y": 270
+    },
+    "facing=west,filled=2": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_2",
+      "y": 270
+    },
+    "facing=west,filled=3": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_3",
+      "y": 270
+    },
+    "facing=west,filled=4": {
+      "model": "kaleidoscope_kitchenware:block/spice_rack_4",
+      "y": 270
+    }
+  }
+}

@@ -25,5 +25,21 @@
   "state.kaleidoscope_kitchenware.status": "%s",
   "state.kaleidoscope_kitchenware.fuel_left": "Fuel left: %s s (%s)",
   "state.kaleidoscope_kitchenware.need_fuel": "No firewood in the stove",
-  "state.kaleidoscope_kitchenware.pile_take": "Took one piece of firewood"
+  "state.kaleidoscope_kitchenware.pile_take": "Took one piece of firewood",
+  "block.kaleidoscope_kitchenware.chimney": "Chimney",
+  "block.kaleidoscope_kitchenware.range_hood": "Range Hood",
+  "state.kaleidoscope_kitchenware.hood_active": "Range hood running",
+  "state.kaleidoscope_kitchenware.hood_unpowered": "Range hood has no redstone signal",
+  "state.kaleidoscope_kitchenware.hood_no_stove": "No firewood stove under this range hood",
+  "state.kaleidoscope_kitchenware.hood_efficiency": "Venting efficiency: %s%%",
+  "effect.kaleidoscope_kitchenware.smoke_cough": "Smoke Cough",
+  "block.kaleidoscope_kitchenware.kitchen_counter": "Kitchen Counter",
+  "block.kaleidoscope_kitchenware.water_vat": "Water Vat",
+  "block.kaleidoscope_kitchenware.cupboard": "Cupboard",
+  "block.kaleidoscope_kitchenware.spice_rack": "Spice Rack",
+  "state.kaleidoscope_kitchenware.storage_full": "It is full",
+  "state.kaleidoscope_kitchenware.storage_empty": "It is empty",
+  "state.kaleidoscope_kitchenware.storage_rejects": "That does not belong in here",
+  "state.kaleidoscope_kitchenware.vat_empty": "The vat is empty",
+  "state.kaleidoscope_kitchenware.vat_hint": "Bring a bucket or a bottle"
 }

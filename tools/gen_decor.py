@@ -51,6 +51,7 @@ DECOR = [
     ("blue_roof_tile_stairs", "青瓦楼梯", "Blue Roof Tile Stairs", "stairs", None),
     ("blue_roof_tile_slab", "青瓦台阶", "Blue Roof Tile Slab", "slab", None),
     ("roof_ridge_tile", "屋脊瓦", "Roof Ridge Tile", "block", {"kind": "roof_tile", "ramp": RIDGE}),
+    ("chimney", "烟囱", "Chimney", "pillar", {"kind": "brick", "ramp": BRICK}),
     ("plaster_wall", "抹灰墙", "Plaster Wall", "block", {"kind": "plaster", "ramp": PLASTER}),
     ("rammed_earth_wall", "夯土墙", "Rammed Earth Wall", "block", {"kind": "plaster", "ramp": EARTH}),
     ("stone_floor_tile", "青石地砖", "Stone Floor Tile", "block", {"kind": "tile_floor", "ramp": FLOOR_TILE}),
@@ -59,6 +60,7 @@ DECOR = [
     ("wooden_rafter", "椽木", "Wooden Rafter", "pillar", {"kind": "plank", "species": "oak"}),
     ("lattice_window", "木格窗", "Lattice Window", "thin", {"kind": "lattice", "species": "oak"}),
     ("bamboo_curtain", "竹帘", "Bamboo Curtain", "thin", {"kind": "curtain", "species": "bamboo"}),
+    ("kitchen_counter", "料理台", "Kitchen Counter", "pillar", {"kind": "plank", "species": "spruce"}),
 ]
 
 BASE_OF = {
@@ -358,6 +360,8 @@ FUNCTIONAL_TEXTURES = {
     "stove_top": {"kind": "tile_floor", "ramp": FLOOR_TILE},
     "pile_side": {"kind": "plank", "species": "spruce"},
     "pile_top": {"kind": "wood_pile", "species": "spruce"},
+    "hood_body": {"kind": "tile_floor", "ramp": ["#8B8B8B", "#747474", "#606572", "#3F4447"]},
+    "hood_active": {"kind": "tile_floor", "ramp": ["#C2C7CB", "#93A3A3", "#6E7179", "#4E5E60"]},
 }
 
 FACING_Y = (("north", 0), ("east", 90), ("south", 180), ("west", 270))
@@ -423,6 +427,124 @@ def build_functional(textures_dir: Path) -> None:
     for name in ("firewood_stove", "firewood_pile"):
         write_json(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json", loot_table(name))
 
+    # range hood: a canopy under a duct, the canopy texture brightens while it runs
+    hood_elements = [
+        {"from": [0, 12, 0], "to": [16, 16, 16],
+         "faces": {face: {"uv": [0, 0, 16, 4 if face in ("north", "south", "east", "west") else 16],
+                          "texture": "#0" if face != "down" else "#1"}
+                   for face in ("north", "south", "east", "west", "up", "down")}},
+        {"from": [4, 4, 4], "to": [12, 12, 12],
+         "faces": {face: {"uv": [0, 0, 8, 8], "texture": "#0"}
+                   for face in ("north", "south", "east", "west", "up", "down")}},
+    ]
+    for active in (False, True):
+        write_json(RES / "assets" / NS / "models" / "block" / f"range_hood{'_active' if active else ''}.json", {
+            "render_type": "minecraft:cutout",
+            "textures": {"0": tex("hood_active" if active else "hood_body"), "1": tex("hood_body"),
+                         "particle": tex("hood_body")},
+            "elements": hood_elements,
+        })
+    hood_variants = {}
+    for facing, y in FACING_Y:
+        for powered in (False, True):
+            for active in (False, True):
+                model = {"model": f"{NS}:block/range_hood{'_active' if active else ''}"}
+                if y:
+                    model["y"] = y
+                hood_variants[f"facing={facing},powered={'true' if powered else 'false'},"
+                              f"active={'true' if active else 'false'}"] = model
+    write_json(RES / "assets" / NS / "blockstates" / "range_hood.json", {"variants": hood_variants})
+    write_json(RES / "assets" / NS / "models" / "item" / "range_hood.json",
+               {"parent": f"{NS}:block/range_hood"})
+    write_json(RES / "data" / NS / "loot_table" / "blocks" / "range_hood.json", loot_table("range_hood"))
+
+
+# --- containers and vat -------------------------------------------------------
+
+CONTAINER_TEXTURES = {
+    "vat_side": {"kind": "brick", "ramp": ["#A3814F", "#8A6A47", "#6E523A"]},
+    "vat_top": {"kind": "plaster", "ramp": ["#4FA3D1", "#3B82AC", "#2A5F80"]},
+    "cupboard_side": {"kind": "plank", "species": "spruce"},
+    "cupboard_front": {"kind": "plank", "species": "oak"},
+    "cupboard_front_open": {"kind": "brick", "ramp": ["#6D442F", "#5E3723", "#3B3020"]},
+    "rack_side": {"kind": "plank", "species": "oak"},
+    "jar": {"kind": "tile_floor", "ramp": ["#C2A166", "#937544", "#5E3723"]},
+}
+
+VAT_WATER_HEIGHT = {0: 4, 1: 8, 2: 12, 3: 14}
+JAR_SPOTS = [(x, y) for y in (4.0, 10.0) for x in (1.5, 5.5, 9.5, 13.5)]
+
+
+def box(from_xyz, to_xyz, texture_ref: str, uv=None) -> dict:
+    uv = uv or [0, 0, to_xyz[0] - from_xyz[0], to_xyz[1] - from_xyz[1]]
+    return {"from": from_xyz, "to": to_xyz,
+            "faces": {face: {"uv": uv, "texture": texture_ref}
+                      for face in ("north", "south", "east", "west", "up", "down")}}
+
+
+def build_containers(textures_dir: Path) -> None:
+    for seed, (name, spec) in enumerate(sorted(CONTAINER_TEXTURES.items())):
+        make_texture(spec, seed=401 + seed * 11).save(textures_dir / f"{name}.png")
+
+    # water vat: clay body with a water surface that rises with the level
+    for level, water_y in VAT_WATER_HEIGHT.items():
+        water = box([2.5, water_y, 2.5], [13.5, water_y + 1, 13.5], "#1", uv=[0, 0, 11, 11])
+        body = [box([1, 0, 1], [3, 14, 3], "#0"), box([13, 0, 1], [15, 14, 3], "#0"),
+                box([1, 0, 13], [3, 14, 15], "#0"), box([13, 0, 13], [15, 14, 15], "#0"),
+                box([1, 0, 1], [15, 2, 15], "#0"), water]
+        write_json(RES / "assets" / NS / "models" / "block" / f"water_vat_{level}.json",
+                   {"textures": {"0": tex("vat_side"), "1": tex("vat_top"),
+                                 "particle": tex("vat_side")}, "elements": body})
+    vat_variants = {}
+    for facing, y in FACING_Y:
+        for level in VAT_WATER_HEIGHT:
+            model = {"model": f"{NS}:block/water_vat_{level}"}
+            if y:
+                model["y"] = y
+            vat_variants[f"facing={facing},level={level}"] = model
+    write_json(RES / "assets" / NS / "blockstates" / "water_vat.json", {"variants": vat_variants})
+
+    # cupboard: closed shows the doors, open shows a dark shelf instead
+    for opened in (False, True):
+        write_json(RES / "assets" / NS / "models" / "block" / f"cupboard{'_open' if opened else ''}.json",
+                   cube_model({"up": tex("cupboard_side"), "down": tex("cupboard_side"),
+                               "north": tex("cupboard_front_open" if opened else "cupboard_front"),
+                               "south": tex("cupboard_side"), "east": tex("cupboard_side"),
+                               "west": tex("cupboard_side")}, tex("cupboard_side")))
+    cupboard_variants = {}
+    for facing, y in FACING_Y:
+        for opened in (False, True):
+            model = {"model": f"{NS}:block/cupboard{'_open' if opened else ''}"}
+            if y:
+                model["y"] = y
+            cupboard_variants[f"facing={facing},open={'true' if opened else 'false'}"] = model
+    write_json(RES / "assets" / NS / "blockstates" / "cupboard.json", {"variants": cupboard_variants})
+
+    # spice rack: empty board grows two jars per fill step
+    for filled in range(5):
+        elements = [box([0, 0, 12], [16, 16, 14], "#0"),
+                    box([0, 8, 2], [16, 10, 14], "#0"),
+                    box([0, 15, 2], [16, 16, 14], "#0")]
+        for spot in JAR_SPOTS[:filled * 2]:
+            x, y = spot
+            elements.append(box([x, y, 4], [x + 2.5, y + 3, 6.5], "#1", uv=[0, 0, 3, 3]))
+        write_json(RES / "assets" / NS / "models" / "block" / f"spice_rack_{filled}.json",
+                   {"textures": {"0": tex("rack_side"), "1": tex("jar"), "particle": tex("rack_side")},
+                    "elements": elements})
+    rack_variants = {}
+    for facing, y in FACING_Y:
+        for filled in range(5):
+            model = {"model": f"{NS}:block/spice_rack_{filled}"}
+            if y:
+                model["y"] = y
+            rack_variants[f"facing={facing},filled={filled}"] = model
+    write_json(RES / "assets" / NS / "blockstates" / "spice_rack.json", {"variants": rack_variants})
+
+    for name in ("water_vat", "cupboard", "spice_rack"):
+        write_json(RES / "assets" / NS / "models" / "item" / f"{name}.json",
+                   {"parent": f"{NS}:block/{name}{'_3' if name == 'water_vat' else ''}"})
+        write_json(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json", loot_table(name))
+
 
 # --- main ---------------------------------------------------------------------
 
@@ -449,6 +571,7 @@ def main() -> None:
         write_json(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json", loot_table(name))
 
     build_functional(textures_dir)
+    build_containers(textures_dir)
 
     merge_lang(RES / "assets" / NS / "lang" / "zh_cn.json",
                {f"block.{NS}.{n}": zh for n, zh, _, _, _ in DECOR}
@@ -462,7 +585,21 @@ def main() -> None:
                   f"state.{NS}.status": "%s",
                   f"state.{NS}.fuel_left": "剩余燃料 %s 秒（%s）",
                   f"state.{NS}.need_fuel": "灶里没有柴火",
-                  f"state.{NS}.pile_take": "取出一根柴"})
+                  f"state.{NS}.pile_take": "取出一根柴",
+                  "block." + NS + ".range_hood": "抽油烟机",
+                  f"state.{NS}.hood_active": "油烟机工作中",
+                  f"state.{NS}.hood_unpowered": "油烟机未通电",
+                  f"state.{NS}.hood_no_stove": "油烟机下方没有柴火灶",
+                  f"state.{NS}.hood_efficiency": "排烟效率：%s%%",
+                  "block." + NS + ".water_vat": "水缸",
+                  "block." + NS + ".cupboard": "碗柜",
+                  "block." + NS + ".spice_rack": "调料架",
+                  f"state.{NS}.storage_full": "已经塞满了",
+                  f"state.{NS}.storage_empty": "里面是空的",
+                  f"state.{NS}.storage_rejects": "这个放不进去",
+                  f"state.{NS}.vat_empty": "缸里没水了",
+                  f"state.{NS}.vat_hint": "拿空桶或空瓶来打水",
+                  f"effect.{NS}.smoke_cough": "油烟呛咳"})
     merge_lang(RES / "assets" / NS / "lang" / "en_us.json",
                {f"block.{NS}.{n}": en for n, _, en, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "Kaleidoscope Kitchenware"}
@@ -475,7 +612,21 @@ def main() -> None:
                   f"state.{NS}.status": "%s",
                   f"state.{NS}.fuel_left": "Fuel left: %s s (%s)",
                   f"state.{NS}.need_fuel": "No firewood in the stove",
-                  f"state.{NS}.pile_take": "Took one piece of firewood"})
+                  f"state.{NS}.pile_take": "Took one piece of firewood",
+                  "block." + NS + ".range_hood": "Range Hood",
+                  f"state.{NS}.hood_active": "Range hood running",
+                  f"state.{NS}.hood_unpowered": "Range hood has no redstone signal",
+                  f"state.{NS}.hood_no_stove": "No firewood stove under this range hood",
+                  f"state.{NS}.hood_efficiency": "Venting efficiency: %s%%",
+                  "block." + NS + ".water_vat": "Water Vat",
+                  "block." + NS + ".cupboard": "Cupboard",
+                  "block." + NS + ".spice_rack": "Spice Rack",
+                  f"state.{NS}.storage_full": "It is full",
+                  f"state.{NS}.storage_empty": "It is empty",
+                  f"state.{NS}.storage_rejects": "That does not belong in here",
+                  f"state.{NS}.vat_empty": "The vat is empty",
+                  f"state.{NS}.vat_hint": "Bring a bucket or a bottle",
+                  f"effect.{NS}.smoke_cough": "Smoke Cough"})
 
     print(f"generated {len(DECOR)} decorative blocks and 2 functional blocks into {RES}")
 

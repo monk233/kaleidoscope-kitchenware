@@ -1,0 +1,18 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "kaleidoscope_kitchenware:block/chimney"
+    },
+    "axis=z": {
+      "model": "kaleidoscope_kitchenware:block/chimney",
+      "x": 90,
+      "uvlock": true
+    },
+    "axis=x": {
+      "model": "kaleidoscope_kitchenware:block/chimney",
+      "x": 90,
+      "y": 90,
+      "uvlock": true
+    }
+  }
+}
