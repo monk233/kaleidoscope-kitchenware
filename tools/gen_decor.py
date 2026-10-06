@@ -610,9 +610,9 @@ CONTAINER_TEXTURES = {
     "spice_jar": {"kind": "spice_jar", "species": "oak"},
     "counter_top": {"kind": "counter_top", "ramp": ["#B9B4A5", "#93A3A3", "#55636C", "#3F4447"]},
     "counter_side": {"kind": "counter_side", "species": "spruce"},
-    "jar_side": {"kind": "jar_side", "ramp": ["#C7B497", "#937544", "#5E3723"]},
-    "jar_top": {"kind": "jar_top", "ramp": ["#C7B497", "#937544", "#5E3723"]},
-    "jar_top_filled": {"kind": "jar_top_filled", "ramp": ["#C7B497", "#937544", "#5E3723"]},
+    "jar_side": {"kind": "tile_floor", "ramp": WOOD["oak"]},
+    "jar_top": {"kind": "jar_top", "ramp": WOOD["oak"]},
+    "jar_top_filled": {"kind": "jar_top_filled", "ramp": WOOD["oak"]},
 }
 
 VAT_WATER_HEIGHT = {0: 4, 1: 8, 2: 12, 3: 14}
@@ -632,9 +632,9 @@ def build_containers(textures_dir: Path) -> None:
 
     # water vat: clay body with a water surface that rises with the level
     for level, water_y in VAT_WATER_HEIGHT.items():
-        water = box([2.5, water_y, 2.5], [13.5, water_y + 1, 13.5], "#1", uv=[0, 0, 11, 11])
-        body = [box([1, 0, 1], [3, 14, 3], "#0"), box([13, 0, 1], [15, 14, 3], "#0"),
-                box([1, 0, 13], [3, 14, 15], "#0"), box([13, 0, 13], [15, 14, 15], "#0"),
+        water = box([3, water_y, 3], [13, water_y + 1, 13], "#1", uv=[0, 0, 10, 10])
+        body = [box([1, 2, 1], [3, 14, 3], "#0"), box([13, 2, 1], [15, 14, 3], "#0"),
+                box([1, 2, 13], [3, 14, 15], "#0"), box([13, 2, 13], [15, 14, 15], "#0"),
                 box([1, 0, 1], [15, 2, 15], "#0"), water]
         write_json(RES / "assets" / NS / "models" / "block" / f"water_vat_{level}.json",
                    {"textures": {"0": tex("vat_side"), "1": tex("vat_top"),
@@ -664,21 +664,24 @@ def build_containers(textures_dir: Path) -> None:
             cupboard_variants[f"facing={facing},open={'true' if opened else 'false'}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "cupboard.json", {"variants": cupboard_variants})
 
-    # spice jars: up to four squat jars share a block, each turned a little, like teacups.
-    # Minecraft only accepts -45/-22.5/0/22.5/45 for element rotation, nothing else.
-    jar_size = 6.0
+    # spice jars: up to four small jars share a block, each turned a little, like teacups.
+    # A 5px jar rotated 22.5 degrees needs ~6.5px; spots below stay 8px apart so the
+    # rotated bounding boxes never touch. Minecraft only accepts -45/-22.5/0/22.5/45.
+    jar_size = 5.0
+    jar_height = 4.0
     jar_spots = {
-        1: [(5.0, 5.0, 22.5)],
-        2: [(2.0, 5.0, -22.5), (8.0, 5.0, 22.5)],
-        3: [(2.5, 2.0, 22.5), (8.0, 3.0, -22.5), (5.0, 8.5, 45)],
-        4: [(1.5, 1.5, 22.5), (8.5, 1.5, -22.5), (1.5, 8.5, 45), (8.5, 8.5, -45)],
+        1: [(5.5, 5.5, 22.5)],
+        2: [(1.5, 5.5, 22.5), (9.5, 5.5, -22.5)],
+        3: [(1.5, 1.5, 22.5), (9.5, 2.0, -22.5), (5.0, 9.5, 0)],
+        4: [(1.5, 1.5, 22.5), (9.5, 1.5, -22.5), (1.5, 9.5, 0), (9.5, 9.5, -45)],
     }
 
     def jar_element(x: float, z: float, angle: float) -> dict:
-        faces = {face: {"uv": [0, 0, 6, 6], "texture": "#0"}
+        # uv covers the whole 16x16 texture so the art is not stretched into blocks
+        faces = {face: {"uv": [0, 0, 16, 16], "texture": "#0"}
                  for face in ("north", "south", "east", "west", "down")}
-        faces["up"] = {"uv": [0, 0, 6, 6], "texture": "#1"}
-        return {"from": [x, 0, z], "to": [x + jar_size, jar_size, z + jar_size],
+        faces["up"] = {"uv": [0, 0, 16, 16], "texture": "#1"}
+        return {"from": [x, 0, z], "to": [x + jar_size, jar_height, z + jar_size],
                 "rotation": {"angle": angle, "axis": "y",
                              "origin": [x + jar_size / 2, 0, z + jar_size / 2]},
                 "faces": faces}

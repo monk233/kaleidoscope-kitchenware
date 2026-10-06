@@ -54,7 +54,7 @@ public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityB
 
     private static final TagKey<Item> KITCHEN_SHOVEL = TagKey.create(Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("kaleidoscope_cookery", "kitchen_shovel"));
-    private static final VoxelShape SHAPE = Block.box(1, 0, 1, 15, 7, 15);
+    private static final VoxelShape SHAPE = Block.box(1, 0, 1, 15, 5, 15);
 
     public SpiceJarBlock(Properties properties) {
         super(properties);

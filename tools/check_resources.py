@@ -10,6 +10,7 @@ Exits non-zero on the first problem so it can gate a build.
 from __future__ import annotations
 
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -74,6 +75,25 @@ if problems:
 # every item/block model must point at a model that actually exists
 models_dir = RES / "assets" / NS / "models"
 ALLOWED_ANGLES = {-45.0, -22.5, 0.0, 22.5, 45.0}
+
+
+def bounds(element: dict) -> tuple:
+    """3D bounding box (x0, y0, z0, x1, y1, z1) after the element's own y rotation."""
+    x0, y0, z0 = element["from"]
+    x1, y1, z1 = element["to"]
+    rotation = element.get("rotation")
+    if not isinstance(rotation, dict) or rotation.get("axis") != "y":
+        return min(x0, x1), min(y0, y1), min(z0, z1), max(x0, x1), max(y0, y1), max(z0, z1)
+    angle = math.radians(float(rotation["angle"]))
+    ox, _, oz = rotation["origin"]
+    xs, zs = [], []
+    for cx, cz in ((x0, z0), (x0, z1), (x1, z0), (x1, z1)):
+        dx, dz = cx - ox, cz - oz
+        xs.append(ox + dx * math.cos(angle) + dz * math.sin(angle))
+        zs.append(oz - dx * math.sin(angle) + dz * math.cos(angle))
+    return min(xs), min(y0, y1), min(zs), max(xs), max(y0, y1), max(zs)
+
+
 for folder in ("item", "block"):
     for model_file in (models_dir / folder).glob("*.json"):
         body = json.loads(model_file.read_text(encoding="utf-8"))
@@ -82,11 +102,26 @@ for folder in ("item", "block"):
             target = models_dir / "block" / (parent.split(":", 1)[1].split("/", 1)[1] + ".json")
             if not target.exists():
                 problems.append(f"{folder}/{model_file.name} points at missing model {parent}")
+        boxes = []
         for element in body.get("elements", []):
             rotation = element.get("rotation")
             if isinstance(rotation, dict) and float(rotation.get("angle", 0)) not in ALLOWED_ANGLES:
                 problems.append(f"{folder}/{model_file.name} uses illegal element rotation "
                                 f"{rotation.get('angle')} (only -45/-22.5/0/22.5/45 are allowed)")
+            box = bounds(element)
+            if box[0] < -0.01 or box[2] < -0.01 or box[3] > 16.01 or box[5] > 16.01:
+                problems.append(f"{folder}/{model_file.name} has an element sticking out of the "
+                                f"block in x/z: {tuple(round(v, 2) for v in box)}")
+            boxes.append(box)
+        # elements may stack (a shelf on a rim) but must never interpenetrate in all three axes
+        for i in range(len(boxes)):
+            for j in range(i + 1, len(boxes)):
+                a, b = boxes[i], boxes[j]
+                if (a[0] < b[3] - 0.01 and b[0] < a[3] - 0.01
+                        and a[1] < b[4] - 0.01 and b[1] < a[4] - 0.01
+                        and a[2] < b[5] - 0.01 and b[2] < a[5] - 0.01):
+                    problems.append(f"{folder}/{model_file.name} has interpenetrating elements "
+                                    f"{tuple(round(v, 2) for v in a)} and {tuple(round(v, 2) for v in b)}")
 
 if problems:
     print("FAILED (model references)")
