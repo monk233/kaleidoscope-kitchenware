@@ -314,6 +314,33 @@ def draw_counter_side(img, ramp, rng):
         img.putpixel((x, size // 2 + 3), GOLD)
 
 
+def draw_glass_jar(img, ramp, rng, filled: bool = False) -> None:
+    """Squat glass jar: pale blue body, white highlight, wooden stopper, amber contents."""
+    size = img.width
+    glass, glass_dark, highlight = (0xC8, 0xE4, 0xF0, 255), (0x9C, 0xC2, 0xD6, 255), (0xEF, 0xF7, 0xFA, 255)
+    amber, amber_dark = (0xC2, 0x7A, 0x2E, 255), (0x9C, 0x5C, 0x1C, 255)
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), glass if (x + y) % 6 else glass_dark)
+    if filled:
+        for y in range(size // 2, size - 2):
+            for x in range(2, size - 2):
+                img.putpixel((x, y), amber if (x * y) % 5 else amber_dark)
+    for y in range(0, 2):
+        for x in range(3, size - 3):
+            img.putpixel((x, y), ramp[1])
+    for y in range(3, size - 2):
+        img.putpixel((2, y), highlight)
+    for i in range(size):
+        img.putpixel((0, i), glass_dark)
+        img.putpixel((size - 1, i), glass_dark)
+        img.putpixel((i, size - 1), glass_dark)
+
+
+def draw_glass_jar_filled(img, ramp, rng):
+    draw_glass_jar(img, ramp, rng, filled=True)
+
+
 PATTERNS = {
     "brick": draw_brick,
     "roof_tile": draw_roof_tile,
@@ -330,6 +357,8 @@ PATTERNS = {
     "spice_jar": draw_spice_jar,
     "counter_top": draw_counter_top,
     "counter_side": draw_counter_side,
+    "glass_jar": draw_glass_jar,
+    "glass_jar_filled": draw_glass_jar_filled,
 }
 
 
@@ -541,6 +570,8 @@ CONTAINER_TEXTURES = {
     "spice_jar": {"kind": "spice_jar", "species": "oak"},
     "counter_top": {"kind": "counter_top", "ramp": ["#B9B4A5", "#93A3A3", "#55636C", "#3F4447"]},
     "counter_side": {"kind": "counter_side", "species": "spruce"},
+    "jar_empty": {"kind": "glass_jar", "ramp": ["#C7B497", "#937544", "#5E3723"]},
+    "jar_filled": {"kind": "glass_jar_filled", "ramp": ["#C7B497", "#937544", "#5E3723"]},
 }
 
 VAT_WATER_HEIGHT = {0: 4, 1: 8, 2: 12, 3: 14}
@@ -592,47 +623,39 @@ def build_containers(textures_dir: Path) -> None:
             cupboard_variants[f"facing={facing},open={'true' if opened else 'false'}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "cupboard.json", {"variants": cupboard_variants})
 
-    # spice rack: back panel flat against the far face, two shelves, jars fill up with use
-    RACK_BACK = [0, 0, 14, 16, 16, 16]
-    RACK_SHELF_LOW = [0, 8, 2, 16, 10, 16]
-    RACK_SHELF_TOP = [0, 15, 2, 16, 16, 16]
-    RACK_CORNER_LEFT = [0, 0, 2, 2, 16, 16]
-    RACK_CORNER_RIGHT = [14, 0, 2, 16, 16, 16]
-
-    def rack_elements(corner: str, filled: int) -> list:
-        boxes = [box(RACK_BACK[:3], RACK_BACK[3:], "#0"),
-                 box(RACK_SHELF_LOW[:3], RACK_SHELF_LOW[3:], "#0"),
-                 box(RACK_SHELF_TOP[:3], RACK_SHELF_TOP[3:], "#0")]
-        if corner == "left":
-            boxes.append(box(RACK_CORNER_LEFT[:3], RACK_CORNER_LEFT[3:], "#0"))
-        elif corner == "right":
-            boxes.append(box(RACK_CORNER_RIGHT[:3], RACK_CORNER_RIGHT[3:], "#0"))
-        for spot in JAR_SPOTS[:filled * 2]:
-            x, y = spot
-            boxes.append(box([x, y, 4], [x + 2.5, y + 3, 6.5], "#1", uv=[0, 0, 3, 3]))
-        return boxes
-
-    for corner in ("", "left", "right"):
-        suffix = f"_{corner}" if corner else ""
-        for filled in range(5):
-            write_json(RES / "assets" / NS / "models" / "block" / f"spice_rack{suffix}_{filled}.json",
-                       {"textures": {"0": tex("rack_board"), "1": tex("spice_jar"),
-                                     "particle": tex("rack_board")},
-                        "elements": rack_elements(corner, filled)})
-
-    # corner shapes reuse the left/right panel models, exactly how the blockstate maps them
-    RACK_SHAPES = ("straight", "inner_left", "inner_right", "outer_left", "outer_right")
-    rack_variants = {}
+    # spice jar: a squat glass jar with a wooden stopper, placed on the worktop like a teacup
+    jar_elements = [
+        box([4, 0, 4], [12, 8, 12], "#0"),
+        box([3.5, 8, 3.5], [12.5, 9.5, 12.5], "#0"),
+        box([4.5, 9.5, 4.5], [11.5, 11.5, 11.5], "#1"),
+    ]
+    for filled in (False, True):
+        write_json(RES / "assets" / NS / "models" / "block" / f"spice_jar{'_filled' if filled else ''}.json",
+                   {"render_type": "minecraft:cutout",
+                    "textures": {"0": tex("jar_filled" if filled else "jar_empty"),
+                                 "1": tex("jar_empty"), "particle": tex("jar_empty")},
+                    "elements": jar_elements})
+    jar_variants = {}
     for facing, y in FACING_Y:
-        for filled in range(5):
-            for shape_name in RACK_SHAPES:
-                corner = {"straight": "", "inner_left": "_left", "outer_left": "_left",
-                          "inner_right": "_right", "outer_right": "_right"}[shape_name]
-                model = {"model": f"{NS}:block/spice_rack{corner}_{filled}"}
-                if y:
-                    model["y"] = y
-                rack_variants[f"facing={facing},filled={filled},shape={shape_name}"] = model
-    write_json(RES / "assets" / NS / "blockstates" / "spice_rack.json", {"variants": rack_variants})
+        for filled in (False, True):
+            model = {"model": f"{NS}:block/spice_jar{'_filled' if filled else ''}"}
+            if y:
+                model["y"] = y
+            jar_variants[f"facing={facing},filled={'true' if filled else 'false'}"] = model
+    write_json(RES / "assets" / NS / "blockstates" / "spice_jar.json", {"variants": jar_variants})
+
+    write_json(RES / "assets" / NS / "models" / "item" / "spice_jar.json",
+               {"parent": f"{NS}:block/spice_jar"})
+    # drops are produced by the block itself so the stored contents survive; no loot pool here
+    write_json(RES / "data" / NS / "loot_table" / "blocks" / "spice_jar.json",
+               {"type": "minecraft:block", "pools": []})
+    write_json(RES / "data" / NS / "recipe" / "spice_jar.json", {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "pattern": ["G G", "G G", " G "],
+        "key": {"G": {"item": "minecraft:glass"}},
+        "result": {"id": f"{NS}:spice_jar", "count": 1},
+    })
 
     # kitchen counter: stone worktop sitting on a panelled body
     write_json(RES / "assets" / NS / "models" / "block" / "kitchen_counter.json", {
@@ -654,7 +677,7 @@ def build_containers(textures_dir: Path) -> None:
     write_json(RES / "assets" / NS / "blockstates" / "kitchen_counter.json",
                {"variants": {"": {"model": f"{NS}:block/kitchen_counter"}}})
 
-    for name in ("water_vat", "cupboard", "spice_rack", "kitchen_counter"):
+    for name in ("water_vat", "cupboard", "kitchen_counter"):
         # the item form shows a specific variant: a full vat, a full rack, a closed cupboard
         item_parent = {"water_vat": "water_vat_3", "spice_rack": "spice_rack_4"}.get(name, name)
         write_json(RES / "assets" / NS / "models" / "item" / f"{name}.json",
@@ -704,7 +727,7 @@ def main() -> None:
                   f"state.{NS}.pile_take": "取出一根柴",
                   "block." + NS + ".water_vat": "水缸",
                   "block." + NS + ".cupboard": "碗柜",
-                  "block." + NS + ".spice_rack": "调料架",
+                  "block." + NS + ".spice_jar": "调料罐",
                   "block." + NS + ".kitchen_counter": "料理台",
                   f"state.{NS}.storage_full": "已经塞满了",
                   f"state.{NS}.storage_empty": "里面是空的",
@@ -726,7 +749,7 @@ def main() -> None:
                   f"state.{NS}.pile_take": "Took one piece of firewood",
                   "block." + NS + ".water_vat": "Water Vat",
                   "block." + NS + ".cupboard": "Cupboard",
-                  "block." + NS + ".spice_rack": "Spice Rack",
+                  "block." + NS + ".spice_jar": "Spice Jar",
                   "block." + NS + ".kitchen_counter": "Kitchen Counter",
                   f"state.{NS}.storage_full": "It is full",
                   f"state.{NS}.storage_empty": "It is empty",

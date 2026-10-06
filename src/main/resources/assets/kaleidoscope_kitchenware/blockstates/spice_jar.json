@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north,filled=false": {
+      "model": "kaleidoscope_kitchenware:block/spice_jar"
+    },
+    "facing=north,filled=true": {
+      "model": "kaleidoscope_kitchenware:block/spice_jar_filled"
+    },
+    "facing=east,filled=false": {
+      "model": "kaleidoscope_kitchenware:block/spice_jar",
+      "y": 90
+    },
+    "facing=east,filled=true": {
+      "model": "kaleidoscope_kitchenware:block/spice_jar_filled",
+      "y": 90
+    },
+    "facing=south,filled=false": {
+      "model": "kaleidoscope_kitchenware:block/spice_jar",
+      "y": 180
+    },
+    "facing=south,filled=true": {
+      "model": "kaleidoscope_kitchenware:block/spice_jar_filled",
+      "y": 180
+    },
+    "facing=west,filled=false": {
+      "model": "kaleidoscope_kitchenware:block/spice_jar",
+      "y": 270
+    },
+    "facing=west,filled=true": {
+      "model": "kaleidoscope_kitchenware:block/spice_jar_filled",
+      "y": 270
+    }
+  }
+}

@@ -3,7 +3,7 @@ package com.kaleidoscope.kitchenware.registry;
 import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
 import com.kaleidoscope.kitchenware.blockentity.CupboardBlockEntity;
 import com.kaleidoscope.kitchenware.blockentity.FirewoodStoveBlockEntity;
-import com.kaleidoscope.kitchenware.blockentity.SpiceRackBlockEntity;
+import com.kaleidoscope.kitchenware.blockentity.SpiceJarBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -24,9 +24,9 @@ public final class ModBlockEntities {
                     () -> BlockEntityType.Builder.of(CupboardBlockEntity::new, ModBlocks.CUPBOARD.get())
                             .build(null));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SpiceRackBlockEntity>> SPICE_RACK =
-            BLOCK_ENTITIES.register("spice_rack",
-                    () -> BlockEntityType.Builder.of(SpiceRackBlockEntity::new, ModBlocks.SPICE_RACK.get())
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SpiceJarBlockEntity>> SPICE_JAR =
+            BLOCK_ENTITIES.register("spice_jar",
+                    () -> BlockEntityType.Builder.of(SpiceJarBlockEntity::new, ModBlocks.SPICE_JAR.get())
                             .build(null));
 
     private ModBlockEntities() {
