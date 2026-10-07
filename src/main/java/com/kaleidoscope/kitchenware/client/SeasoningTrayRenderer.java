@@ -21,12 +21,18 @@ import net.minecraft.world.item.ItemStack;
  */
 public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayBlockEntity> {
     /** Height of the first layer inside the dish. */
-    private static final float BASE_HEIGHT = 0.055F;
-    /** How much each further layer rises. Sixteen layers stay inside the dish walls. */
-    private static final float LAYER_STEP = 0.0075F;
-    /** Twist per layer, which is what makes the pile look like a pile. */
-    private static final float LAYER_TWIST = 9.0F;
-    private static final float SCALE = 0.26F;
+    private static final float BASE_HEIGHT = 0.05F;
+    /** How much each further layer rises; sixteen layers end up just proud of the dish rim. */
+    private static final float LAYER_STEP = 0.0125F;
+    /** Twist of the first pair of layers; each pair opens a little wider than the last. */
+    private static final float LAYER_TWIST = 8.0F;
+    private static final float SCALE = 0.32F;
+    /**
+     * Distance from the dish centre to a compartment centre. The dish is a 16px model whose four
+     * wells sit at 4.5px and 11.5px, which is 0.22 blocks from the middle: aiming at 0.25 put
+     * every pile off toward the corner.
+     */
+    private static final double WELL_OFFSET = 0.22D;
     /** The pile is drawn at most this many layers deep. */
     private static final int MAX_LAYERS = 16;
 
@@ -47,15 +53,18 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
             }
             // same left/right and near/far axes the click uses, so the pile sits in the
             // compartment the player is aiming at
-            double left = (slot % 2 == 0) ? -0.25D : 0.25D;
-            double far = (slot < 2) ? 0.25D : -0.25D;
+            double left = (slot % 2 == 0) ? -WELL_OFFSET : WELL_OFFSET;
+            double far = (slot < 2) ? WELL_OFFSET : -WELL_OFFSET;
             double x = 0.5D + right.getStepX() * left + view.getStepX() * far;
             double z = 0.5D + right.getStepZ() * left + view.getStepZ() * far;
             for (int layer = 0; layer < layers; layer++) {
                 pose.pushPose();
                 pose.translate(x, BASE_HEIGHT + layer * LAYER_STEP, z);
                 pose.mulPose(Axis.XP.rotationDegrees(90.0F));
-                pose.mulPose(Axis.ZP.rotationDegrees(layer * LAYER_TWIST));
+                // criss-cross: alternate the lean left and right, spreading a little wider with
+                // each pair so the pile reads as stacked rather than as one rotated item
+                float twist = (layer % 2 == 0 ? -1.0F : 1.0F) * LAYER_TWIST * ((layer / 2) + 1);
+                pose.mulPose(Axis.ZP.rotationDegrees(twist));
                 pose.scale(SCALE, SCALE, SCALE);
                 Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.NONE,
                         packedLight, packedOverlay, pose, buffer, tray.getLevel(), 0);

@@ -31,16 +31,9 @@ public class SeasoningTrayItem extends BlockItem {
         }
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        if (!(level.getBlockEntity(pos) instanceof SeasoningTrayBlockEntity tray)) {
-            KaleidoscopeKitchenware.LOGGER.info("[tray] {} placed but no entity found", pos);
-            return result;
+        if (level.getBlockEntity(pos) instanceof SeasoningTrayBlockEntity tray) {
+            tray.loadFromItem(placing, level.registryAccess());
         }
-        var data = placing.get(DataComponents.CUSTOM_DATA);
-        KaleidoscopeKitchenware.LOGGER.info("[tray] {} placing item hasData={} keys={}", pos,
-                data != null, data == null ? "-" : data.copyTag().getAllKeys());
-        tray.loadFromItem(placing, level.registryAccess());
-        KaleidoscopeKitchenware.LOGGER.info("[tray] {} after load counts={},{},{},{}", pos,
-                tray.storedCount(0), tray.storedCount(1), tray.storedCount(2), tray.storedCount(3));
         return result;
     }
 }

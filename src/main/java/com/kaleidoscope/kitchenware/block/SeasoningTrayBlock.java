@@ -199,8 +199,6 @@ public class SeasoningTrayBlock extends HorizontalDirectionalBlock implements En
         ItemStack drop = new ItemStack(ModItems.SEASONING_TRAY.get());
         tray.saveToItem(drop, level.registryAccess());
         tray.markDropped();
-        KaleidoscopeKitchenware.LOGGER.info("[tray] {} break, drop carries {}",
-                pos, drop.has(net.minecraft.core.component.DataComponents.CUSTOM_DATA));
         Block.popResource(level, pos, drop);
     }
 }
