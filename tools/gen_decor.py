@@ -392,6 +392,53 @@ def draw_jar_top_filled(img, ramp, rng):
     draw_jar_top(img, ramp, rng, filled=True)
 
 
+def draw_tray_glaze(img, ramp, rng) -> None:
+    """Celadon glaze: soft blue-green base, mottled patches, darker rim."""
+    size = img.width
+    base, dark, light, edge = (0x8F, 0xA8, 0xA8, 255), (0x5F, 0x7A, 0x7A, 255), \
+        (0xB8, 0xCC, 0xCC, 255), (0x3F, 0x52, 0x52, 255)
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), base)
+    # grow patches instead of scattering pixels, so the mottling reads as glaze, not noise
+    for _ in range(16):
+        cx, cy = rng.randrange(1, size - 1), rng.randrange(1, size - 1)
+        colour = dark if rng.random() < 0.62 else light
+        radius = rng.choice((0, 1, 1, 2))
+        for dy in range(-radius, radius + 1):
+            for dx in range(-radius, radius + 1):
+                if abs(dx) + abs(dy) > radius:
+                    continue
+                x, y = cx + dx, cy + dy
+                if 1 <= x < size - 1 and 1 <= y < size - 1:
+                    img.putpixel((x, y), colour)
+    for i in range(size):
+        img.putpixel((i, 0), edge)
+        img.putpixel((i, size - 1), edge)
+        img.putpixel((0, i), edge)
+        img.putpixel((size - 1, i), edge)
+
+
+def draw_tray_glaze_dark(img, ramp, rng) -> None:
+    """Inner walls and base: the same celadon, a shade deeper."""
+    size = img.width
+    base, dark, light = (0x6E, 0x8A, 0x8A, 255), (0x4A, 0x62, 0x62, 255), (0x93, 0xAD, 0xAD, 255)
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), base)
+    for _ in range(18):
+        cx, cy = rng.randrange(size), rng.randrange(size)
+        colour = dark if rng.random() < 0.6 else light
+        radius = rng.choice((0, 1, 1, 2))
+        for dy in range(-radius, radius + 1):
+            for dx in range(-radius, radius + 1):
+                if abs(dx) + abs(dy) > radius:
+                    continue
+                x, y = cx + dx, cy + dy
+                if 0 <= x < size and 0 <= y < size:
+                    img.putpixel((x, y), colour)
+
+
 PATTERNS = {
     "brick": draw_brick,
     "roof_tile": draw_roof_tile,
@@ -410,6 +457,8 @@ PATTERNS = {
     "counter_side": draw_counter_side,
     "glass_jar": draw_glass_jar,
     "glass_jar_filled": draw_glass_jar_filled,
+    "tray_glaze": draw_tray_glaze,
+    "tray_glaze_dark": draw_tray_glaze_dark,
     "jar_side": draw_jar_side,
     "jar_side_filled": draw_jar_side_filled,
     "jar_top": draw_jar_top,
@@ -770,9 +819,8 @@ def build_containers(textures_dir: Path) -> None:
 # --- seasoning tray -----------------------------------------------------------
 
 TRAY_TEXTURES = {
-    "tray_side": {"kind": "plank", "species": "spruce"},
-    "tray_front": {"kind": "tile_floor", "ramp": WOOD["oak"]},
-    "tray_top": {"kind": "counter_top", "ramp": ["#B9B4A5", "#93A3A3", "#55636C", "#3F4447"]},
+    "tray_glaze": {"kind": "tray_glaze", "ramp": ["#8FA8A8", "#5F7A7A", "#B8CCCC", "#3F5252"]},
+    "tray_glaze_dark": {"kind": "tray_glaze_dark", "ramp": ["#6E8A8A", "#4A6262", "#93ADAD", "#3F5252"]},
 }
 
 
@@ -780,11 +828,23 @@ def build_tray(textures_dir: Path) -> None:
     for seed, (name, spec) in enumerate(sorted(TRAY_TEXTURES.items())):
         make_texture(spec, seed=701 + seed * 13).save(textures_dir / f"{name}.png")
 
+    # a shallow celadon dish: thin base, low walls, a cross divider making the four compartments.
+    # the divider is split into three pieces so no two elements interpenetrate
+    elements = [
+        box([1, 0, 1], [15, 1, 15], "#0"),
+        box([1, 1, 1], [15, 3, 2], "#1"),
+        box([1, 1, 14], [15, 3, 15], "#1"),
+        box([1, 1, 2], [2, 3, 14], "#1"),
+        box([14, 1, 2], [15, 3, 14], "#1"),
+        box([7, 1, 2], [9, 3, 14], "#1"),
+        box([2, 1, 7], [7, 3, 9], "#1"),
+        box([9, 1, 7], [14, 3, 9], "#1"),
+    ]
     write_json(RES / "assets" / NS / "models" / "block" / "seasoning_tray.json", {
-        "parent": "minecraft:block/cube",
-        "textures": {"up": tex("tray_top"), "down": tex("tray_side"), "north": tex("tray_front"),
-                     "south": tex("tray_side"), "east": tex("tray_side"), "west": tex("tray_side"),
-                     "particle": tex("tray_side")},
+        "render_type": "minecraft:cutout",
+        "textures": {"0": tex("tray_glaze_dark"), "1": tex("tray_glaze"),
+                     "particle": tex("tray_glaze")},
+        "elements": elements,
     })
     variants = {}
     for facing, y in FACING_Y:

@@ -42,8 +42,8 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
                 default -> z;
             };
             pose.pushPose();
-            pose.translate(0.5D + rx, local[2], 0.5D + rz);
-            pose.scale(0.35F, 0.35F, 0.35F);
+            pose.translate(0.5D + rx, 0.12D, 0.5D + rz);
+            pose.scale(0.30F, 0.30F, 0.30F);
             Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND,
                     packedLight, packedOverlay, pose, buffer, tray.getLevel(), 0);
             pose.popPose();
@@ -52,8 +52,7 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
 
     /** x offset, z offset and height of each compartment, in block space from the centre. */
     private static double[] compartmentOffset(int slot) {
-        double side = (slot % 2 == 0) ? -0.22D : 0.22D;
-        double height = (slot < 2) ? 0.58D : 0.28D;
-        return new double[]{side, -0.22D, height};
+        double side = (slot % 2 == 0) ? -0.25D : 0.25D;
+        return new double[]{side, -0.25D, 0.0D};
     }
 }

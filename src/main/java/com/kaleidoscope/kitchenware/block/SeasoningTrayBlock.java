@@ -40,7 +40,7 @@ import java.util.List;
  */
 public class SeasoningTrayBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final MapCodec<SeasoningTrayBlock> CODEC = simpleCodec(SeasoningTrayBlock::new);
-    private static final VoxelShape SHAPE = Shapes.box(0.0625, 0, 0.0625, 0.9375, 0.75, 0.9375);
+    private static final VoxelShape SHAPE = Shapes.box(0.0625, 0, 0.0625, 0.9375, 0.1875, 0.9375);
 
     public SeasoningTrayBlock(Properties properties) {
         super(properties);
