@@ -84,16 +84,21 @@ public class SpiceJarBlockEntity extends BlockEntity {
             return;
         }
 
-        // several jars, or none: make the flags agree with what is actually stored
-        if (holding != standing) {
-            BlockState fixed = state;
-            for (int corner = 0; corner < JAR_COUNT; corner++) {
-                fixed = fixed.setValue(com.kaleidoscope.kitchenware.block.SpiceJarBlock.JARS[corner],
-                        !isJarEmpty(corner));
+        // Never extinguish a standing jar: an empty jar is still a jar, and clearing its flag
+        // used to drop the contents with the block. Only light up corners that hold something
+        // but are dark, which is what a drifted placement looks like.
+        BlockState fixed = state;
+        boolean changed = false;
+        for (int corner = 0; corner < JAR_COUNT; corner++) {
+            if (!isJarEmpty(corner) && !state.getValue(com.kaleidoscope.kitchenware.block.SpiceJarBlock.JARS[corner])) {
+                fixed = fixed.setValue(com.kaleidoscope.kitchenware.block.SpiceJarBlock.JARS[corner], true);
+                changed = true;
             }
+        }
+        if (changed) {
             level.setBlockAndUpdate(worldPosition, fixed);
             com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                    "[jardbg] onLoad rebuilt flags {} -> {}",
+                    "[jardbg] onLoad lit dark corners holding contents {} -> {}",
                     com.kaleidoscope.kitchenware.block.SpiceJarBlock.dumpFlags(state),
                     com.kaleidoscope.kitchenware.block.SpiceJarBlock.dumpFlags(fixed));
         }

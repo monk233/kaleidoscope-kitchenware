@@ -78,13 +78,26 @@ public final class JarSelfTest {
             }
             level.removeBlock(pos2, false);
 
+            // 3c. an empty jar must survive a load: clearing its flag used to drop the block's
+            //     contents with it, because drops follow the flags
+            BlockPos pos3 = new BlockPos(4, 200, 0);
+            level.setBlock(pos3, state.setValue(SpiceJarBlock.JARS[1], true), 3);
+            boolean emptyStaysStanding = false;
+            if (level.getBlockEntity(pos3) instanceof SpiceJarBlockEntity emptyJar) {
+                emptyJar.onLoad();
+                emptyStaysStanding = level.getBlockState(pos3).getValue(SpiceJarBlock.JARS[1]);
+            }
+            level.removeBlock(pos3, false);
+
             boolean pass = stored && itemHasData && itemHasModel && handlerSlots == 1
-                    && unpackedCount == 7 && placedStored && cornersCorrect && fallbackMoved;
+                    && unpackedCount == 7 && placedStored && cornersCorrect && fallbackMoved
+                    && emptyStaysStanding;
             KaleidoscopeKitchenware.LOGGER.info(
                     "[jartest] {} stored={} itemHasData={} itemHasModel={} handlerSlots={} "
-                            + "unpackedIntoCorner1={} placedIntoCorner2={} cornersCorrect={} relocates={}",
+                            + "unpackedIntoCorner1={} placedIntoCorner2={} cornersCorrect={} "
+                            + "relocates={} emptyStaysStanding={}",
                     pass ? "PASS" : "FAIL", stored, itemHasData, itemHasModel, handlerSlots,
-                    unpackedCount, placedStored, cornersCorrect, fallbackMoved);
+                    unpackedCount, placedStored, cornersCorrect, fallbackMoved, emptyStaysStanding);
 
             // 4. a jar takes seasoning only, and only one kind of it, up to 1024
             SpiceJarBlockEntity mixed = new SpiceJarBlockEntity(BlockPos.ZERO, state);
