@@ -117,16 +117,25 @@ public final class JarSelfTest {
                 level.removeBlock(probe, false);
             }
 
+            // 5. moving a jar into an occupied corner must merge, never overwrite. A blind
+            //    assignment here silently ate a full jar during corner alignment.
+            SpiceJarBlockEntity guard = new SpiceJarBlockEntity(BlockPos.ZERO, state);
+            guard.insert(0, new ItemStack(Items.SUGAR, 100), true);
+            guard.insert(1, new ItemStack(Items.SUGAR, 50), true);
+            guard.moveJarRange(1, 0);
+            boolean mergeSafe = guard.carryingCount(0) == 150 && guard.carryingCount(1) == 0;
+
             boolean pass = stored && itemHasData && itemHasModel && itemCarriesJar
                     && unpackedCount == 7 && placedStored && cornersCorrect && fallbackMoved
-                    && emptyStaysStanding && firstCornerKept && allCornersKept;
+                    && emptyStaysStanding && firstCornerKept && allCornersKept && mergeSafe;
             KaleidoscopeKitchenware.LOGGER.info(
                     "[jartest] {} stored={} itemHasData={} itemHasModel={} itemCarriesJar={} "
                             + "unpackedIntoCorner1={} placedIntoCorner2={} cornersCorrect={} "
-                            + "relocates={} emptyStaysStanding={} firstCornerKept={} allCornersKept={}",
+                            + "relocates={} emptyStaysStanding={} firstCornerKept={} "
+                            + "allCornersKept={} mergeSafe={}",
                     pass ? "PASS" : "FAIL", stored, itemHasData, itemHasModel, itemCarriesJar,
                     unpackedCount, placedStored, cornersCorrect, fallbackMoved, emptyStaysStanding,
-                    firstCornerKept, allCornersKept);
+                    firstCornerKept, allCornersKept, mergeSafe);
 
             // 4. a jar takes seasoning only, and only one kind of it, up to 1024
             SpiceJarBlockEntity mixed = new SpiceJarBlockEntity(BlockPos.ZERO, state);

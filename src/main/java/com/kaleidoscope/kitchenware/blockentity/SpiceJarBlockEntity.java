@@ -76,7 +76,8 @@ public class SpiceJarBlockEntity extends BlockEntity {
         for (int corner = 0; corner < JAR_COUNT; corner++) {
             jars[corner] = ItemStack.EMPTY;
         }
-        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info("[jaraudit] clearAll");
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info("[jaraudit] {} clearAll",
+                worldPosition);
     }
 
     /** Stores seasoning, returning how many actually went in. One jar holds one kind of thing. */
@@ -124,28 +125,63 @@ public class SpiceJarBlockEntity extends BlockEntity {
         return taken;
     }
 
-    /** Moves one jar's contents to another corner, used when an item is put down. */
+    /**
+     * Moves one jar's contents to another corner, used when an item is put down.
+     *
+     * Never overwrites: same seasoning is merged up to capacity, anything else is left where it
+     * is. A blind assignment here silently ate a full jar during corner alignment.
+     */
     public void moveJarRange(int from, int to) {
         from = clampCorner(from);
         to = clampCorner(to);
         if (from == to || jars[from].isEmpty()) {
             return;
         }
+        if (!jars[to].isEmpty()) {
+            if (!ItemStack.isSameItemSameComponents(jars[to], jars[from])) {
+                return;
+            }
+            int room = JAR_CAPACITY - jars[to].getCount();
+            int moved = Math.min(room, jars[from].getCount());
+            if (moved <= 0) {
+                return;
+            }
+            jars[to].grow(moved);
+            jars[from].shrink(moved);
+            if (jars[from].isEmpty()) {
+                jars[from] = ItemStack.EMPTY;
+            }
+            com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                    "[jaraudit] {} merge {}->{} moved={} now={},{},{}",
+                    worldPosition, from, to, moved, carryingCount(from), carryingCount(to),
+                    carryingTotal());
+            setChangedAndSynced();
+            return;
+        }
         jars[to] = jars[from];
         jars[from] = ItemStack.EMPTY;
         com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                "[jaraudit] move {}->{} count={}", from, to, carryingCount(to));
+                "[jaraudit] {} move {}->{} count={} total={}", worldPosition, from, to,
+                carryingCount(to), carryingTotal());
         setChangedAndSynced();
     }
 
-    /** Copies a single jar carried by an item into one corner. */
+    /**
+     * Copies a single jar carried by an item into one corner.
+     *
+     * A corner that already holds a different seasoning is left alone rather than overwritten.
+     */
     public void absorbSingleJar(CompoundTag jarTag, int corner, HolderLookup.Provider registries) {
         corner = clampCorner(corner);
         ItemStack carried = ItemStack.parseOptional(registries, jarTag.getCompound("Jar"));
+        if (!carried.isEmpty() && !isJarEmpty(corner)
+                && !ItemStack.isSameItemSameComponents(jars[corner], carried)) {
+            return;
+        }
         jars[corner] = carried.isEmpty() ? ItemStack.EMPTY : carried;
         com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                "[jaraudit] absorb corner={} got={} keys={}", corner, carryingCount(corner),
-                jarTag.getAllKeys());
+                "[jaraudit] {} absorb corner={} got={} total={} keys={}", worldPosition, corner,
+                carryingCount(corner), carryingTotal(), jarTag.getAllKeys());
         setChangedAndSynced();
     }
 
