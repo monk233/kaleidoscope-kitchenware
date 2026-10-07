@@ -56,13 +56,9 @@ dependencies {
     compileOnly(files("libs/kaleidoscopecookery-${"deps.kaleidoscope_cookery"()}.jar"))
     runtimeOnly(files("libs/kaleidoscopecookery-${"deps.kaleidoscope_cookery"()}.jar"))
 
-    // Recipe viewing and pinyin search, for checking recipes in a dev run.
-    //
-    // Off by default: JEI 19.57 needs NeoForge 21.1.239 and this project is on 21.1.64, so loading
-    // it here fails at startup. Recipe checks work in the modpack, which runs a newer NeoForge.
-    // To enable these in dev, raise mod.neo_version in gradle.properties to 21.1.239 or above and
-    // uncomment the two lines below.
-    //
-    // runtimeOnly(files("libs/jei-1.21.1-neoforge-19.57.0.451.jar"))
-    // runtimeOnly(files("libs/jecharacters-1.21.1-neoforge-4.5.29.jar"))
+    // Recipe viewing and pinyin search, for checking recipes in a dev run. Plain runtimeOnly on the
+    // local jars: NeoForge discovers mods on the runtime classpath, and these are the same files the
+    // modpack uses. Neither is a dependency of the mod itself.
+    runtimeOnly(files("libs/jei-1.21.1-neoforge-19.57.0.451.jar"))
+    runtimeOnly(files("libs/jecharacters-1.21.1-neoforge-4.5.29.jar"))
 }
