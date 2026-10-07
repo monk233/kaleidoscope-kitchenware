@@ -426,6 +426,33 @@ def draw_tray_glaze_dark(img, ramp, rng) -> None:
                     img.putpixel((x, y), colour)
 
 
+def draw_vat_clay(img, ramp, rng) -> None:
+    """Unglazed brown clay: a thrown pot, so vertical marks, with lighter glaze patches."""
+    size = img.width
+    body, dark, light = (0xA8, 0x7C, 0x4E, 255), (0x84, 0x5E, 0x38, 255), (0xC2, 0x99, 0x6A, 255)
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), body)
+    for x in range(size):
+        if x % 2 == 0:
+            for y in range(size):
+                if y % 3 != 2:
+                    img.putpixel((x, y), dark)
+        else:
+            for y in range(0, size, 4):
+                img.putpixel((x, y), light)
+    for _ in range(8):
+        cx, cy = rng.randrange(size), rng.randrange(size)
+        colour = dark if rng.random() < 0.5 else light
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if abs(dx) + abs(dy) > 1:
+                    continue
+                x, y = cx + dx, cy + dy
+                if 0 <= x < size and 0 <= y < size:
+                    img.putpixel((x, y), colour)
+
+
 PATTERNS = {
     "brick": draw_brick,
     "roof_tile": draw_roof_tile,
@@ -445,6 +472,7 @@ PATTERNS = {
     "glass_jar_filled": draw_glass_jar_filled,
     "tray_glaze": draw_tray_glaze,
     "tray_glaze_dark": draw_tray_glaze_dark,
+    "vat_clay": draw_vat_clay,
     "jar_side": draw_jar_side,
     "jar_side_filled": draw_jar_side_filled,
     "jar_top": draw_jar_top,
@@ -651,7 +679,8 @@ def build_functional(textures_dir: Path) -> None:
 # --- containers and vat -------------------------------------------------------
 
 CONTAINER_TEXTURES = {
-    "vat_side": {"kind": "brick", "ramp": ["#A3814F", "#8A6A47", "#6E523A"]},
+    "vat_side": {"kind": "vat_clay", "ramp": ["#A87C4E", "#845E38", "#C2996A"]},
+    "vat_rim": {"kind": "vat_clay", "ramp": ["#C2996A", "#A87C4E", "#D8B183"]},
     "vat_top": {"kind": "plaster", "ramp": ["#4FA3D1", "#3B82AC", "#2A5F80"]},
     "cupboard_side": {"kind": "plank", "species": "spruce"},
     "cupboard_front": {"kind": "cabinet_front", "species": "oak"},
@@ -679,15 +708,30 @@ def build_containers(textures_dir: Path) -> None:
     for seed, (name, spec) in enumerate(sorted(CONTAINER_TEXTURES.items())):
         make_texture(spec, seed=401 + seed * 11).save(textures_dir / f"{name}.png")
 
-    # water vat: clay body with a water surface that rises with the level
+    # water vat: rings of narrowing clay give the thrown pot its belly, the rim is a ring rather
+    # than a lid so the water inside stays visible, and the surface rises with the level
+    vat_rings = [(0.0, 1.0, 3.0), (1.0, 3.0, 4.0), (3.0, 6.0, 5.0), (6.0, 9.0, 4.6)]
     for level, water_y in VAT_WATER_HEIGHT.items():
-        water = box([3, water_y, 3], [13, water_y + 1, 13], "#1", uv=[0, 0, 10, 10])
-        body = [box([1, 2, 1], [3, 14, 3], "#0"), box([13, 2, 1], [15, 14, 3], "#0"),
-                box([1, 2, 13], [3, 14, 15], "#0"), box([13, 2, 13], [15, 14, 15], "#0"),
-                box([1, 0, 1], [15, 2, 15], "#0"), water]
+        elements = []
+        for y0, y1, half in vat_rings:
+            elements.append(box([8 - half, y0, 8 - half], [8 + half, y1, 8 + half], "#0"))
+        # the shoulder, whose top face is the water itself: a separate surface element would sit
+        # inside the solid body and the model checker rightly rejects that
+        shoulder = {"from": [4.0, 9.0, 4.0], "to": [12.0, 11.0, 12.0],
+                    "faces": {face: {"uv": [0, 0, 8, 8], "texture": "#0"}
+                              for face in ("north", "south", "east", "west", "down")}}
+        shoulder["faces"]["up"] = {"uv": [0, 0, 8, 8],
+                                   "texture": "#2" if level > 0 else "#0"}
+        elements.append(shoulder)
+        elements += [
+            box([3, 11, 3], [13, 12, 4], "#1"),
+            box([3, 11, 12], [13, 12, 13], "#1"),
+            box([3, 11, 4], [4, 12, 12], "#1"),
+            box([12, 11, 4], [13, 12, 12], "#1"),
+        ]
         write_json(RES / "assets" / NS / "models" / "block" / f"water_vat_{level}.json",
-                   {"textures": {"0": tex("vat_side"), "1": tex("vat_top"),
-                                 "particle": tex("vat_side")}, "elements": body})
+                   {"textures": {"0": tex("vat_side"), "1": tex("vat_rim"), "2": tex("vat_top"),
+                                 "particle": tex("vat_side")}, "elements": elements})
     vat_variants = {}
     for facing, y in FACING_Y:
         for level in VAT_WATER_HEIGHT:
@@ -696,6 +740,16 @@ def build_containers(textures_dir: Path) -> None:
                 model["y"] = y
             vat_variants[f"facing={facing},level={level}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "water_vat.json", {"variants": vat_variants})
+    # the item form: a shade larger and shown at an angle, so the pot reads as a pot in the slot
+    write_json(RES / "assets" / NS / "models" / "item" / "water_vat.json", {
+        "parent": f"{NS}:block/water_vat_3",
+        "display": {
+            "gui": {"rotation": [30, 225, 0], "translation": [0, 1.0, 0], "scale": [0.95, 0.95, 0.95]},
+            "fixed": {"rotation": [0, 180, 0], "scale": [1.0, 1.0, 1.0]},
+            "ground": {"translation": [0, 3, 0], "scale": [0.3, 0.3, 0.3]},
+            "head": {"rotation": [0, 180, 0], "scale": [1.0, 1.0, 1.0]},
+        },
+    })
 
     # cupboard: closed shows the doors, open shows a dark shelf instead
     for opened in (False, True):
