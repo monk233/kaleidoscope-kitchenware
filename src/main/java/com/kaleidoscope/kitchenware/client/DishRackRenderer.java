@@ -22,8 +22,10 @@ import net.minecraft.world.item.ItemStack;
 public class DishRackRenderer implements BlockEntityRenderer<DishRackBlockEntity> {
     /** At most this many pieces are drawn on a shelf, however many it holds. */
     private static final int MAX_SHOWN = 8;
-    /** How far from the centre the outer pieces sit; the row is centred, so one piece sits mid. */
-    private static final double PLACE_SPAN = 0.34D;
+    /** The leftmost place on a shelf; pieces fill from here rightwards. */
+    private static final double FIRST_PLACE = -0.34D;
+    /** Distance between neighbouring pieces, whatever the count. */
+    private static final double PLACE_STEP = 0.097D;
     private static final double UPPER_SHELF = 0.62D;
     private static final double LOWER_SHELF = 0.2D;
     private static final float SCALE = 0.5F;
@@ -46,10 +48,8 @@ public class DishRackRenderer implements BlockEntityRenderer<DishRackBlockEntity
             int shown = Math.min(stack.getCount(), MAX_SHOWN);
             double height = shelf == 0 ? UPPER_SHELF : LOWER_SHELF;
             for (int place = 0; place < shown; place++) {
-                // spread what is drawn across the shelf rather than pinning four fixed places, so
-                // a single bowl sits in the middle and a full shelf fills the width
-                double along = shown == 1 ? 0.0D
-                        : -PLACE_SPAN + place * (2.0D * PLACE_SPAN) / (shown - 1);
+                // fill from the left, whatever the count, rather than spreading them out
+                double along = FIRST_PLACE + place * PLACE_STEP;
                 double x = 0.5D + right.getStepX() * along;
                 double z = 0.5D + right.getStepZ() * along;
                 pose.pushPose();

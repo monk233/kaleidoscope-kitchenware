@@ -204,36 +204,13 @@ public final class SeasoningTrayEvents {
             return;
         }
 
-        // a bowl or pot on the shovel takes out what the pot has cooked. The base mod wants the
-        // shovel itself here, hands the finished food straight to the player, and only allows it
-        // while sneaking
+        // A bowl or pot on the shovel, pointing at a pot: leave the click entirely to the base
+        // mod. Its pot and stockpot blocks already serve a finished dish out through
+        // takeOutProduct, and a shovel carrying a bowl is the item they expect. Intercepting
+        // here only ever got in their way, so this branch steps aside.
         ItemStack payload = carried(held, level.registryAccess());
         if (!payload.isEmpty()
-                && com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity.accepts(payload)
-                && level.getBlockEntity(pos) instanceof com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity pot) {
-            event.setUseBlock(TriState.FALSE);
-            event.setUseItem(TriState.FALSE);
-            if (level.isClientSide) {
-                return;
-            }
-            var status = pot.getStatus();
-            boolean done = status == com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity.FINISHED
-                    || status == com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity.BURNT;
-            if (!done) {
-                tell(player, "state.kaleidoscope_kitchenware.shovel_nothing_to_serve");
-                return;
-            }
-            if (!player.isSecondaryUseActive()) {
-                tell(player, "state.kaleidoscope_kitchenware.shovel_sneak_to_serve");
-                return;
-            }
-            if (pot.takeOutProduct(level, player, held)) {
-                clearCarried(held);
-                level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.0F);
-                tell(player, "state.kaleidoscope_kitchenware.shovel_served");
-            } else {
-                tell(player, "state.kaleidoscope_kitchenware.shovel_nothing_to_serve");
-            }
+                && com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity.accepts(payload)) {
             return;
         }
 
