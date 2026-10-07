@@ -66,13 +66,25 @@ public final class JarSelfTest {
             }
             level.removeBlock(pos, false);
 
+            // 3b. the same, but with no help from the placement path: contents sitting in the first
+            //     range must line up with the corner the block shows when the entity loads
+            BlockPos pos2 = new BlockPos(2, 200, 0);
+            level.setBlock(pos2, state.setValue(SpiceJarBlock.JARS[3], true), 3);
+            boolean fallbackMoved = false;
+            if (level.getBlockEntity(pos2) instanceof SpiceJarBlockEntity loose) {
+                loose.absorbSingleJar(SpiceJarBlock.carriedItems(item), 0, registries);
+                loose.onLoad();
+                fallbackMoved = loose.carryingCount(3) == 7;
+            }
+            level.removeBlock(pos2, false);
+
             boolean pass = stored && itemHasData && itemHasModel && handlerSlots == 1
-                    && unpackedCount == 7 && placedStored && cornersCorrect;
+                    && unpackedCount == 7 && placedStored && cornersCorrect && fallbackMoved;
             KaleidoscopeKitchenware.LOGGER.info(
                     "[jartest] {} stored={} itemHasData={} itemHasModel={} handlerSlots={} "
-                            + "unpackedIntoCorner1={} placedIntoCorner2={} cornersCorrect={}",
+                            + "unpackedIntoCorner1={} placedIntoCorner2={} cornersCorrect={} relocates={}",
                     pass ? "PASS" : "FAIL", stored, itemHasData, itemHasModel, handlerSlots,
-                    unpackedCount, placedStored, cornersCorrect);
+                    unpackedCount, placedStored, cornersCorrect, fallbackMoved);
 
             // 4. one jar holds a single kind of seasoning
             SpiceJarBlockEntity mixed = new SpiceJarBlockEntity(BlockPos.ZERO, state);

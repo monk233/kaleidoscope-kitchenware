@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -31,6 +32,39 @@ public class SpiceJarBlockEntity extends BlockEntity {
 
     public boolean accepts(ItemStack stack) {
         return true;
+    }
+
+    /**
+     * Contents coming from a jar item always arrive in the first slot range, whichever corner the
+     * player aimed at. When the block carries a single jar, line those contents up with the corner
+     * the block actually shows — that is what makes a jar keep its seasoning wherever it is put
+     * down, instead of only when it happens to land on the first corner.
+     */
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        Level level = getLevel();
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        BlockState state = getBlockState();
+        int shown = -1;
+        int standing = 0;
+        for (int corner = 0; corner < JAR_COUNT; corner++) {
+            if (state.getValue(com.kaleidoscope.kitchenware.block.SpiceJarBlock.JARS[corner])) {
+                if (shown < 0) {
+                    shown = corner;
+                }
+                standing++;
+            }
+        }
+        if (standing != 1 || shown <= 0) {
+            // several jars share the block, or it already shows the first corner: nothing to do
+            return;
+        }
+        if (isJarEmpty(shown) && !isJarEmpty(0)) {
+            moveJarRange(0, shown);
+        }
     }
 
     private int firstSlot(int jar) {
