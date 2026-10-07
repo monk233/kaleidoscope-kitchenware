@@ -2,16 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "WWW",
     "S S",
-    "WWW"
+    "TTT",
+    "S S"
   ],
   "key": {
-    "W": {
-      "item": "minecraft:spruce_planks"
-    },
     "S": {
       "item": "minecraft:stick"
+    },
+    "T": {
+      "tag": "minecraft:wooden_trapdoors"
     }
   },
   "result": {

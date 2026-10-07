@@ -2,13 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
+    "TWT",
     "WWW",
-    "W W",
-    "WWW"
+    "TWT"
   ],
   "key": {
+    "T": {
+      "item": "minecraft:terracotta"
+    },
     "W": {
-      "item": "minecraft:spruce_planks"
+      "item": "minecraft:white_terracotta"
     }
   },
   "result": {

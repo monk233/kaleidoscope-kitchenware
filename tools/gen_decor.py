@@ -832,8 +832,9 @@ def build_tray(textures_dir: Path) -> None:
     write_json(RES / "data" / NS / "recipe" / "seasoning_tray.json", {
         "type": "minecraft:crafting_shaped",
         "category": "misc",
-        "pattern": ["WWW", "W W", "WWW"],
-        "key": {"W": {"item": "minecraft:spruce_planks"}},
+        "pattern": ["TWT", "WWW", "TWT"],
+        "key": {"T": {"item": "minecraft:terracotta"},
+                "W": {"item": "minecraft:white_terracotta"}},
         "result": {"id": f"{NS}:seasoning_tray", "count": 1},
     })
 
@@ -890,9 +891,9 @@ def build_dish_rack(textures_dir: Path) -> None:
     write_json(RES / "data" / NS / "recipe" / "dish_rack.json", {
         "type": "minecraft:crafting_shaped",
         "category": "misc",
-        "pattern": ["WWW", "S S", "WWW"],
-        "key": {"W": {"item": "minecraft:spruce_planks"},
-                "S": {"item": "minecraft:stick"}},
+        "pattern": ["S S", "TTT", "S S"],
+        "key": {"S": {"item": "minecraft:stick"},
+                "T": {"tag": "minecraft:wooden_trapdoors"}},
         "result": {"id": f"{NS}:dish_rack", "count": 1},
     })
 
