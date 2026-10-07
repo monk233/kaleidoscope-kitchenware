@@ -358,75 +358,58 @@ def draw_jar_top_filled(img, ramp, rng):
 
 
 def draw_tray_glaze(img, ramp, rng) -> None:
-    """Porcelain: flat china white, one shared-outline rim, one inner shadow line."""
+    """Porcelain: one flat china white.
+
+    The dish's structure lives in its model, not its texture. A line drawn here lands somewhere
+    arbitrary once a face's uv crops the sheet, which is what turned the rim line into stray blocks.
+    """
     size = img.width
-    body, shade, edge = (0xEF, 0xEE, 0xE2, 255), (0xDA, 0xD7, 0xC3, 255), (0x5E, 0x37, 0x23, 255)
+    body = (0xEF, 0xEE, 0xE2, 255)
     for y in range(size):
         for x in range(size):
             img.putpixel((x, y), body)
-    band = max(2, size // 12)
-    for i in range(band, size - band):
-        img.putpixel((i, band), shade)
-        img.putpixel((i, size - band - 1), shade)
-        img.putpixel((band, i), shade)
-        img.putpixel((size - band - 1, i), shade)
-    for i in range(size):
-        img.putpixel((i, 0), edge)
-        img.putpixel((i, size - 1), edge)
-        img.putpixel((0, i), edge)
-        img.putpixel((size - 1, i), edge)
+
 
 def draw_tray_glaze_dark(img, ramp, rng) -> None:
-    """Inner walls: one step down from the china white, with a single seam line."""
+    """Inner walls: the same porcelain one step down, so the wells read as recessed."""
     size = img.width
-    body, shade = (0xDA, 0xD7, 0xC3, 255), (0xC2, 0xBF, 0xAC, 255)
+    body = (0xDA, 0xD7, 0xC3, 255)
     for y in range(size):
         for x in range(size):
             img.putpixel((x, y), body)
-    seam = size // 2
-    for i in range(size):
-        img.putpixel((i, seam), shade)
+
 
 def draw_vat_clay(img, ramp, rng) -> None:
-    """A thrown pot: even vertical throwing marks, a lit band under the rim, a shadowed belly.
-    Regular marks rather than scattered specks - the series reads as structure, not noise."""
+    """Clay: a fine, even grain and nothing else.
+
+    Bands were the mistake. A horizontal band repeats once per ring, because every ring crops the
+    same corner of the sheet, so the pot came out looking stacked from planks.
+    """
     size = img.width
-    body, dark, light, edge = (0xA3, 0x81, 0x4F, 255), (0x8A, 0x6A, 0x47, 255), \
-        (0xB8, 0x95, 0x5E, 255), (0x5E, 0x37, 0x23, 255)
-    step = max(1, size // 16)
+    body, grain = (0xA3, 0x81, 0x4F, 255), (0x93, 0x74, 0x47, 255)
     for y in range(size):
         for x in range(size):
-            img.putpixel((x, y), body)
-    for x in range(0, size, step * 2):
-        for y in range(size):
-            img.putpixel((x, y), dark)
-    for x in range(size):
-        for y in range(step, step * 2):
-            img.putpixel((x, y), light)
-        for y in range(size - step * 3, size - step * 2):
-            img.putpixel((x, y), dark)
-    for i in range(size):
-        img.putpixel((i, 0), edge)
-        img.putpixel((i, size - 1), edge)
-        img.putpixel((0, i), edge)
-        img.putpixel((size - 1, i), edge)
+            img.putpixel((x, y), grain if (x + y * 3) % 7 == 0 else body)
+
 
 def draw_vat_water(img, ramp, rng) -> None:
-    """Still water. Vanilla's water texture is greyscale and gets its colour from the biome tint,
-    which a model does not apply, so the vat carries its own blue instead."""
+    """Still water, in regular cells.
+
+    Vanilla's own sheet is greyscale and takes its colour from the biome tint, which a block model
+    does not apply, so the vat carries its own blue. Cells rather than specks: the series reads as
+    structure, and water reads as a calm surface.
+    """
     size = img.width
     deep, mid, light = (0x2E, 0x57, 0xB8, 255), (0x3F, 0x76, 0xE4, 255), (0x6A, 0xA0, 0xF2, 255)
+    cell = max(2, size // 8)
     for y in range(size):
         for x in range(size):
-            img.putpixel((x, y), mid)
-    for start in range(0, size, 6):
-        for x in range(size):
-            y = (start + x // 4) % size
-            img.putpixel((x, y), light)
-            img.putpixel((x, (y + 1) % size), deep)
-    for _ in range(10):
-        cx, cy = rng.randrange(size), rng.randrange(size)
-        img.putpixel((cx, cy), light if rng.random() < 0.5 else deep)
+            if (x // cell + y // cell) % 3 == 0:
+                img.putpixel((x, y), light)
+            elif (x // cell) % 2 == 0 and (y // cell) % 2 == 0:
+                img.putpixel((x, y), deep)
+            else:
+                img.putpixel((x, y), mid)
 
 
 PATTERNS = {
@@ -659,10 +642,10 @@ def build_containers(textures_dir: Path) -> None:
 
     # water vat: seven rings tapering in and out, which is as round as block model elements
     # get; a hollow body like a cauldron, with the level deciding how high the water sits
-    vat_rings = [(0.0, 1.0, 3.0), (1.0, 2.5, 4.2), (2.5, 5.0, 5.0), (5.0, 8.0, 5.6),
-                 (8.0, 11.0, 5.2), (11.0, 13.5, 4.6), (13.5, 15.0, 4.2)]
+    vat_rings = [(0.0, 1.0, 3.4), (1.0, 2.5, 5.0), (2.5, 5.0, 6.0), (5.0, 8.0, 6.6),
+                 (8.0, 11.0, 6.2), (11.0, 13.5, 5.4), (13.5, 15.0, 4.8)]
     for level, water_y in VAT_WATER_HEIGHT.items():
-        elements = [box([2.4, 0, 2.4], [13.6, 1, 13.6], "#0")]
+        elements = [box([2.2, 0, 2.2], [13.8, 1, 13.8], "#0")]
         for y0, y1, half in vat_rings[1:]:
             lo, hi = 8 - half, 8 + half
             thick = 1.0
@@ -673,7 +656,7 @@ def build_containers(textures_dir: Path) -> None:
             elements.append(box([hi - thick, y0, lo + thick], [hi, y1, hi - thick], "#0"))
         if level > 0:
             elements.append({
-                "from": [4.8, water_y, 4.8], "to": [11.2, water_y + 0.4, 11.2],
+                "from": [4.4, water_y, 4.4], "to": [11.6, water_y + 0.4, 11.6],
                 "faces": {face: {"uv": [0, 0, 7, 7], "texture": "#water", "tintindex": 0}
                           for face in ("north", "south", "east", "west", "up", "down")},
             })
