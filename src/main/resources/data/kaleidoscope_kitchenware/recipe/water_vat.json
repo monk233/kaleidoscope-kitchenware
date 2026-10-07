@@ -1,13 +1,13 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "pattern": ["T C", "T T", "TTT"],
+  "pattern": ["B B", "T T", "TTT"],
   "key": {
+    "B": {
+      "item": "minecraft:brick"
+    },
     "T": {
       "item": "minecraft:terracotta"
-    },
-    "C": {
-      "item": "minecraft:clay_ball"
     }
   },
   "result": {

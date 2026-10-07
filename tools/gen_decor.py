@@ -832,8 +832,8 @@ def build_tray(textures_dir: Path) -> None:
     write_json(RES / "data" / NS / "recipe" / "seasoning_tray.json", {
         "type": "minecraft:crafting_shaped",
         "category": "misc",
-        "pattern": ["TWT", "WWW", "TWT"],
-        "key": {"T": {"item": "minecraft:terracotta"},
+        "pattern": ["BWB", "WWW", "BWB"],
+        "key": {"B": {"item": "minecraft:bowl"},
                 "W": {"item": "minecraft:white_terracotta"}},
         "result": {"id": f"{NS}:seasoning_tray", "count": 1},
     })

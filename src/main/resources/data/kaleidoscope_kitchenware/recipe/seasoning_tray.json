@@ -2,13 +2,13 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "TWT",
+    "BWB",
     "WWW",
-    "TWT"
+    "BWB"
   ],
   "key": {
-    "T": {
-      "item": "minecraft:terracotta"
+    "B": {
+      "item": "minecraft:bowl"
     },
     "W": {
       "item": "minecraft:white_terracotta"
