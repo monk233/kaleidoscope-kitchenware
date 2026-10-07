@@ -205,7 +205,8 @@ public final class SeasoningTrayEvents {
         }
 
         // a bowl or pot on the shovel takes out what the pot has cooked. The base mod wants the
-        // shovel itself, and only when the pot is finished and not already carrying a dish
+        // shovel itself here, hands the finished food straight to the player, and only allows it
+        // while sneaking
         ItemStack payload = carried(held, level.registryAccess());
         if (!payload.isEmpty()
                 && com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity.accepts(payload)
@@ -215,9 +216,18 @@ public final class SeasoningTrayEvents {
             if (level.isClientSide) {
                 return;
             }
-            boolean ready = pot.getStatus() == com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity.FINISHED
-                    && !pot.hasCarrier();
-            if (ready && pot.takeOutProduct(level, player, held)) {
+            var status = pot.getStatus();
+            boolean done = status == com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity.FINISHED
+                    || status == com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity.BURNT;
+            if (!done) {
+                tell(player, "state.kaleidoscope_kitchenware.shovel_nothing_to_serve");
+                return;
+            }
+            if (!player.isSecondaryUseActive()) {
+                tell(player, "state.kaleidoscope_kitchenware.shovel_sneak_to_serve");
+                return;
+            }
+            if (pot.takeOutProduct(level, player, held)) {
                 clearCarried(held);
                 level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.0F);
                 tell(player, "state.kaleidoscope_kitchenware.shovel_served");

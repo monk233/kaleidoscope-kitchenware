@@ -20,12 +20,10 @@ import net.minecraft.world.item.ItemStack;
  * flat, which is what the first version did and why the bowls looked like plates lying down.
  */
 public class DishRackRenderer implements BlockEntityRenderer<DishRackBlockEntity> {
-    /** How many pieces are drawn on a shelf, whatever the count above that. */
-    private static final int SHOWN_PER_SHELF = 4;
-    /** How far from the centre the outermost piece sits. */
+    /** At most this many pieces are drawn on a shelf, however many it holds. */
+    private static final int MAX_SHOWN = 8;
+    /** How far from the centre the outer pieces sit; the row is centred, so one piece sits mid. */
     private static final double PLACE_SPAN = 0.34D;
-    /** Distance between neighbouring pieces. */
-    private static final double PLACE_STEP = 0.2267D;
     private static final double UPPER_SHELF = 0.62D;
     private static final double LOWER_SHELF = 0.2D;
     private static final float SCALE = 0.5F;
@@ -45,10 +43,13 @@ public class DishRackRenderer implements BlockEntityRenderer<DishRackBlockEntity
             if (stack.isEmpty()) {
                 continue;
             }
-            int shown = Math.min(stack.getCount(), SHOWN_PER_SHELF);
+            int shown = Math.min(stack.getCount(), MAX_SHOWN);
             double height = shelf == 0 ? UPPER_SHELF : LOWER_SHELF;
             for (int place = 0; place < shown; place++) {
-                double along = -PLACE_SPAN + place * PLACE_STEP;
+                // spread what is drawn across the shelf rather than pinning four fixed places, so
+                // a single bowl sits in the middle and a full shelf fills the width
+                double along = shown == 1 ? 0.0D
+                        : -PLACE_SPAN + place * (2.0D * PLACE_SPAN) / (shown - 1);
                 double x = 0.5D + right.getStepX() * along;
                 double z = 0.5D + right.getStepZ() * along;
                 pose.pushPose();

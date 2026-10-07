@@ -100,12 +100,22 @@ public class DishRackBlock extends HorizontalDirectionalBlock implements EntityB
             return ItemInteractionResult.SUCCESS;
         }
 
-        ItemStack taken = rack.takeOne(shelf);
-        if (taken.isEmpty()) {
-            tell(player, "state.kaleidoscope_kitchenware.rack_shelf_empty");
-            return ItemInteractionResult.FAIL;
+        // taking: the whole shelf, or one item when sneaking
+        if (player.isShiftKeyDown()) {
+            ItemStack taken = rack.takeOne(shelf);
+            if (taken.isEmpty()) {
+                tell(player, "state.kaleidoscope_kitchenware.rack_shelf_empty");
+                return ItemInteractionResult.FAIL;
+            }
+            player.getInventory().placeItemBackInInventory(taken);
+        } else {
+            ItemStack taken = rack.takeAll(shelf);
+            if (taken.isEmpty()) {
+                tell(player, "state.kaleidoscope_kitchenware.rack_shelf_empty");
+                return ItemInteractionResult.FAIL;
+            }
+            player.getInventory().placeItemBackInInventory(taken);
         }
-        player.getInventory().placeItemBackInInventory(taken);
         level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 0.9F);
         return ItemInteractionResult.SUCCESS;
     }

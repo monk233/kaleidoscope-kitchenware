@@ -101,6 +101,21 @@ public class DishRackBlockEntity extends BlockEntity {
         return taken;
     }
 
+    /** Takes a whole shelf at once. */
+    public ItemStack takeAll(int shelf) {
+        shelf = clampShelf(shelf);
+        if (level != null && level.isClientSide) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack held = shelves[shelf];
+        if (held.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        shelves[shelf] = ItemStack.EMPTY;
+        changed();
+        return held;
+    }
+
     private void changed() {
         setChanged();
         if (level instanceof net.minecraft.server.level.ServerLevel server) {
