@@ -1,18 +1,48 @@
 {
   "variants": {
-    "facing=north": {
+    "content=empty,facing=north": {
       "model": "kaleidoscope_kitchenware:block/iron_wok"
     },
-    "facing=east": {
+    "content=oil,facing=north": {
+      "model": "kaleidoscope_kitchenware:block/iron_wok_oil"
+    },
+    "content=soup,facing=north": {
+      "model": "kaleidoscope_kitchenware:block/iron_wok_soup"
+    },
+    "content=empty,facing=east": {
       "model": "kaleidoscope_kitchenware:block/iron_wok",
       "y": 90
     },
-    "facing=south": {
+    "content=oil,facing=east": {
+      "model": "kaleidoscope_kitchenware:block/iron_wok_oil",
+      "y": 90
+    },
+    "content=soup,facing=east": {
+      "model": "kaleidoscope_kitchenware:block/iron_wok_soup",
+      "y": 90
+    },
+    "content=empty,facing=south": {
       "model": "kaleidoscope_kitchenware:block/iron_wok",
       "y": 180
     },
-    "facing=west": {
+    "content=oil,facing=south": {
+      "model": "kaleidoscope_kitchenware:block/iron_wok_oil",
+      "y": 180
+    },
+    "content=soup,facing=south": {
+      "model": "kaleidoscope_kitchenware:block/iron_wok_soup",
+      "y": 180
+    },
+    "content=empty,facing=west": {
       "model": "kaleidoscope_kitchenware:block/iron_wok",
+      "y": 270
+    },
+    "content=oil,facing=west": {
+      "model": "kaleidoscope_kitchenware:block/iron_wok_oil",
+      "y": 270
+    },
+    "content=soup,facing=west": {
+      "model": "kaleidoscope_kitchenware:block/iron_wok_soup",
       "y": 270
     }
   }

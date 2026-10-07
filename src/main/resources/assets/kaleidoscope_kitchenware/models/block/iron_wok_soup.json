@@ -1,0 +1,1323 @@
+{
+  "textures": {
+    "particle": "kaleidoscope_kitchenware:block/wok_outer"
+  },
+  "elements": [
+    {
+      "from": [
+        1.5,
+        0,
+        1.5
+      ],
+      "to": [
+        14.5,
+        1.0,
+        3.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            13.0,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            13.0,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            13.0,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            13.0,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        }
+      }
+    },
+    {
+      "from": [
+        1.5,
+        0,
+        13.0
+      ],
+      "to": [
+        14.5,
+        1.0,
+        14.5
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            13.0,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            13.0,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            13.0,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            13.0,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        }
+      }
+    },
+    {
+      "from": [
+        1.5,
+        0,
+        3.0
+      ],
+      "to": [
+        3.0,
+        1.0,
+        13.0
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            10.0,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            10.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            10.0,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            10.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        }
+      }
+    },
+    {
+      "from": [
+        13.0,
+        0,
+        3.0
+      ],
+      "to": [
+        14.5,
+        1.0,
+        13.0
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            10.0,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            10.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            10.0,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            10.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        }
+      }
+    },
+    {
+      "from": [
+        3.0999999999999996,
+        -1.5,
+        3.0999999999999996
+      ],
+      "to": [
+        12.9,
+        0.0,
+        3.8999999999999995
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            9.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            9.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            9.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            9.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        }
+      }
+    },
+    {
+      "from": [
+        3.0999999999999996,
+        -1.5,
+        12.1
+      ],
+      "to": [
+        12.9,
+        0.0,
+        12.9
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            9.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            9.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            9.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            9.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        }
+      }
+    },
+    {
+      "from": [
+        3.0999999999999996,
+        -1.5,
+        3.8999999999999995
+      ],
+      "to": [
+        3.8999999999999995,
+        0.0,
+        12.1
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            8.2,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            8.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            8.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            8.2,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        }
+      }
+    },
+    {
+      "from": [
+        12.1,
+        -1.5,
+        3.8999999999999995
+      ],
+      "to": [
+        12.9,
+        0.0,
+        12.1
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            8.2,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            8.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            8.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            8.2,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        }
+      }
+    },
+    {
+      "from": [
+        3.8,
+        -3.0,
+        3.8
+      ],
+      "to": [
+        12.2,
+        -1.5,
+        4.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            8.4,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            8.4,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            8.4,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            8.4,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        }
+      }
+    },
+    {
+      "from": [
+        3.8,
+        -3.0,
+        11.399999999999999
+      ],
+      "to": [
+        12.2,
+        -1.5,
+        12.2
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            8.4,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            8.4,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            8.4,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            8.4,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        }
+      }
+    },
+    {
+      "from": [
+        3.8,
+        -3.0,
+        4.6
+      ],
+      "to": [
+        4.6,
+        -1.5,
+        11.399999999999999
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            6.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            6.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        }
+      }
+    },
+    {
+      "from": [
+        11.399999999999999,
+        -3.0,
+        4.6
+      ],
+      "to": [
+        12.2,
+        -1.5,
+        11.399999999999999
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            6.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            6.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            1.5
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        }
+      }
+    },
+    {
+      "from": [
+        4.6,
+        -4.2,
+        4.6
+      ],
+      "to": [
+        11.4,
+        -3.0,
+        5.3999999999999995
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        }
+      }
+    },
+    {
+      "from": [
+        4.6,
+        -4.2,
+        10.6
+      ],
+      "to": [
+        11.4,
+        -3.0,
+        11.4
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            6.8,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        }
+      }
+    },
+    {
+      "from": [
+        4.6,
+        -4.2,
+        5.3999999999999995
+      ],
+      "to": [
+        5.3999999999999995,
+        -3.0,
+        10.6
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            5.2,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            5.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            5.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            5.2,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        }
+      }
+    },
+    {
+      "from": [
+        10.6,
+        -4.2,
+        5.3999999999999995
+      ],
+      "to": [
+        11.4,
+        -3.0,
+        10.6
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            5.2,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            5.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            5.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            5.2,
+            1.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        }
+      }
+    },
+    {
+      "from": [
+        5.6,
+        -5.2,
+        5.6
+      ],
+      "to": [
+        10.4,
+        -4.2,
+        6.3999999999999995
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4.8,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4.8,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        }
+      }
+    },
+    {
+      "from": [
+        5.6,
+        -5.2,
+        9.6
+      ],
+      "to": [
+        10.4,
+        -4.2,
+        10.4
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            4.8,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4.8,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            4.8,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        }
+      }
+    },
+    {
+      "from": [
+        5.6,
+        -5.2,
+        6.3999999999999995
+      ],
+      "to": [
+        6.3999999999999995,
+        -4.2,
+        9.6
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            0,
+            3.2,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            3.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            3.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3.2,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        }
+      }
+    },
+    {
+      "from": [
+        9.6,
+        -5.2,
+        6.3999999999999995
+      ],
+      "to": [
+        10.4,
+        -4.2,
+        9.6
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            3.2,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            3.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            3.2
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3.2,
+            1.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        }
+      }
+    },
+    {
+      "from": [
+        6.5,
+        -6.0,
+        6.5
+      ],
+      "to": [
+        9.5,
+        -5.2,
+        9.5
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0,
+            0,
+            3.0,
+            3.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_inner"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3.0,
+            3.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_bottom"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            3.0,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            3.0,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3.0,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3.0,
+            0.8
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_outer"
+        }
+      }
+    },
+    {
+      "from": [
+        5.5,
+        -4.2,
+        5.5
+      ],
+      "to": [
+        10.5,
+        -3.6,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            0.6
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_soup"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            0.6
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_soup"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            0.6
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_soup"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            0.6
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_soup"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            5.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_soup"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            5.0,
+            5.0
+          ],
+          "texture": "kaleidoscope_kitchenware:block/wok_soup"
+        }
+      }
+    }
+  ]
+}

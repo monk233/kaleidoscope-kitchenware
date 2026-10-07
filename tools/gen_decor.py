@@ -265,6 +265,38 @@ def draw_wok_bottom(img, ramp, rng):
         img.putpixel((rng.randrange(size), rng.randrange(size)), ramp[1])
 
 
+OIL_DEEP, OIL_MID, OIL_LIGHT = (0x40, 0x2B, 0x10, 255), (0x6B, 0x4B, 0x1C, 255), (0xA8, 0x7C, 0x2E, 255)
+BROTH_DEEP, BROTH_MID, BROTH_LIGHT = (0xB9, 0xA4, 0x7C, 255), (0xD3, 0xC2, 0x9A, 255), (0xEF, 0xE6, 0xC8, 255)
+
+
+def draw_wok_oil(img, ramp, rng):
+    """Oil in the pan: dark, glossy, with a few bright ripples across it."""
+    size = img.width
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), OIL_MID)
+    for _ in range(size * size // 8):
+        img.putpixel((rng.randrange(size), rng.randrange(size)), OIL_DEEP)
+    for _ in range(size // 3):
+        x, y = rng.randrange(size), rng.randrange(size)
+        for step in range(rng.randint(2, 4)):
+            img.putpixel(((x + step) % size, y), OIL_LIGHT)
+
+
+def draw_wok_soup(img, ramp, rng):
+    """Soup: pale broth with the odd bit of ingredient showing through it."""
+    size = img.width
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), BROTH_MID)
+    for _ in range(size * size // 10):
+        img.putpixel((rng.randrange(size), rng.randrange(size)), BROTH_DEEP)
+    for _ in range(size // 4):
+        x, y = rng.randrange(size), rng.randrange(size)
+        img.putpixel((x, y), BROTH_LIGHT)
+        img.putpixel(((x + 1) % size, y), BROTH_LIGHT)
+
+
 def draw_wood_pile(img, ramp, rng):
     """Log ends seen from above: bark ring outside, growth rings inside."""
     size = img.width
@@ -507,6 +539,8 @@ PATTERNS = {
     "wok_outer": draw_wok_outer,
     "wok_inner": draw_wok_inner,
     "wok_bottom": draw_wok_bottom,
+    "wok_oil": draw_wok_oil,
+    "wok_soup": draw_wok_soup,
     "wood_pile": draw_wood_pile,
     "cabinet_front": draw_cabinet_front,
     "cabinet_open": draw_cabinet_open,
@@ -778,6 +812,8 @@ WOK_TEXTURES = {
     "wok_outer": {"kind": "wok_outer", "size": 32, "ramp": CAST_IRON},
     "wok_inner": {"kind": "wok_inner", "size": 32, "ramp": CAST_IRON},
     "wok_bottom": {"kind": "wok_bottom", "size": 32, "ramp": CAST_IRON},
+    "wok_oil": {"kind": "wok_oil", "size": 32, "ramp": CAST_IRON},
+    "wok_soup": {"kind": "wok_soup", "size": 32, "ramp": CAST_IRON},
 }
 
 WOK_CENTRE = 8.0
@@ -836,12 +872,24 @@ def build_iron_wok(textures_dir: Path) -> None:
 
     write_json(RES / "assets" / NS / "models" / "block" / "iron_wok.json",
                {"textures": {"particle": outer}, "elements": elements})
+    # the two liquid states are separate models rather than renderer work: a surface inside the
+    # bowl is one more box, and that keeps the block entity out of the liquid business entirely
+    for state, texture_name, top, half in (("oil", "wok_oil", -3.95, 2.4),
+                                           ("soup", "wok_soup", -3.6, 2.5)):
+        liquid = tex(texture_name)
+        lo, hi = WOK_CENTRE - half, WOK_CENTRE + half
+        write_json(RES / "assets" / NS / "models" / "block" / f"iron_wok_{state}.json",
+                   {"textures": {"particle": outer},
+                    "elements": elements + [stove_box([lo, -4.2, lo], [hi, top, hi],
+                                                      {face: liquid for face in STOVE_FACES})]})
+
     variants = {}
     for facing, y in FACING_Y:
-        model = {"model": f"{NS}:block/iron_wok"}
-        if y:
-            model["y"] = y
-        variants[f"facing={facing}"] = model
+        for state in ("empty", "oil", "soup"):
+            model = {"model": f"{NS}:block/iron_wok{'' if state == 'empty' else '_' + state}"}
+            if y:
+                model["y"] = y
+            variants[f"content={state},facing={facing}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "iron_wok.json", {"variants": variants})
     write_json(RES / "assets" / NS / "models" / "item" / "iron_wok.json", {
         "parent": f"{NS}:block/iron_wok",
@@ -1125,7 +1173,21 @@ def main() -> None:
                {f"block.{NS}.{n}": zh for n, zh, _, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "森罗物语：家什"}
                | {"block." + NS + ".firewood_stove": "柴火灶台",
-                  f"state.{NS}.burner_wok_only": "锅眼上只能放大铁锅",                  f"tier.{NS}.low": "文火",
+                  f"state.{NS}.burner_wok_only": "锅眼上只能放大铁锅",
+                  f"state.{NS}.wok_need_fire": "灶里还没有火",
+                  f"state.{NS}.wok_need_oil": "锅里还没放油",
+                  f"state.{NS}.wok_need_shovel": "请用锅铲潜行盛取",
+                  f"state.{NS}.wok_sneak_to_serve": "潜行 + 右键才能盛出来",
+                  f"state.{NS}.wok_carrier_count": "需要 %s 个%s来盛取",
+                  f"state.{NS}.wok_soup_base": "倒进了汤底",
+                  f"state.{NS}.wok_soup_base_back": "把汤底倒了回来",
+                  f"state.{NS}.wok_ingredient_back": "取回了 %s",
+                  f"state.{NS}.wok_served": "盛出了一份",
+                  f"state.{NS}.wok_nothing_to_serve": "锅里还没有做好的东西",
+                  f"state.{NS}.wok_need_carrier": "得拿 %s 来装",
+                  f"state.{NS}.wok_burnt": "糊了，只剩炭",
+                  f"state.{NS}.wok_full": "锅里放不下了",
+                  f"state.{NS}.wok_refused": "锅还收不了 %s",                  f"tier.{NS}.low": "文火",
                   f"tier.{NS}.mid": "中火",
                   f"tier.{NS}.high": "猛火",
                   f"state.{NS}.tier": "火力：%s",
@@ -1179,6 +1241,20 @@ def main() -> None:
                | {f"itemGroup.{NS}.kitchen": "Kaleidoscope Kitchenware"}
                | {"block." + NS + ".firewood_stove": "Firewood Stove",
                   f"state.{NS}.burner_wok_only": "Only the iron wok fits on this burner",
+                  f"state.{NS}.wok_need_fire": "The range is not lit",
+                  f"state.{NS}.wok_need_oil": "No oil in the wok yet",
+                  f"state.{NS}.wok_need_shovel": "Sneak and use a kitchen shovel to serve it",
+                  f"state.{NS}.wok_sneak_to_serve": "Sneak and right click to serve it out",
+                  f"state.{NS}.wok_carrier_count": "Need %s %s to serve it",
+                  f"state.{NS}.wok_soup_base": "Poured in the soup base",
+                  f"state.{NS}.wok_soup_base_back": "Tipped the soup base back",
+                  f"state.{NS}.wok_ingredient_back": "Took back %s",
+                  f"state.{NS}.wok_served": "Served out a portion",
+                  f"state.{NS}.wok_nothing_to_serve": "There is nothing cooked in there yet",
+                  f"state.{NS}.wok_need_carrier": "Use a %s to serve it out",
+                  f"state.{NS}.wok_burnt": "It burnt down to charcoal",
+                  f"state.{NS}.wok_full": "The wok is full",
+                  f"state.{NS}.wok_refused": "The wok will not take %s",
                   f"tier.{NS}.low": "Low heat",
                   f"tier.{NS}.mid": "Medium heat",
                   f"tier.{NS}.high": "High heat",
