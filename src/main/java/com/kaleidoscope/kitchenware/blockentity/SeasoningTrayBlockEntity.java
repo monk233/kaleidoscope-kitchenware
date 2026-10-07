@@ -67,6 +67,17 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
         return total;
     }
 
+    /** How many stacks a compartment holds. Drives the stacked rendering. */
+    public int storedStacks(int slot) {
+        int stacks = 0;
+        for (ItemStack stack : contents[clamp(slot)]) {
+            if (!stack.isEmpty()) {
+                stacks++;
+            }
+        }
+        return stacks;
+    }
+
     public boolean isEmpty() {
         for (int slot = 0; slot < COMPARTMENTS; slot++) {
             if (storedCount(slot) > 0) {
