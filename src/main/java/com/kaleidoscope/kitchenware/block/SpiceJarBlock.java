@@ -1,13 +1,11 @@
 package com.kaleidoscope.kitchenware.block;
 
-import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
 import com.kaleidoscope.kitchenware.blockentity.SpiceJarBlockEntity;
 import com.kaleidoscope.kitchenware.item.SpiceJarItem;
-import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import com.kaleidoscope.kitchenware.registry.ModItems;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -40,9 +38,11 @@ import org.jetbrains.annotations.Nullable;
  * Four aligned spice jars, one per corner of the block. Which jar you touch is decided by
  * where on the block you are aiming.
  *
- * Right-click with seasoning stores one, shift stores the whole stack, an empty hand takes
- * one, shift takes a whole stack. The kitchen shovel picks everything up and is handled in
- * {@code SpiceJarEvents} because the base mod's shovel swallows the block interaction.
+ * <ul>
+ *   <li>right-click holding something: the whole held stack goes in</li>
+ *   <li>right-click empty-handed: a whole stack comes out</li>
+ *   <li>left-click: one item comes out (handled in {@code SpiceJarEvents})</li>
+ * </ul>
  */
 public class SpiceJarBlock extends Block implements EntityBlock {
     public static final MapCodec<SpiceJarBlock> CODEC = simpleCodec(SpiceJarBlock::new);
@@ -53,12 +53,16 @@ public class SpiceJarBlock extends Block implements EntityBlock {
             BooleanProperty.create("jar_sw"),
             BooleanProperty.create("jar_se"),
     };
+    public static final int JAR_COUNT = SpiceJarBlockEntity.JAR_COUNT;
+    /** custom_model_data value that switches the item to the "has seasoning" model. */
+    public static final int FILLED_MODEL_DATA = 1;
+
     private static final VoxelShape SHAPE = Shapes.or(
             Block.box(1, 0, 1, 6, 7, 6), Block.box(10, 0, 1, 15, 7, 6),
             Block.box(1, 0, 10, 6, 7, 15), Block.box(10, 0, 10, 15, 7, 15));
-    /** custom_model_data value that switches the item to the "has seasoning" model. */
-    public static final int FILLED_MODEL_DATA = 1;
-    private static final int JAR_COUNT = SpiceJarBlockEntity.JAR_COUNT;
+    private static final double[][] CORNER_CENTRES = {
+            {0.25, 0.25}, {0.75, 0.25}, {0.25, 0.75}, {0.75, 0.75},
+    };
 
     public SpiceJarBlock(Properties properties) {
         super(properties);
@@ -102,13 +106,10 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         return east ? 3 : 2;
     }
 
-    private static final double[][] CORNER_CENTRES = {
-            {0.25, 0.25}, {0.75, 0.25}, {0.25, 0.75}, {0.75, 0.75},
-    };
-
     /**
      * The jar the player means: the corner they aim at, or failing that the nearest corner
-     * that actually has a jar. Aiming two pixels off should not make the click do nothing.
+     * that actually has a jar. Aiming a couple of pixels off should not make the click do
+     * nothing.
      *
      * @return jar index, or -1 when this block carries no jars at all
      */
@@ -146,14 +147,11 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         if (hand == InteractionHand.OFF_HAND || !(level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        int aimed = jarIndexAt(hitResult.getLocation(), pos);
         int index = resolveJarIndex(state, hitResult.getLocation(), pos);
         boolean hasJar = index >= 0;
-        // registerClick has a side effect, so it must be called exactly once per interaction
-        boolean wholeStack = player.isShiftKeyDown() || jar.registerClick(index, level.getGameTime());
 
         // a jar in hand goes down as a new jar in the corner that was aimed at.
-        // the fallback used for storage must NOT apply here, or a second jar could never be placed
+        // the fallback above must not apply here, or a second jar could never be placed
         if (stack.getItem() instanceof SpiceJarItem) {
             int target = jarIndexAt(hitResult.getLocation(), pos);
             if (!state.getValue(JARS[target])) {
@@ -168,12 +166,13 @@ public class SpiceJarBlock extends Block implements EntityBlock {
             return ItemInteractionResult.FAIL;
         }
 
+        // everything held goes in at once
         if (!stack.isEmpty()) {
             if (!hasJar) {
                 tell(player, "state.kaleidoscope_kitchenware.jar_missing");
                 return ItemInteractionResult.FAIL;
             }
-            int moved = jar.insert(index, stack, wholeStack);
+            int moved = jar.insert(index, stack, true);
             if (moved == 0) {
                 tell(player, "state.kaleidoscope_kitchenware.storage_full");
                 return ItemInteractionResult.FAIL;
@@ -186,10 +185,11 @@ public class SpiceJarBlock extends Block implements EntityBlock {
             return ItemInteractionResult.SUCCESS;
         }
 
+        // an empty hand takes a whole stack out
         if (!hasJar) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        ItemStack taken = jar.extract(index, wholeStack);
+        ItemStack taken = jar.extract(index, true);
         if (taken.isEmpty()) {
             tell(player, "state.kaleidoscope_kitchenware.storage_empty");
             return ItemInteractionResult.FAIL;
@@ -215,16 +215,15 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     }
 
     /**
-     * The block as an item. An empty jar stays a plain stack so it stacks normally; a stocked
-     * jar carries block entity data (with the mandatory id) and is flagged for the filled
-     * inventory model, so it looks different in the hand.
+     * One corner's jar as an item, carrying only that jar's contents, so contents and block
+     * state agree again when it is placed back down.
      */
-    public static ItemStack jarStack(SpiceJarBlockEntity jar, RegistryAccess access) {
+    public static ItemStack jarStack(SpiceJarBlockEntity jar, int corner, HolderLookup.Provider registries) {
         ItemStack stack = new ItemStack(ModItems.SPICE_JAR.get());
-        if (jar.isEmpty()) {
+        if (jar.isJarEmpty(corner)) {
             return stack;
         }
-        CompoundTag contents = jar.saveCustomOnly(access);
+        CompoundTag contents = jar.saveSingleJar(corner, registries);
         contents.putString("id", BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(jar.getType()).toString());
         stack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(contents));
         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(FILLED_MODEL_DATA));
@@ -232,10 +231,10 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     }
 
     /**
-     * Drops one jar with the contents plus the empties.
+     * Drops one jar per standing jar, each with its own contents.
      *
-     * Dropping happens here rather than in onRemove because a block entity can already be
-     * gone by the time onRemove runs, which silently lost everything the jars held.
+     * Dropping happens in playerWillDestroy rather than onRemove because a block entity can
+     * already be gone by the time onRemove runs, which silently lost everything.
      */
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
@@ -258,10 +257,10 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     }
 
     private static void dropJars(Level level, BlockPos pos, BlockState state, SpiceJarBlockEntity jar) {
-        int count = Math.max(1, jarCount(state));
-        Block.popResource(level, pos, jarStack(jar, level.registryAccess()));
-        for (int i = 1; i < count; i++) {
-            Block.popResource(level, pos, new ItemStack(ModItems.SPICE_JAR.get()));
+        for (int corner = 0; corner < JAR_COUNT; corner++) {
+            if (state.getValue(JARS[corner])) {
+                Block.popResource(level, pos, jarStack(jar, corner, level.registryAccess()));
+            }
         }
     }
 }

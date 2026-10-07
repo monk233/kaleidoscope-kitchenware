@@ -119,23 +119,6 @@ public class SpiceJarBlockEntity extends BlockEntity {
 
     /** Set when the drop has already been produced, so onRemove does not produce a second one. */
     private boolean dropped;
-    /** Ticks within which a second click on the same jar counts as "do the whole stack". */
-    private static final long DOUBLE_CLICK_TICKS = 7;
-    private long lastClickTick = Long.MIN_VALUE;
-    private int lastClickCorner = -1;
-
-    /**
-     * Remembers this click and reports whether it was the second half of a double click.
-     *
-     * Sneaking is the documented way to move a whole stack, but the sneak pose is not always
-     * held at the moment the click lands, so a quick double click does the same job.
-     */
-    public boolean registerClick(int corner, long gameTime) {
-        boolean doubled = corner == lastClickCorner && gameTime - lastClickTick <= DOUBLE_CLICK_TICKS;
-        lastClickCorner = corner;
-        lastClickTick = doubled ? Long.MIN_VALUE : gameTime; // reset so a triple click is not two doubles
-        return doubled;
-    }
 
     public boolean isDropped() {
         return dropped;
@@ -143,6 +126,22 @@ public class SpiceJarBlockEntity extends BlockEntity {
 
     public void markDropped() {
         dropped = true;
+    }
+
+    /**
+     * One jar's own contents as a tag, so a block with four jars drops four jars that each
+     * carry their own seasoning. Dumping all four sets into one item used to hide three of
+     * them behind a block state that only had room for one.
+     */
+    public CompoundTag saveSingleJar(int corner, HolderLookup.Provider registries) {
+        ItemStackHandler single = new ItemStackHandler(SLOTS_PER_JAR);
+        for (int slot = 0; slot < SLOTS_PER_JAR; slot++) {
+            ItemStack stack = items.getStackInSlot(firstSlot(corner) + slot);
+            if (!stack.isEmpty()) {
+                single.setStackInSlot(slot, stack.copy());
+            }
+        }
+        return single.serializeNBT(registries);
     }
 
     @Override

@@ -1,12 +1,13 @@
 package com.kaleidoscope.kitchenware.event;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IPot;
-import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.KitchenShovelItem;
 import com.kaleidoscope.kitchenware.block.SpiceJarBlock;
 import com.kaleidoscope.kitchenware.blockentity.SpiceJarBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -26,20 +27,57 @@ import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 /**
- * The kitchen shovel works the jars the way it works the base mod's oil basin: it picks the
- * seasoning up onto the shovel, carries it, and drops it into a wok.
+ * Left-click takes one item out; the kitchen shovel scoops seasoning out of a jar.
  *
- * The base mod's shovel returns SUCCESS from its own useOn, so the block never gets a chance
- * to react; the click has to be intercepted before that. Registered explicitly from the mod
- * class rather than by annotation, because a silently missing listener here is invisible.
+ * The shovel follows the base mod's oil basin exactly, which means two paths:
+ * <ul>
+ *   <li>oil: the shovel takes the base mod's own "has oil" flag, so right-clicking a wok
+ *       afterwards runs the base mod's oil code, identical to scooping from the basin</li>
+ *   <li>anything else: the shovel carries the actual item, and right-clicking a wok feeds it
+ *       through the same call a held seasoning item would use</li>
+ * </ul>
+ *
+ * Registered explicitly from the mod class: a silently missing listener here is invisible,
+ * and the shovel's own useOn would otherwise swallow the click.
  */
 public final class SpiceJarEvents {
+    private static final ResourceLocation OIL_ID =
+            ResourceLocation.fromNamespaceAndPath("kaleidoscope_cookery", "oil");
     private static final TagKey<Item> KITCHEN_SHOVEL = TagKey.create(Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("kaleidoscope_cookery", "kitchen_shovel"));
     /** Key inside the shovel's custom data holding what it currently carries. */
     private static final String SCOOPED = "kaleidoscope_kitchenware:scooped_seasoning";
 
     private SpiceJarEvents() {
+    }
+
+    /** Left-click takes exactly one item out; sneaking still lets you break the block. */
+    @SubscribeEvent
+    public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
+        Level level = event.getLevel();
+        BlockPos pos = event.getPos();
+        BlockState state = level.getBlockState(pos);
+        Player player = event.getEntity();
+        if (!(state.getBlock() instanceof SpiceJarBlock) || player.isShiftKeyDown()) {
+            return;
+        }
+        event.setUseBlock(TriState.FALSE);
+        event.setUseItem(TriState.FALSE);
+        if (level.isClientSide || !(level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar)) {
+            return;
+        }
+        // LeftClickBlock carries no hit position, so the corner comes from where the player
+        // stands relative to the block, with the usual nearest-jar fallback.
+        int index = SpiceJarBlock.resolveJarIndex(state, player.getEyePosition(), pos);
+        if (index < 0) {
+            return;
+        }
+        ItemStack taken = jar.extract(index, false);
+        if (taken.isEmpty()) {
+            return;
+        }
+        player.getInventory().placeItemBackInInventory(taken);
+        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4F, 1.2F);
     }
 
     @SubscribeEvent
@@ -52,7 +90,6 @@ public final class SpiceJarEvents {
             return;
         }
         Player player = event.getEntity();
-        ItemStack carriedOnShovel = scooped(held, level.registryAccess());
 
         if (state.getBlock() instanceof SpiceJarBlock) {
             event.setUseBlock(TriState.FALSE);
@@ -65,11 +102,24 @@ public final class SpiceJarEvents {
                 tell(player, "state.kaleidoscope_kitchenware.jar_missing");
                 return;
             }
+
+            // the shovel is loaded with oil: put one portion back, exactly like the basin
+            if (KitchenShovelItem.hasOil(held)) {
+                ItemStack oil = new ItemStack(BuiltInRegistries.ITEM.get(OIL_ID));
+                if (oil.isEmpty() || jar.insert(index, oil, false) == 0) {
+                    tell(player, "state.kaleidoscope_kitchenware.storage_full");
+                    return;
+                }
+                KitchenShovelItem.setHasOil(held, false);
+                level.playSound(null, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8F, 0.8F);
+                tell(player, "state.kaleidoscope_kitchenware.jar_returned", oil.getHoverName());
+                return;
+            }
+
+            // the shovel carries some other seasoning: tip it back in
             ItemStack carried = scooped(held, level.registryAccess());
             if (!carried.isEmpty()) {
-                // shovel already loaded: tip it back into the jar
-                int room = jar.insert(index, carried, false);
-                if (room > 0) {
+                if (jar.insert(index, carried, false) > 0) {
                     clearScooped(held);
                     level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.0F);
                     tell(player, "state.kaleidoscope_kitchenware.jar_returned", carried.getHoverName());
@@ -78,18 +128,25 @@ public final class SpiceJarEvents {
                 }
                 return;
             }
-            ItemStack scooped = jar.extract(index, player.isShiftKeyDown());
-            if (scooped.isEmpty()) {
+
+            // scoop one portion out
+            ItemStack portion = jar.extract(index, false);
+            if (portion.isEmpty()) {
                 tell(player, "state.kaleidoscope_kitchenware.storage_empty");
                 return;
             }
-            setScooped(held, scooped, level.registryAccess());
-            level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.3F);
-            tell(player, "state.kaleidoscope_kitchenware.jar_scooped_on_shovel", scooped.getHoverName());
+            if (isOil(portion)) {
+                KitchenShovelItem.setHasOil(held, true);
+            } else {
+                setScooped(held, portion, level.registryAccess());
+            }
+            level.playSound(null, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8F, 1.2F);
+            tell(player, "state.kaleidoscope_kitchenware.jar_scooped_on_shovel", portion.getHoverName());
             return;
         }
 
-        // anything else: if the shovel carries seasoning and we clicked a wok, tip it in
+        // a wok: only seasoning we carry ourselves is handled here. Oil on the shovel is left
+        // to the base mod, which already knows what to do with it.
         ItemStack carried = scooped(held, level.registryAccess());
         if (carried.isEmpty() || !(level.getBlockEntity(pos) instanceof IPot pot)) {
             return;
@@ -99,8 +156,7 @@ public final class SpiceJarEvents {
         if (level.isClientSide) {
             return;
         }
-        boolean added = pot.addIngredient(level, player, carried.copy());
-        if (added) {
+        if (pot.addIngredient(level, player, carried.copy())) {
             clearScooped(held);
             level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.1F);
             tell(player, "state.kaleidoscope_kitchenware.jar_poured", carried.getHoverName());
@@ -112,6 +168,10 @@ public final class SpiceJarEvents {
 
     private static boolean isShovel(ItemStack stack) {
         return stack.is(KITCHEN_SHOVEL) || stack.is(ItemTags.SHOVELS);
+    }
+
+    private static boolean isOil(ItemStack stack) {
+        return !stack.isEmpty() && BuiltInRegistries.ITEM.getKey(stack.getItem()).equals(OIL_ID);
     }
 
     /** What the shovel is carrying, empty when it carries nothing. */
@@ -128,7 +188,6 @@ public final class SpiceJarEvents {
         CompoundTag tag = new CompoundTag();
         tag.put(SCOOPED, seasoning.save(access));
         shovel.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-        // a visible marker, the way the base mod's shovel shows its own oil
         shovel.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
     }
 
@@ -141,4 +200,3 @@ public final class SpiceJarEvents {
         player.displayClientMessage(Component.translatable(key, args), true);
     }
 }
-
