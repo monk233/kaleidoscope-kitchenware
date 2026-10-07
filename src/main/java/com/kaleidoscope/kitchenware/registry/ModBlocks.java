@@ -5,6 +5,7 @@ import com.kaleidoscope.kitchenware.block.CupboardBlock;
 import com.kaleidoscope.kitchenware.block.FacingThinBlock;
 import com.kaleidoscope.kitchenware.block.FirewoodPileBlock;
 import com.kaleidoscope.kitchenware.block.FirewoodStoveBlock;
+import com.kaleidoscope.kitchenware.block.DishRackBlock;
 import com.kaleidoscope.kitchenware.block.SeasoningTrayBlock;
 import com.kaleidoscope.kitchenware.block.WaterVatBlock;
 import net.minecraft.world.level.block.Block;
@@ -73,6 +74,14 @@ public final class ModBlocks {
     /** 16 slots of bowls and flower pots, no GUI anywhere. */
     public static final DeferredHolder<Block, CupboardBlock> CUPBOARD = reg("cupboard",
             () -> new CupboardBlock(wood().strength(2.0F, 3.0F)));
+    /** Two shelf dish rack holding bowls and flower pots, no interface. */
+    public static final DeferredHolder<Block, DishRackBlock> DISH_RACK = regNoItem("dish_rack",
+            () -> new DishRackBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .sound(SoundType.WOOD)
+                    .strength(1.5F, 3.0F)
+                    .noOcclusion()));
+
     /** Four-compartment seasoning tray; contents travel with the item, like a drawer. */
     public static final DeferredHolder<Block, SeasoningTrayBlock> SEASONING_TRAY = regNoItem("seasoning_tray",
             () -> new SeasoningTrayBlock(BlockBehaviour.Properties.of()

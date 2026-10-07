@@ -3,6 +3,7 @@ package com.kaleidoscope.kitchenware.registry;
 import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
 import com.kaleidoscope.kitchenware.blockentity.CupboardBlockEntity;
 import com.kaleidoscope.kitchenware.blockentity.FirewoodStoveBlockEntity;
+import com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity;
 import com.kaleidoscope.kitchenware.blockentity.SeasoningTrayBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -22,6 +23,11 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CupboardBlockEntity>> CUPBOARD =
             BLOCK_ENTITIES.register("cupboard",
                     () -> BlockEntityType.Builder.of(CupboardBlockEntity::new, ModBlocks.CUPBOARD.get())
+                            .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DishRackBlockEntity>> DISH_RACK =
+            BLOCK_ENTITIES.register("dish_rack",
+                    () -> BlockEntityType.Builder.of(DishRackBlockEntity::new, ModBlocks.DISH_RACK.get())
                             .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SeasoningTrayBlockEntity>> SEASONING_TRAY =

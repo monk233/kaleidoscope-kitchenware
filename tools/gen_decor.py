@@ -786,6 +786,63 @@ def build_tray(textures_dir: Path) -> None:
     })
 
 
+# --- dish rack ----------------------------------------------------------------
+
+RACK_TEXTURES = {
+    "rack_wood": {"kind": "plank", "species": "spruce"},
+    "rack_frame": {"kind": "plank", "species": "oak"},
+}
+
+
+def build_dish_rack(textures_dir: Path) -> None:
+    for seed, (name, spec) in enumerate(sorted(RACK_TEXTURES.items())):
+        make_texture(spec, seed=811 + seed * 17).save(textures_dir / f"{name}.png")
+
+    textures = {"0": tex("rack_wood"), "1": tex("rack_frame"), "particle": tex("rack_frame")}
+    # two trays, a back panel and four corner posts, laid out so no two elements interpenetrate
+    elements = [
+        box([2, 0, 2], [14, 1, 12], "#0"),
+        box([2, 7, 2], [14, 8, 12], "#0"),
+        box([1, 0, 13], [15, 16, 14], "#1"),
+        box([1, 0, 1], [2, 16, 2], "#1"),
+        box([14, 0, 1], [15, 16, 2], "#1"),
+        box([1, 0, 12], [2, 16, 13], "#1"),
+        box([14, 0, 12], [15, 16, 13], "#1"),
+    ]
+    write_json(RES / "assets" / NS / "models" / "block" / "dish_rack.json", {
+        "render_type": "minecraft:cutout",
+        "textures": textures,
+        "elements": elements,
+    })
+    variants = {}
+    for facing, y in FACING_Y:
+        model = {"model": f"{NS}:block/dish_rack"}
+        if y:
+            model["y"] = y
+        variants[f"facing={facing}"] = model
+    write_json(RES / "assets" / NS / "blockstates" / "dish_rack.json", {"variants": variants})
+    write_json(RES / "assets" / NS / "models" / "item" / "dish_rack.json", {
+        "textures": textures,
+        "elements": elements,
+        "display": {
+            "gui": {"rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.7, 0.7, 0.7]},
+            "fixed": {"rotation": [0, 180, 0], "scale": [1.0, 1.0, 1.0]},
+            "ground": {"translation": [0, 3, 0], "scale": [0.25, 0.25, 0.25]},
+        },
+    })
+    # contents drop on their own, so the loot table stays empty
+    write_json(RES / "data" / NS / "loot_table" / "blocks" / "dish_rack.json",
+               {"type": "minecraft:block", "pools": []})
+    write_json(RES / "data" / NS / "recipe" / "dish_rack.json", {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "pattern": ["WWW", "S S", "WWW"],
+        "key": {"W": {"item": "minecraft:spruce_planks"},
+                "S": {"item": "minecraft:stick"}},
+        "result": {"id": f"{NS}:dish_rack", "count": 1},
+    })
+
+
 # --- main ---------------------------------------------------------------------
 
 def main() -> None:
@@ -813,6 +870,7 @@ def main() -> None:
     build_functional(textures_dir)
     build_containers(textures_dir)
     build_tray(textures_dir)
+    build_dish_rack(textures_dir)
 
     write_json(RES / "assets" / NS / "lang" / "zh_cn.json",
                {f"block.{NS}.{n}": zh for n, zh, _, _, _ in DECOR}
@@ -830,6 +888,11 @@ def main() -> None:
                   "block." + NS + ".water_vat": "水缸",
                   "block." + NS + ".cupboard": "碗柜",
                   "block." + NS + ".seasoning_tray": "调味盘",
+                  "block." + NS + ".dish_rack": "碗架",
+                  f"state.{NS}.rack_shelf_full": "这一层放满了",
+                  f"state.{NS}.rack_shelf_empty": "这一层是空的",
+                  f"state.{NS}.rack_bowls_only": "碗架只放碗和花盆",
+                  f"state.{NS}.rack_lifted": "取下了 %s",
                   f"state.{NS}.tray_stored": "存入了 %s 个",
                   f"state.{NS}.tray_empty": "这个格子是空的",
                   f"state.{NS}.tray_wrong_kind": "这个格子已经装着别的调料了",
@@ -870,6 +933,11 @@ def main() -> None:
                   "block." + NS + ".water_vat": "Water Vat",
                   "block." + NS + ".cupboard": "Cupboard",
                   "block." + NS + ".seasoning_tray": "Seasoning Tray",
+                  "block." + NS + ".dish_rack": "Dish Rack",
+                  f"state.{NS}.rack_shelf_full": "This shelf is full",
+                  f"state.{NS}.rack_shelf_empty": "This shelf is empty",
+                  f"state.{NS}.rack_bowls_only": "The rack only takes bowls and flower pots",
+                  f"state.{NS}.rack_lifted": "Lifted off %s",
                   f"state.{NS}.tray_stored": "Stored %s",
                   f"state.{NS}.tray_empty": "This compartment is empty",
                   f"state.{NS}.tray_wrong_kind": "This compartment already holds another seasoning",

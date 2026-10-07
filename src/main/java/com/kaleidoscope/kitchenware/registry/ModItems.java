@@ -27,11 +27,15 @@ public final class ModItems {
         ITEMS.register(modEventBus);
     }
 
+    public static final DeferredHolder<Item, BlockItem> DISH_RACK = ITEMS.register("dish_rack",
+            () -> new BlockItem(ModBlocks.DISH_RACK.get(), new Item.Properties()));
+
     /** The tray carries its contents in its own custom data, so it holds one stack at a time. */
     public static final DeferredHolder<Item, SeasoningTrayItem> SEASONING_TRAY = ITEMS.register("seasoning_tray",
             () -> new SeasoningTrayItem(ModBlocks.SEASONING_TRAY.get(), new Item.Properties().stacksTo(1)));
 
     static {
+        ALL.add(DISH_RACK);
         ALL.add(SEASONING_TRAY);
     }
 

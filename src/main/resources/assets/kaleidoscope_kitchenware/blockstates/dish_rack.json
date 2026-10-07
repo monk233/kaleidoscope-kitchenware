@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "kaleidoscope_kitchenware:block/dish_rack"
+    },
+    "facing=east": {
+      "model": "kaleidoscope_kitchenware:block/dish_rack",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "kaleidoscope_kitchenware:block/dish_rack",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "kaleidoscope_kitchenware:block/dish_rack",
+      "y": 270
+    }
+  }
+}

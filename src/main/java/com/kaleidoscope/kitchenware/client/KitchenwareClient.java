@@ -15,5 +15,6 @@ public final class KitchenwareClient {
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.SEASONING_TRAY.get(), SeasoningTrayRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.DISH_RACK.get(), DishRackRenderer::new);
     }
 }

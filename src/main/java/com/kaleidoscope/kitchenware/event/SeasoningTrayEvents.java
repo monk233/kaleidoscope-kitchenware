@@ -62,6 +62,26 @@ public final class SeasoningTrayEvents {
         }
         Player player = event.getEntity();
 
+        // a dish rack: the shovel lifts a bowl or pot off the shelf it points at
+        if (state.getBlock() instanceof com.kaleidoscope.kitchenware.block.DishRackBlock) {
+            event.setUseBlock(TriState.FALSE);
+            event.setUseItem(TriState.FALSE);
+            if (level.isClientSide
+                    || !(level.getBlockEntity(pos) instanceof com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity rack)) {
+                return;
+            }
+            int shelf = com.kaleidoscope.kitchenware.block.DishRackBlock.shelfAt(event.getHitVec(), pos);
+            ItemStack lifted = rack.takeLast(shelf);
+            if (lifted.isEmpty()) {
+                tell(player, "state.kaleidoscope_kitchenware.rack_shelf_empty");
+                return;
+            }
+            player.getInventory().placeItemBackInInventory(lifted);
+            level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.1F);
+            tell(player, "state.kaleidoscope_kitchenware.rack_lifted", lifted.getHoverName());
+            return;
+        }
+
         if (state.getBlock() instanceof SeasoningTrayBlock) {
             event.setUseBlock(TriState.FALSE);
             event.setUseItem(TriState.FALSE);
