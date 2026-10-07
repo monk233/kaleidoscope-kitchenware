@@ -121,9 +121,6 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
             }
         }
         if (moved > 0) {
-            com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                    "[tray] {} insert slot={} moved={} now={}", worldPosition, slot, moved,
-                    storedCount(slot));
             changed();
         }
         return moved;
@@ -171,8 +168,6 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
             if (held.isEmpty()) {
                 contents[slot][index] = ItemStack.EMPTY;
             }
-            com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.debug(
-                    "[tray] {} took {} from compartment {}", worldPosition, take, slot);
             changed();
             return taken;
         }
@@ -229,16 +224,11 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
         if (packet == null) {
             return;
         }
-        int sent = 0;
         for (net.minecraft.server.level.ServerPlayer player
                 : server.getChunkSource().chunkMap.getPlayers(new net.minecraft.world.level.ChunkPos(worldPosition),
                         false)) {
             player.connection.send(packet);
-            sent++;
         }
-        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                "[tray] {} sync sent={} counts={},{},{},{}", worldPosition, sent,
-                storedCount(0), storedCount(1), storedCount(2), storedCount(3));
     }
 
     /**
@@ -316,9 +306,6 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
                              net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket packet,
                              HolderLookup.Provider registries) {
         loadAdditional(packet.getTag(), registries);
-        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                "[tray] {} client data applied counts={},{},{},{}", worldPosition,
-                storedCount(0), storedCount(1), storedCount(2), storedCount(3));
     }
 
     @Override
@@ -343,8 +330,5 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
                         : ItemStack.parseOptional(registries, entry);
             }
         }
-        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.debug(
-                "[tray] {} loaded counts={},{},{},{}", worldPosition,
-                storedCount(0), storedCount(1), storedCount(2), storedCount(3));
     }
 }

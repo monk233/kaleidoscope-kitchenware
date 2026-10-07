@@ -35,9 +35,6 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
     private static final double WELL_OFFSET = 0.22D;
     /** The pile is drawn at most this many layers deep. */
     private static final int MAX_LAYERS = 16;
-    /** Per position diagnostic budget: a global counter gets used up by whichever tray is in view. */
-    private static final java.util.Map<net.minecraft.core.BlockPos, Integer> WATCHED = new java.util.HashMap<>();
-    private static final int WATCH_PER_POSITION = 8;
 
     public SeasoningTrayRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -45,16 +42,6 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
     @Override
     public void render(SeasoningTrayBlockEntity tray, float partialTick, PoseStack pose, MultiBufferSource buffer,
                        int packedLight, int packedOverlay) {
-        int seen = WATCHED.getOrDefault(tray.getBlockPos(), 0);
-        if (seen < WATCH_PER_POSITION) {
-            WATCHED.put(tray.getBlockPos(), seen + 1);
-            com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                    "[trayrender] {} stacks={},{},{},{} items={},{},{},{}",
-                    tray.getBlockPos(), tray.storedStacks(0), tray.storedStacks(1),
-                    tray.storedStacks(2), tray.storedStacks(3),
-                    tray.stored(0).getCount(), tray.stored(1).getCount(),
-                    tray.stored(2).getCount(), tray.stored(3).getCount());
-        }
         Direction facing = tray.getBlockState().getValue(SeasoningTrayBlock.FACING);
         Direction view = facing.getOpposite();
         Direction right = view.getClockWise();
