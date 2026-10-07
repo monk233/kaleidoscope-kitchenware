@@ -447,6 +447,24 @@ def draw_vat_clay(img, ramp, rng) -> None:
                     img.putpixel((x, y), colour)
 
 
+def draw_vat_water(img, ramp, rng) -> None:
+    """Still water. Vanilla's water texture is greyscale and gets its colour from the biome tint,
+    which a model does not apply, so the vat carries its own blue instead."""
+    size = img.width
+    deep, mid, light = (0x2E, 0x57, 0xB8, 255), (0x3F, 0x76, 0xE4, 255), (0x6A, 0xA0, 0xF2, 255)
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), mid)
+    for start in range(0, size, 6):
+        for x in range(size):
+            y = (start + x // 4) % size
+            img.putpixel((x, y), light)
+            img.putpixel((x, (y + 1) % size), deep)
+    for _ in range(10):
+        cx, cy = rng.randrange(size), rng.randrange(size)
+        img.putpixel((cx, cy), light if rng.random() < 0.5 else deep)
+
+
 PATTERNS = {
     "brick": draw_brick,
     "roof_tile": draw_roof_tile,
@@ -467,6 +485,7 @@ PATTERNS = {
     "tray_glaze": draw_tray_glaze,
     "tray_glaze_dark": draw_tray_glaze_dark,
     "vat_clay": draw_vat_clay,
+    "vat_water": draw_vat_water,
     "jar_side": draw_jar_side,
     "jar_side_filled": draw_jar_side_filled,
     "jar_top": draw_jar_top,
@@ -672,6 +691,7 @@ def build_functional(textures_dir: Path) -> None:
 
 CONTAINER_TEXTURES = {
     "vat_side": {"kind": "vat_clay", "ramp": ["#A87C4E", "#845E38", "#C2996A"]},
+    "vat_water": {"kind": "vat_water", "ramp": ["#3F76E4", "#2E57B8", "#6AA0F2"]},
     "vat_rim": {"kind": "vat_clay", "ramp": ["#C2996A", "#A87C4E", "#D8B183"]},
     "cupboard_side": {"kind": "plank", "species": "spruce"},
     "cupboard_front": {"kind": "cabinet_front", "species": "oak"},
@@ -715,7 +735,8 @@ def build_containers(textures_dir: Path) -> None:
         if level > 0:
             elements.append(box([2, water_y, 2], [14, water_y + 0.4, 14], "#water"))
         write_json(RES / "assets" / NS / "models" / "block" / f"water_vat_{level}.json",
-                   {"textures": {"0": tex("vat_side"), "water": WATER,
+                   {"render_type": "minecraft:translucent",
+                    "textures": {"0": tex("vat_side"), "water": tex("vat_water"),
                                  "particle": tex("vat_side")}, "elements": elements})
     vat_variants = {}
     for facing, y in FACING_Y:
@@ -729,7 +750,7 @@ def build_containers(textures_dir: Path) -> None:
     write_json(RES / "assets" / NS / "models" / "item" / "water_vat.json", {
         "parent": f"{NS}:block/water_vat_3",
         "display": {
-            "gui": {"rotation": [30, 225, 0], "translation": [0, 1.0, 0], "scale": [0.75, 0.75, 0.75]},
+            "gui": {"rotation": [30, 225, 0], "translation": [0, 1.0, 0], "scale": [0.6, 0.6, 0.6]},
             "fixed": {"rotation": [0, 180, 0], "scale": [1.0, 1.0, 1.0]},
             "ground": {"translation": [0, 3, 0], "scale": [0.3, 0.3, 0.3]},
             "head": {"rotation": [0, 180, 0], "scale": [1.0, 1.0, 1.0]},
