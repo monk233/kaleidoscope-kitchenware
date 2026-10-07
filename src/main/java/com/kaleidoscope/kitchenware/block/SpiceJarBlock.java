@@ -303,20 +303,17 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         if (jar.isJarEmpty(corner)) {
             return stack;
         }
-        // the item must carry the block entity's own tag shape: {Items: <stack handler tag>}.
-        // Passing the handler tag on its own loses everything, because loadAdditional reads the
-        // contents from the "Items" child.
-        CompoundTag entityTag = new CompoundTag();
-        entityTag.put("Items", jar.saveSingleJar(corner, registries));
-        BlockItem.setBlockEntityData(stack, ModBlockEntities.SPICE_JAR.get(), entityTag);
+        // the item carries the block entity's own tag shape: one jar under its "Jar" key
+        BlockItem.setBlockEntityData(stack, ModBlockEntities.SPICE_JAR.get(),
+                jar.saveSingleJar(corner, registries));
         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(FILLED_MODEL_DATA));
         return stack;
     }
 
-    /** The stack handler tag a jar item is carrying, empty when it is a plain empty jar. */
+    /** The tag a jar item carries, empty when it is a plain empty jar. */
     public static CompoundTag carriedItems(ItemStack stack) {
         CustomData data = stack.get(DataComponents.BLOCK_ENTITY_DATA);
-        return data == null ? new CompoundTag() : data.copyTag().getCompound("Items");
+        return data == null ? new CompoundTag() : data.copyTag();
     }
 
     /**

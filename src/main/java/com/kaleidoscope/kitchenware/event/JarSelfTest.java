@@ -40,10 +40,9 @@ public final class JarSelfTest {
             boolean itemHasModel = item.has(DataComponents.CUSTOM_MODEL_DATA);
 
             // 2. unpack by hand, strafing corners
-            // 2. the item must carry the block entity tag shape, not a bare handler tag
+            // 2. the item must carry the block entity tag shape, one jar under its own key
             var raw = item.get(DataComponents.BLOCK_ENTITY_DATA);
-            int handlerSlots = raw == null ? 0
-                    : raw.copyTag().getCompound("Items").getList("Items", 10).size();
+            boolean itemCarriesJar = raw != null && raw.copyTag().getCompound("Jar").contains("id");
 
             SpiceJarBlockEntity unpacked = new SpiceJarBlockEntity(BlockPos.ZERO, state);
             unpacked.absorbSingleJar(SpiceJarBlock.carriedItems(item), 1, registries);
@@ -118,14 +117,14 @@ public final class JarSelfTest {
                 level.removeBlock(probe, false);
             }
 
-            boolean pass = stored && itemHasData && itemHasModel && handlerSlots == 1
+            boolean pass = stored && itemHasData && itemHasModel && itemCarriesJar
                     && unpackedCount == 7 && placedStored && cornersCorrect && fallbackMoved
                     && emptyStaysStanding && firstCornerKept && allCornersKept;
             KaleidoscopeKitchenware.LOGGER.info(
-                    "[jartest] {} stored={} itemHasData={} itemHasModel={} handlerSlots={} "
+                    "[jartest] {} stored={} itemHasData={} itemHasModel={} itemCarriesJar={} "
                             + "unpackedIntoCorner1={} placedIntoCorner2={} cornersCorrect={} "
                             + "relocates={} emptyStaysStanding={} firstCornerKept={} allCornersKept={}",
-                    pass ? "PASS" : "FAIL", stored, itemHasData, itemHasModel, handlerSlots,
+                    pass ? "PASS" : "FAIL", stored, itemHasData, itemHasModel, itemCarriesJar,
                     unpackedCount, placedStored, cornersCorrect, fallbackMoved, emptyStaysStanding,
                     firstCornerKept, allCornersKept);
 

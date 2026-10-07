@@ -1,5 +1,6 @@
 package com.kaleidoscope.kitchenware.blockentity;
 
+import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -7,44 +8,207 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.items.ItemStackHandler;
-
-import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 
 /**
- * Four spice jars share one block, each sitting in its own corner and holding its own
- * 16 stacks. All four live in one handler, sliced into four ranges.
+ * Four spice jars share one block, one per corner. Each jar holds a single kind of seasoning,
+ * up to {@link #JAR_CAPACITY} items.
+ *
+ * Storage is deliberately four plain item stacks rather than a slot handler: a jar is "one kind
+ * of thing, one big pile", and a handler's size-versus-data dance kept losing contents on the
+ * way through an item.
  */
 public class SpiceJarBlockEntity extends BlockEntity {
     public static final int JAR_COUNT = 4;
-    public static final int SLOTS_PER_JAR = 16;
+    /** One jar: a single seasoning, up to 16 stacks of 64. */
+    public static final int JAR_CAPACITY = 1024;
 
-    private final ItemStackHandler items = new ItemStackHandler(JAR_COUNT * SLOTS_PER_JAR) {
-        @Override
-        protected void onContentsChanged(int slot) {
-            setChanged();
-            // the client needs its own copy or the jar renders empty; send the update right away
-            if (level != null && !level.isClientSide) {
-                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(),
-                        net.minecraft.world.level.block.Block.UPDATE_ALL);
-            }
-        }
-    };
+    private final ItemStack[] jars = new ItemStack[JAR_COUNT];
+    private boolean dropped;
 
     public SpiceJarBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.SPICE_JAR.get(), pos, state);
+        clearAll();
     }
 
-    /** A jar holds seasoning only; the list lives in the item tag so datapacks can extend it. */
     public boolean accepts(ItemStack stack) {
         return stack.is(com.kaleidoscope.kitchenware.registry.ModTags.SPICE_JAR_ACCEPTS);
     }
 
+    private static int clampCorner(int corner) {
+        return Math.max(0, Math.min(JAR_COUNT - 1, corner));
+    }
+
+    public ItemStack jar(int corner) {
+        return jars[clampCorner(corner)];
+    }
+
+    /** What the jar shows on top. */
+    public ItemStack displayItem(int corner) {
+        return jar(corner);
+    }
+
+    public boolean isJarEmpty(int corner) {
+        return jar(corner).isEmpty();
+    }
+
+    public boolean isEmpty() {
+        for (ItemStack stack : jars) {
+            if (!stack.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public int carryingCount(int corner) {
+        return jar(corner).getCount();
+    }
+
+    public int carryingTotal() {
+        int total = 0;
+        for (ItemStack stack : jars) {
+            total += stack.getCount();
+        }
+        return total;
+    }
+
+    public void clearAll() {
+        for (int corner = 0; corner < JAR_COUNT; corner++) {
+            jars[corner] = ItemStack.EMPTY;
+        }
+    }
+
+    /** Stores seasoning, returning how many actually went in. One jar holds one kind of thing. */
+    public int insert(int corner, ItemStack stack, boolean wholeStack) {
+        corner = clampCorner(corner);
+        if (stack.isEmpty() || !accepts(stack)) {
+            return 0;
+        }
+        ItemStack held = jars[corner];
+        if (!held.isEmpty() && !ItemStack.isSameItemSameComponents(held, stack)) {
+            return 0;
+        }
+        int room = JAR_CAPACITY - held.getCount();
+        if (room <= 0) {
+            return 0;
+        }
+        int moved = Math.min(room, wholeStack ? stack.getCount() : 1);
+        if (held.isEmpty()) {
+            jars[corner] = stack.copyWithCount(moved);
+        } else {
+            held.grow(moved);
+        }
+        setChangedAndSynced();
+        return moved;
+    }
+
+    /** Takes a whole jar's worth, or a single item. */
+    public ItemStack extract(int corner, boolean wholeStack) {
+        corner = clampCorner(corner);
+        ItemStack held = jars[corner];
+        if (held.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack taken = wholeStack ? held.copy() : held.copyWithCount(1);
+        held.shrink(taken.getCount());
+        if (held.isEmpty()) {
+            jars[corner] = ItemStack.EMPTY;
+        }
+        setChangedAndSynced();
+        return taken;
+    }
+
+    /** Moves one jar's contents to another corner, used when an item is put down. */
+    public void moveJarRange(int from, int to) {
+        from = clampCorner(from);
+        to = clampCorner(to);
+        if (from == to || jars[from].isEmpty()) {
+            return;
+        }
+        jars[to] = jars[from];
+        jars[from] = ItemStack.EMPTY;
+        setChangedAndSynced();
+    }
+
+    /** Copies a single jar carried by an item into one corner. */
+    public void absorbSingleJar(CompoundTag jarTag, int corner, HolderLookup.Provider registries) {
+        corner = clampCorner(corner);
+        ItemStack carried = ItemStack.parseOptional(registries, jarTag.getCompound("Jar"));
+        jars[corner] = carried.isEmpty() ? ItemStack.EMPTY : carried;
+        setChangedAndSynced();
+    }
+
+    /** One jar's own contents as a tag, for the item form. */
+    public CompoundTag saveSingleJar(int corner, HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        ItemStack held = jar(corner);
+        if (!held.isEmpty()) {
+            tag.put("Jar", held.save(registries));
+        }
+        return tag;
+    }
+
+    private void setChangedAndSynced() {
+        setChanged();
+        // the client needs its own copy or the jar renders empty; push the update right away
+        if (level != null && !level.isClientSide) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(),
+                    net.minecraft.world.level.block.Block.UPDATE_ALL);
+        }
+    }
+
     /**
-     * Contents coming from a jar item always arrive in the first slot range, whichever corner the
-     * player aimed at. When the block carries a single jar, line those contents up with the corner
-     * the block actually shows — that is what makes a jar keep its seasoning wherever it is put
-     * down, instead of only when it happens to land on the first corner.
+     * Without this the client gets an empty tag and the jar renders with nothing inside, however
+     * much the server side is holding.
+     */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveCustomOnly(registries);
+    }
+
+    @Override
+    public net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    public boolean isDropped() {
+        return dropped;
+    }
+
+    public void markDropped() {
+        dropped = true;
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        for (int corner = 0; corner < JAR_COUNT; corner++) {
+            if (!jars[corner].isEmpty()) {
+                tag.put("Jar" + corner, jars[corner].save(registries));
+            }
+        }
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        clearAll();
+        for (int corner = 0; corner < JAR_COUNT; corner++) {
+            CompoundTag jarTag = tag.getCompound("Jar" + corner);
+            if (!jarTag.isEmpty()) {
+                jars[corner] = ItemStack.parseOptional(registries, jarTag);
+            }
+        }
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                "[jardbg] loadAdditional keys={} stored={} counts={},{},{},{}",
+                tag.getAllKeys(), carryingTotal(), carryingCount(0), carryingCount(1),
+                carryingCount(2), carryingCount(3));
+    }
+
+    /**
+     * Contents coming from a jar item arrive in the first corner; when the block carries a single
+     * jar, line it up with the corner the block shows. A standing jar is never extinguished: an
+     * empty jar is still a jar.
      */
     @Override
     public void onLoad() {
@@ -74,9 +238,6 @@ public class SpiceJarBlockEntity extends BlockEntity {
                 holding++;
             }
         }
-
-        // one jar: line it up with the corner the block shows, or light that corner if the
-        // placement never set one
         if (holding == 1) {
             if (standing == 0) {
                 level.setBlockAndUpdate(worldPosition,
@@ -88,215 +249,17 @@ public class SpiceJarBlockEntity extends BlockEntity {
             }
             return;
         }
-
-        // Never extinguish a standing jar: an empty jar is still a jar, and clearing its flag
-        // used to drop the contents with the block. Only light up corners that hold something
-        // but are dark, which is what a drifted placement looks like.
         BlockState fixed = state;
         boolean changed = false;
         for (int corner = 0; corner < JAR_COUNT; corner++) {
-            if (!isJarEmpty(corner) && !state.getValue(com.kaleidoscope.kitchenware.block.SpiceJarBlock.JARS[corner])) {
+            if (!isJarEmpty(corner)
+                    && !state.getValue(com.kaleidoscope.kitchenware.block.SpiceJarBlock.JARS[corner])) {
                 fixed = fixed.setValue(com.kaleidoscope.kitchenware.block.SpiceJarBlock.JARS[corner], true);
                 changed = true;
             }
         }
         if (changed) {
             level.setBlockAndUpdate(worldPosition, fixed);
-            com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                    "[jardbg] onLoad lit dark corners holding contents {} -> {}",
-                    com.kaleidoscope.kitchenware.block.SpiceJarBlock.dumpFlags(state),
-                    com.kaleidoscope.kitchenware.block.SpiceJarBlock.dumpFlags(fixed));
         }
-    }
-
-    private int firstSlot(int jar) {
-        return jar * SLOTS_PER_JAR;
-    }
-
-    private int lastSlot(int jar) {
-        return firstSlot(jar) + SLOTS_PER_JAR - 1;
-    }
-
-    /** What the jar shows on top: the first thing stored in it. */
-    public ItemStack displayItem(int jar) {
-        for (int slot = firstSlot(jar); slot <= lastSlot(jar); slot++) {
-            ItemStack stack = items.getStackInSlot(slot);
-            if (!stack.isEmpty()) {
-                return stack;
-            }
-        }
-        return ItemStack.EMPTY;
-    }
-
-    public boolean isJarEmpty(int jar) {
-        return displayItem(jar).isEmpty();
-    }
-
-    /** Diagnostics: how many individual items one jar holds right now. */
-    public int carryingCount(int jar) {
-        int count = 0;
-        for (int slot = firstSlot(jar); slot <= lastSlot(jar); slot++) {
-            count += items.getStackInSlot(slot).getCount();
-        }
-        return count;
-    }
-
-    public boolean isEmpty() {
-        for (int jar = 0; jar < JAR_COUNT; jar++) {
-            if (!isJarEmpty(jar)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /** Stores items, returning how many actually went in. One jar holds one kind of thing. */
-    public int insert(int jar, ItemStack stack, boolean wholeStack) {
-        if (stack.isEmpty() || !accepts(stack)) {
-            return 0;
-        }
-        // a jar is a one-seasoning container: refuse anything that is not already in it
-        ItemStack resident = displayItem(jar);
-        if (!resident.isEmpty() && !ItemStack.isSameItemSameComponents(resident, stack)) {
-            return 0;
-        }
-        int amount = wholeStack ? stack.getCount() : 1;
-        int moved = 0;
-        for (int slot = firstSlot(jar); slot <= lastSlot(jar) && moved < amount; slot++) {
-            ItemStack existing = items.getStackInSlot(slot);
-            if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, stack)) {
-                int add = Math.min(amount - moved, existing.getMaxStackSize() - existing.getCount());
-                existing.grow(add);
-                moved += add;
-            }
-        }
-        for (int slot = firstSlot(jar); slot <= lastSlot(jar) && moved < amount; slot++) {
-            if (items.getStackInSlot(slot).isEmpty()) {
-                int add = Math.min(stack.getMaxStackSize(), amount - moved);
-                items.setStackInSlot(slot, stack.copyWithCount(add));
-                moved += add;
-            }
-        }
-        return moved;
-    }
-
-    /** Takes one item, or a whole stack when {@code wholeStack} is set. */
-    public ItemStack extract(int jar, boolean wholeStack) {
-        for (int slot = lastSlot(jar); slot >= firstSlot(jar); slot--) {
-            ItemStack existing = items.getStackInSlot(slot);
-            if (existing.isEmpty()) {
-                continue;
-            }
-            ItemStack taken = wholeStack ? existing.copy() : existing.copyWithCount(1);
-            existing.shrink(taken.getCount());
-            return taken;
-        }
-        return ItemStack.EMPTY;
-    }
-
-    public boolean hasAnyJarContent() {
-        return !isEmpty();
-    }
-
-    /** Set when the drop has already been produced, so onRemove does not produce a second one. */
-    private boolean dropped;
-
-    public boolean isDropped() {
-        return dropped;
-    }
-
-    public void markDropped() {
-        dropped = true;
-    }
-
-    /**
-     * One jar's own contents as a tag, so a block with four jars drops four jars that each
-     * carry their own seasoning.
-     */
-    public CompoundTag saveSingleJar(int corner, HolderLookup.Provider registries) {
-        ItemStackHandler single = new ItemStackHandler(SLOTS_PER_JAR);
-        for (int slot = 0; slot < SLOTS_PER_JAR; slot++) {
-            ItemStack stack = items.getStackInSlot(firstSlot(corner) + slot);
-            if (!stack.isEmpty()) {
-                single.setStackInSlot(slot, stack.copy());
-            }
-        }
-        return single.serializeNBT(registries);
-    }
-
-    /** Moves one jar's contents to another corner, used when an item is put down. */
-    public void moveJarRange(int from, int to) {
-        if (from == to) {
-            return;
-        }
-        for (int slot = 0; slot < SLOTS_PER_JAR; slot++) {
-            items.setStackInSlot(firstSlot(to) + slot, items.getStackInSlot(firstSlot(from) + slot));
-            items.setStackInSlot(firstSlot(from) + slot, ItemStack.EMPTY);
-        }
-    }
-
-    /**
-     * Copies the contents carried by a jar item into one corner. Needed when a stocked jar is
-     * placed onto a block that already exists, where vanilla never applies the item's data.
-     */
-    public void absorbSingleJar(CompoundTag itemsTag, int corner, HolderLookup.Provider registries) {
-        ItemStackHandler single = new ItemStackHandler(SLOTS_PER_JAR);
-        single.deserializeNBT(registries, itemsTag);
-        for (int slot = 0; slot < SLOTS_PER_JAR; slot++) {
-            ItemStack stack = single.getStackInSlot(slot);
-            if (!stack.isEmpty()) {
-                items.setStackInSlot(firstSlot(corner) + slot, stack);
-            }
-        }
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Items", items.serializeNBT(registries));
-    }
-
-    /**
-     * Without this the client gets an empty tag and the jar renders with nothing inside, however
-     * much the server side is holding.
-     */
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveCustomOnly(registries);
-    }
-
-    @Override
-    public net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket getUpdatePacket() {
-        return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    /** Empties every corner. Used when a jar item's own contents are written in wholesale. */
-    public void clearAll() {
-        for (int slot = 0; slot < items.getSlots(); slot++) {
-            items.setStackInSlot(slot, ItemStack.EMPTY);
-        }
-    }
-
-    @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        CompoundTag saved = tag.getCompound("Items");
-        items.deserializeNBT(registries, saved);
-        // deserializeNBT resizes the handler to whatever Size the data carries (an item holds one
-        // jar, so 16); grow it back to the full four-jar layout before anything reads a slot
-        items.setSize(JAR_COUNT * SLOTS_PER_JAR);
-        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                "[jardbg] loadAdditional keys={} savedSize={} savedItems={} slots={} stored={}",
-                tag.getAllKeys(), saved.getInt("Size"), saved.getList("Items", 10).size(),
-                items.getSlots(), carryingTotal());
-    }
-
-    /** Diagnostics: total item count across all four jars. */
-    public int carryingTotal() {
-        int count = 0;
-        for (int jar = 0; jar < JAR_COUNT; jar++) {
-            count += carryingCount(jar);
-        }
-        return count;
     }
 }
