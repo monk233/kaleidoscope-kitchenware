@@ -38,5 +38,9 @@
   "state.kaleidoscope_kitchenware.vat_hint": "拿空桶或空瓶来打水",
   "state.kaleidoscope_kitchenware.jar_missing": "这个角上没有罐子",
   "state.kaleidoscope_kitchenware.jar_taken": "这个角上已经有罐子了",
-  "state.kaleidoscope_kitchenware.jar_scooped": "舀出了 %s"
+  "state.kaleidoscope_kitchenware.jar_scooped": "舀出了 %s",
+  "state.kaleidoscope_kitchenware.jar_stored": "存入了 %s 个",
+  "state.kaleidoscope_kitchenware.jar_scooped_on_shovel": "锅铲上沾上了 %s",
+  "state.kaleidoscope_kitchenware.jar_returned": "把 %s 倒回了罐子",
+  "state.kaleidoscope_kitchenware.jar_poured": "把 %s 下锅了"
 }

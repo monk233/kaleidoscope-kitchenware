@@ -818,7 +818,11 @@ def main() -> None:
                   f"state.{NS}.vat_hint": "拿空桶或空瓶来打水",
                   f"state.{NS}.jar_missing": "这个角上没有罐子",
                   f"state.{NS}.jar_taken": "这个角上已经有罐子了",
-                  f"state.{NS}.jar_scooped": "舀出了 %s"})
+                  f"state.{NS}.jar_scooped": "舀出了 %s",
+                  f"state.{NS}.jar_stored": "存入了 %s 个",
+                  f"state.{NS}.jar_scooped_on_shovel": "锅铲上沾上了 %s",
+                  f"state.{NS}.jar_returned": "把 %s 倒回了罐子",
+                  f"state.{NS}.jar_poured": "把 %s 下锅了"})
     write_json(RES / "assets" / NS / "lang" / "en_us.json",
                {f"block.{NS}.{n}": en for n, _, en, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "Kaleidoscope Kitchenware"}
@@ -843,7 +847,11 @@ def main() -> None:
                   f"state.{NS}.vat_hint": "Bring a bucket or a bottle",
                   f"state.{NS}.jar_missing": "No jar in this corner",
                   f"state.{NS}.jar_taken": "This corner already has a jar",
-                  f"state.{NS}.jar_scooped": "Scooped out %s"})
+                  f"state.{NS}.jar_scooped": "Scooped out %s",
+                  f"state.{NS}.jar_stored": "Stored %s",
+                  f"state.{NS}.jar_scooped_on_shovel": "Picked up %s on the shovel",
+                  f"state.{NS}.jar_returned": "Tipped %s back into the jar",
+                  f"state.{NS}.jar_poured": "Added %s to the wok"})
 
     print(f"generated {len(DECOR)} decorative blocks and 4 functional blocks into {RES}")
 

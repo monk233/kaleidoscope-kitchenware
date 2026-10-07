@@ -57,6 +57,7 @@ public class SpiceJarBlock extends Block implements EntityBlock {
             Block.box(1, 0, 10, 6, 7, 15), Block.box(10, 0, 10, 15, 7, 15));
     /** custom_model_data value that switches the item to the "has seasoning" model. */
     public static final int FILLED_MODEL_DATA = 1;
+    private static final int JAR_COUNT = SpiceJarBlockEntity.JAR_COUNT;
 
     public SpiceJarBlock(Properties properties) {
         super(properties);
@@ -100,6 +101,38 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         return east ? 3 : 2;
     }
 
+    private static final double[][] CORNER_CENTRES = {
+            {0.25, 0.25}, {0.75, 0.25}, {0.25, 0.75}, {0.75, 0.75},
+    };
+
+    /**
+     * The jar the player means: the corner they aim at, or failing that the nearest corner
+     * that actually has a jar. Aiming two pixels off should not make the click do nothing.
+     *
+     * @return jar index, or -1 when this block carries no jars at all
+     */
+    public static int resolveJarIndex(BlockState state, Vec3 hit, BlockPos pos) {
+        int aimed = jarIndexAt(hit, pos);
+        if (state.getValue(JARS[aimed])) {
+            return aimed;
+        }
+        int best = -1;
+        double bestDistance = Double.MAX_VALUE;
+        for (int index = 0; index < JAR_COUNT; index++) {
+            if (!state.getValue(JARS[index])) {
+                continue;
+            }
+            double dx = CORNER_CENTRES[index][0] - CORNER_CENTRES[aimed][0];
+            double dz = CORNER_CENTRES[index][1] - CORNER_CENTRES[aimed][1];
+            double distance = dx * dx + dz * dz;
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = index;
+            }
+        }
+        return best;
+    }
+
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
@@ -112,14 +145,15 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         if (hand == InteractionHand.OFF_HAND || !(level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        int index = jarIndexAt(hitResult.getLocation(), pos);
-        boolean hasJar = state.getValue(JARS[index]);
+        int index = resolveJarIndex(state, hitResult.getLocation(), pos);
+        boolean hasJar = index >= 0;
         boolean wholeStack = player.isShiftKeyDown();
 
         // a jar in hand goes down as a new jar when the corner is free
         if (stack.getItem() instanceof SpiceJarItem) {
             if (!hasJar) {
-                level.setBlockAndUpdate(pos, state.setValue(JARS[index], true));
+                int free = jarIndexAt(hitResult.getLocation(), pos);
+                level.setBlockAndUpdate(pos, state.setValue(JARS[free], true));
                 level.playSound(null, pos, SoundEvents.GLASS_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
                 if (!player.getAbilities().instabuild) {
                     stack.shrink(1);
@@ -141,6 +175,7 @@ public class SpiceJarBlock extends Block implements EntityBlock {
                 return ItemInteractionResult.FAIL;
             }
             level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.4F);
+            tell(player, "state.kaleidoscope_kitchenware.jar_stored", moved);
             if (!player.getAbilities().instabuild) {
                 stack.shrink(moved);
             }
@@ -160,8 +195,8 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         return ItemInteractionResult.SUCCESS;
     }
 
-    private static void tell(Player player, String key) {
-        player.displayClientMessage(Component.translatable(key), true);
+    private static void tell(Player player, String key, Object... args) {
+        player.displayClientMessage(Component.translatable(key, args), true);
     }
 
     /** How many jars stand in this block. */
