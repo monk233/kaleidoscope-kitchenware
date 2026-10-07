@@ -149,11 +149,12 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         boolean hasJar = index >= 0;
         boolean wholeStack = player.isShiftKeyDown();
 
-        // a jar in hand goes down as a new jar when the corner is free
+        // a jar in hand goes down as a new jar in the corner that was aimed at.
+        // the fallback used for storage must NOT apply here, or a second jar could never be placed
         if (stack.getItem() instanceof SpiceJarItem) {
-            if (!hasJar) {
-                int free = jarIndexAt(hitResult.getLocation(), pos);
-                level.setBlockAndUpdate(pos, state.setValue(JARS[free], true));
+            int aimed = jarIndexAt(hitResult.getLocation(), pos);
+            if (!state.getValue(JARS[aimed])) {
+                level.setBlockAndUpdate(pos, state.setValue(JARS[aimed], true));
                 level.playSound(null, pos, SoundEvents.GLASS_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
                 if (!player.getAbilities().instabuild) {
                     stack.shrink(1);
@@ -227,17 +228,37 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         return stack;
     }
 
-    /** Drops one jar with the contents plus the empties; the loot table stays empty. */
+    /**
+     * Drops one jar with the contents plus the empties.
+     *
+     * Dropping happens here rather than in onRemove because a block entity can already be
+     * gone by the time onRemove runs, which silently lost everything the jars held.
+     */
+    @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar) {
+            dropJars(level, pos, state, jar);
+            jar.markDropped();
+        }
+        return super.playerWillDestroy(level, pos, state, player);
+    }
+
+    /** Fallback for anything that is not a player breaking the block: explosions, pistons. */
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide
-                && level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar) {
-            int count = Math.max(1, jarCount(state));
-            Block.popResource(level, pos, jarStack(jar, level.registryAccess()));
-            for (int i = 1; i < count; i++) {
-                Block.popResource(level, pos, new ItemStack(ModItems.SPICE_JAR.get()));
-            }
+                && level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar && !jar.isDropped()) {
+            dropJars(level, pos, state, jar);
+            jar.markDropped();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    private static void dropJars(Level level, BlockPos pos, BlockState state, SpiceJarBlockEntity jar) {
+        int count = Math.max(1, jarCount(state));
+        Block.popResource(level, pos, jarStack(jar, level.registryAccess()));
+        for (int i = 1; i < count; i++) {
+            Block.popResource(level, pos, new ItemStack(ModItems.SPICE_JAR.get()));
+        }
     }
 }

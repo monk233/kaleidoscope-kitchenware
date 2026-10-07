@@ -100,6 +100,9 @@ public final class SpiceJarEvents {
             clearScooped(held);
             level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.1F);
             tell(player, "state.kaleidoscope_kitchenware.jar_poured", carried.getHoverName());
+        } else {
+            // the wok only takes seasoning once it has oil and is cooking
+            tell(player, "state.kaleidoscope_kitchenware.jar_wok_refused", carried.getHoverName());
         }
     }
 
@@ -121,10 +124,13 @@ public final class SpiceJarEvents {
         CompoundTag tag = new CompoundTag();
         tag.put(SCOOPED, seasoning.save(access));
         shovel.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        // a visible marker, the way the base mod's shovel shows its own oil
+        shovel.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
     }
 
     private static void clearScooped(ItemStack shovel) {
         shovel.remove(DataComponents.CUSTOM_DATA);
+        shovel.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
     }
 
     private static void tell(Player player, String key, Object... args) {

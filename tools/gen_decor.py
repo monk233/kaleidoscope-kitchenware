@@ -822,7 +822,8 @@ def main() -> None:
                   f"state.{NS}.jar_stored": "存入了 %s 个",
                   f"state.{NS}.jar_scooped_on_shovel": "锅铲上沾上了 %s",
                   f"state.{NS}.jar_returned": "把 %s 倒回了罐子",
-                  f"state.{NS}.jar_poured": "把 %s 下锅了"})
+                  f"state.{NS}.jar_poured": "把 %s 下锅了",
+                  f"state.{NS}.jar_wok_refused": "锅里放不下 %s（先下油再炒）"})
     write_json(RES / "assets" / NS / "lang" / "en_us.json",
                {f"block.{NS}.{n}": en for n, _, en, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "Kaleidoscope Kitchenware"}
@@ -851,7 +852,8 @@ def main() -> None:
                   f"state.{NS}.jar_stored": "Stored %s",
                   f"state.{NS}.jar_scooped_on_shovel": "Picked up %s on the shovel",
                   f"state.{NS}.jar_returned": "Tipped %s back into the jar",
-                  f"state.{NS}.jar_poured": "Added %s to the wok"})
+                  f"state.{NS}.jar_poured": "Added %s to the wok",
+                  f"state.{NS}.jar_wok_refused": "The wok will not take %s yet (oil it first)"})
 
     print(f"generated {len(DECOR)} decorative blocks and 4 functional blocks into {RES}")
 

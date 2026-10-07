@@ -108,6 +108,17 @@ public class SpiceJarBlockEntity extends BlockEntity {
         return !isEmpty();
     }
 
+    /** Set when the drop has already been produced, so onRemove does not produce a second one. */
+    private boolean dropped;
+
+    public boolean isDropped() {
+        return dropped;
+    }
+
+    public void markDropped() {
+        dropped = true;
+    }
+
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
