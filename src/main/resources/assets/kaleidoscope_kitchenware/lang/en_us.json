@@ -31,6 +31,8 @@
   "block.kaleidoscope_kitchenware.cupboard": "Cupboard",
   "block.kaleidoscope_kitchenware.seasoning_tray": "Seasoning Tray",
   "block.kaleidoscope_kitchenware.dish_rack": "Dish Rack",
+  "state.kaleidoscope_kitchenware.rack_returned": "Put %s back on the rack",
+  "state.kaleidoscope_kitchenware.shovel_returned_water": "Poured the water back",
   "state.kaleidoscope_kitchenware.shovel_busy": "The shovel is still holding something",
   "state.kaleidoscope_kitchenware.shovel_poured_water": "Poured the water into the stockpot",
   "state.kaleidoscope_kitchenware.shovel_water_refused": "The stockpot does not need water yet",

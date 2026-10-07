@@ -31,6 +31,8 @@
   "block.kaleidoscope_kitchenware.cupboard": "碗柜",
   "block.kaleidoscope_kitchenware.seasoning_tray": "调味盘",
   "block.kaleidoscope_kitchenware.dish_rack": "碗架",
+  "state.kaleidoscope_kitchenware.rack_returned": "把 %s 放回了碗架",
+  "state.kaleidoscope_kitchenware.shovel_returned_water": "把水倒回了水缸",
   "state.kaleidoscope_kitchenware.shovel_busy": "锅铲上还拿着东西",
   "state.kaleidoscope_kitchenware.shovel_poured_water": "把水倒进了汤锅",
   "state.kaleidoscope_kitchenware.shovel_water_refused": "汤锅现在还不需要水",

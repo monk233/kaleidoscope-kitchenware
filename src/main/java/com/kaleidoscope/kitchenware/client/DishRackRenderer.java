@@ -53,8 +53,9 @@ public class DishRackRenderer implements BlockEntityRenderer<DishRackBlockEntity
                 double z = 0.5D + right.getStepZ() * along;
                 pose.pushPose();
                 pose.translate(x, height, z);
-                // face the rack's way; leave the item upright
-                pose.mulPose(Axis.YP.rotationDegrees(facing.toYRot()));
+                // face the rack's way; leave the item upright. The extra quarter turn lines the
+                // opening up with the front of the rack rather than along it
+                pose.mulPose(Axis.YP.rotationDegrees(facing.toYRot() + 90.0F));
                 pose.scale(SCALE, SCALE, SCALE);
                 Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED,
                         packedLight, packedOverlay, pose, buffer, rack.getLevel(), 0);

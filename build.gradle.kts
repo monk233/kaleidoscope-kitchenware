@@ -55,4 +55,10 @@ dependencies {
     // The jar is not redistributed with this project (see .gitignore), users install it separately.
     compileOnly(files("libs/kaleidoscopecookery-${"deps.kaleidoscope_cookery"()}.jar"))
     runtimeOnly(files("libs/kaleidoscopecookery-${"deps.kaleidoscope_cookery"()}.jar"))
+
+    // Recipe viewing and pinyin search, for checking recipes in a dev run. Plain runtimeOnly on the
+    // local jars: NeoForge discovers mods on the runtime classpath, and these are the same files the
+    // modpack uses. Both are testing conveniences, neither is a dependency of the mod itself.
+    runtimeOnly(files("libs/jei-1.21.1-neoforge-19.57.0.451.jar"))
+    runtimeOnly(files("libs/jecharacters-1.21.1-neoforge-4.5.29.jar"))
 }
