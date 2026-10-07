@@ -34,7 +34,7 @@ public final class JarSelfTest {
 
             // 1. put seasoning in, pack it into an item
             SpiceJarBlockEntity source = new SpiceJarBlockEntity(BlockPos.ZERO, state);
-            boolean stored = source.insert(2, new ItemStack(Items.REDSTONE, 7), true) > 0;
+            boolean stored = source.insert(2, new ItemStack(Items.SUGAR, 7), true) > 0;
             ItemStack item = SpiceJarBlock.jarStack(source, 2, registries);
             boolean itemHasData = item.has(DataComponents.BLOCK_ENTITY_DATA);
             boolean itemHasModel = item.has(DataComponents.CUSTOM_MODEL_DATA);
@@ -86,18 +86,20 @@ public final class JarSelfTest {
                     pass ? "PASS" : "FAIL", stored, itemHasData, itemHasModel, handlerSlots,
                     unpackedCount, placedStored, cornersCorrect, fallbackMoved);
 
-            // 4. one jar holds a single kind of seasoning
+            // 4. a jar takes seasoning only, and only one kind of it, up to 1024
             SpiceJarBlockEntity mixed = new SpiceJarBlockEntity(BlockPos.ZERO, state);
-            boolean firstAccepted = mixed.insert(0, new ItemStack(Items.REDSTONE, 7), true) > 0;
-            boolean secondRefused = mixed.insert(0, new ItemStack(Items.SUGAR, 7), true) == 0;
-            int cap = 0;
-            while (mixed.insert(0, new ItemStack(Items.REDSTONE, 64), true) > 0 && cap < 40) {
-                cap++;
+            boolean nonSeasoningRefused = mixed.insert(0, new ItemStack(Items.REDSTONE, 7), true) == 0;
+            boolean firstAccepted = mixed.insert(0, new ItemStack(Items.SUGAR, 7), true) > 0;
+            boolean secondRefused = mixed.insert(0, new ItemStack(Items.REDSTONE, 7), true) == 0;
+            int rounds = 0;
+            while (mixed.insert(0, new ItemStack(Items.SUGAR, 64), true) > 0 && rounds < 40) {
+                rounds++;
             }
             KaleidoscopeKitchenware.LOGGER.info(
-                    "[jartest-kind] {} firstAccepted={} secondRefused={} totalHeld={}",
-                    firstAccepted && secondRefused && mixed.carryingCount(0) == 1024 ? "PASS" : "FAIL",
-                    firstAccepted, secondRefused, mixed.carryingCount(0));
+                    "[jartest-kind] {} nonSeasoningRefused={} firstAccepted={} secondRefused={} totalHeld={}",
+                    nonSeasoningRefused && firstAccepted && secondRefused && mixed.carryingCount(0) == 1024
+                            ? "PASS" : "FAIL",
+                    nonSeasoningRefused, firstAccepted, secondRefused, mixed.carryingCount(0));
         } catch (Throwable throwable) {
             KaleidoscopeKitchenware.LOGGER.error("[jartest] FAIL with exception", throwable);
         }

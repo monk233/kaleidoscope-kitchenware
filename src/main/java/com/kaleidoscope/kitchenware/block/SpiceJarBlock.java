@@ -115,6 +115,9 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         if (!(level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar)) {
             return;
         }
+        KaleidoscopeKitchenware.LOGGER.info("[jardbg] settle at corner {} before: flags={} counts={},{},{},{}",
+                placedCorner, dumpFlags(level.getBlockState(pos)), jar.carryingCount(0),
+                jar.carryingCount(1), jar.carryingCount(2), jar.carryingCount(3));
         jar.moveJarRange(0, placedCorner);
         BlockState state = level.getBlockState(pos);
         BlockState restored = state;
@@ -313,9 +316,28 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
+    /** Flags as 1/0, for logging which jars stand where. */
+    public static String dumpFlags(BlockState state) {
+        StringBuilder text = new StringBuilder();
+        for (BooleanProperty jar : JARS) {
+            text.append(state.getValue(jar) ? '1' : '0');
+        }
+        return text.toString();
+    }
+
+    /**
+     * Drops one item per jar that either stands in the block or holds something.
+     *
+     * Contents are dropped even when the corner flag says otherwise: the flags are presentation,
+     * the contents are the truth, and losing seasoning because the two drifted apart is far worse
+     * than dropping an extra empty jar.
+     */
     private static void dropJars(Level level, BlockPos pos, BlockState state, SpiceJarBlockEntity jar) {
+        KaleidoscopeKitchenware.LOGGER.info("[jardbg] break flags={} counts={},{},{},{}",
+                dumpFlags(state), jar.carryingCount(0), jar.carryingCount(1),
+                jar.carryingCount(2), jar.carryingCount(3));
         for (int corner = 0; corner < JAR_COUNT; corner++) {
-            if (state.getValue(JARS[corner])) {
+            if (state.getValue(JARS[corner]) || !jar.isJarEmpty(corner)) {
                 Block.popResource(level, pos, jarStack(jar, corner, level.registryAccess()));
             }
         }

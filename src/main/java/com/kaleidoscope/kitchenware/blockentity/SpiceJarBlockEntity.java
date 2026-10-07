@@ -30,8 +30,9 @@ public class SpiceJarBlockEntity extends BlockEntity {
         super(ModBlockEntities.SPICE_JAR.get(), pos, state);
     }
 
+    /** A jar holds seasoning only; the list lives in the item tag so datapacks can extend it. */
     public boolean accepts(ItemStack stack) {
-        return true;
+        return stack.is(com.kaleidoscope.kitchenware.registry.ModTags.SPICE_JAR_ACCEPTS);
     }
 
     /**
@@ -58,12 +59,43 @@ public class SpiceJarBlockEntity extends BlockEntity {
                 standing++;
             }
         }
-        if (standing != 1 || shown <= 0) {
-            // several jars share the block, or it already shows the first corner: nothing to do
+        int holds = -1;
+        int holding = 0;
+        for (int corner = 0; corner < JAR_COUNT; corner++) {
+            if (!isJarEmpty(corner)) {
+                if (holds < 0) {
+                    holds = corner;
+                }
+                holding++;
+            }
+        }
+
+        // one jar: line it up with the corner the block shows, or light that corner if the
+        // placement never set one
+        if (holding == 1) {
+            if (standing == 0) {
+                level.setBlockAndUpdate(worldPosition,
+                        state.setValue(com.kaleidoscope.kitchenware.block.SpiceJarBlock.JARS[holds], true));
+                return;
+            }
+            if (shown != holds) {
+                moveJarRange(holds, shown);
+            }
             return;
         }
-        if (isJarEmpty(shown) && !isJarEmpty(0)) {
-            moveJarRange(0, shown);
+
+        // several jars, or none: make the flags agree with what is actually stored
+        if (holding != standing) {
+            BlockState fixed = state;
+            for (int corner = 0; corner < JAR_COUNT; corner++) {
+                fixed = fixed.setValue(com.kaleidoscope.kitchenware.block.SpiceJarBlock.JARS[corner],
+                        !isJarEmpty(corner));
+            }
+            level.setBlockAndUpdate(worldPosition, fixed);
+            com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                    "[jardbg] onLoad rebuilt flags {} -> {}",
+                    com.kaleidoscope.kitchenware.block.SpiceJarBlock.dumpFlags(state),
+                    com.kaleidoscope.kitchenware.block.SpiceJarBlock.dumpFlags(fixed));
         }
     }
 
