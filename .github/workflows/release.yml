@@ -47,15 +47,55 @@ jobs:
           path: build/libs/*.jar
           if-no-files-found: error
 
+      # Summarised notes rather than a commit dump: the environment block is generated because it
+      # changes with every release, and the changes are grouped so a reader sees what happened
+      # instead of a wall of hashes.
+      - name: Compose release notes
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          PREV=$(git tag --sort=-v:refname | grep -v "^${GITHUB_REF_NAME}$" | head -n 1 || true)
+          RANGE="${PREV:+$PREV..}${GITHUB_REF_NAME}"
+          MOD_VERSION=$(grep '^mod.version=' gradle.properties | cut -d= -f2)
+          NEO_VERSION=$(grep '^mod.neo_version=' gradle.properties | cut -d= -f2)
+          COOKERY_VERSION=$(grep '^deps.kaleidoscope_cookery=' gradle.properties | cut -d= -f2)
+
+          added=$(git log --no-merges --pretty='- %s' "$RANGE" | grep -E '^- (feat|refactor)' || true)
+          fixed=$(git log --no-merges --pretty='- %s' "$RANGE" | grep -E '^- fix' || true)
+          other=$(git log --no-merges --pretty='- %s' "$RANGE" | grep -Ev '^- (feat|fix|refactor)' || true)
+
+          {
+            echo "## 中文"
+            echo
+            [ -n "$added" ]   && { echo "### 新增"; echo; echo "$added"; echo; }
+            [ -n "$fixed" ]   && { echo "### 修复"; echo; echo "$fixed"; echo; }
+            [ -n "$other" ]   && { echo "### 其他"; echo; echo "$other"; echo; }
+            echo "### 环境要求"; echo
+            echo "| 项 | 版本 |"; echo "| --- | --- |"
+            echo "| Minecraft | 1.21.1 |"
+            echo "| NeoForge | ${NEO_VERSION} 及以上 |"
+            echo "| 森罗物语：厨房 | \`${COOKERY_VERSION}\` 及以上（必需前置） |"
+            echo
+            echo "---"
+            echo
+            echo "## English"
+            echo
+            [ -n "$added" ]   && { echo "### Added"; echo; echo "$added"; echo; }
+            [ -n "$fixed" ]   && { echo "### Fixed"; echo; echo "$fixed"; echo; }
+            [ -n "$other" ]   && { echo "### Other"; echo; echo "$other"; echo; }
+            echo "### Requirements"; echo
+            echo "| Item | Version |"; echo "| --- | --- |"
+            echo "| Minecraft | 1.21.1 |"
+            echo "| NeoForge | ${NEO_VERSION} or above |"
+            echo "| Kaleidoscope Cookery | \`${COOKERY_VERSION}\` or above (required) |"
+            echo
+            echo "**Full changelog**: https://github.com/${GITHUB_REPOSITORY}/commits/${GITHUB_REF_NAME}"
+          } > release-notes.md
+          cat release-notes.md
+
       - name: Publish release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: build/libs/*.jar
-          generate_release_notes: true
-          body: |
-            Requires [Kaleidoscope Cookery](https://modrinth.com/mod/kaleidoscope-cookery) 1.6.0
-            or above — it is a hard dependency, not an optional one.
-
-            需要 [森罗物语：厨房](https://modrinth.com/mod/kaleidoscope-cookery) 1.6.0 及以上版本，
-            这是必需前置。
+          body_path: release-notes.md
