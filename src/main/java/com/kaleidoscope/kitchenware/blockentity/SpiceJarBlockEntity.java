@@ -23,6 +23,11 @@ public class SpiceJarBlockEntity extends BlockEntity {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
+            // the client needs its own copy or the jar renders empty; send the update right away
+            if (level != null && !level.isClientSide) {
+                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(),
+                        net.minecraft.world.level.block.Block.UPDATE_ALL);
+            }
         }
     };
 
@@ -249,6 +254,20 @@ public class SpiceJarBlockEntity extends BlockEntity {
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("Items", items.serializeNBT(registries));
+    }
+
+    /**
+     * Without this the client gets an empty tag and the jar renders with nothing inside, however
+     * much the server side is holding.
+     */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveCustomOnly(registries);
+    }
+
+    @Override
+    public net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
     }
 
     /** Empties every corner. Used when a jar item's own contents are written in wholesale. */
