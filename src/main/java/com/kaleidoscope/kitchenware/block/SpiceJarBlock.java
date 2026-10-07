@@ -132,13 +132,14 @@ public class SpiceJarBlock extends Block implements EntityBlock {
                 tell(player, "state.kaleidoscope_kitchenware.jar_missing");
                 return ItemInteractionResult.FAIL;
             }
-            if (!jar.insert(index, stack, wholeStack)) {
+            int moved = jar.insert(index, stack, wholeStack);
+            if (moved == 0) {
                 tell(player, "state.kaleidoscope_kitchenware.storage_full");
                 return ItemInteractionResult.FAIL;
             }
             level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.4F);
             if (!player.getAbilities().instabuild) {
-                stack.shrink(wholeStack ? stack.getCount() : 1);
+                stack.shrink(moved);
             }
             return ItemInteractionResult.SUCCESS;
         }

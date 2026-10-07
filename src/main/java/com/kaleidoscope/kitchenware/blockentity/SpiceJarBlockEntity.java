@@ -65,18 +65,17 @@ public class SpiceJarBlockEntity extends BlockEntity {
         return true;
     }
 
-    /** Stores one item, or a whole held stack when {@code wholeStack} is set. */
-    public boolean insert(int jar, ItemStack stack, boolean wholeStack) {
+    /** Stores items, returning how many actually went in. */
+    public int insert(int jar, ItemStack stack, boolean wholeStack) {
         if (stack.isEmpty() || !accepts(stack)) {
-            return false;
+            return 0;
         }
         int amount = wholeStack ? stack.getCount() : 1;
         int moved = 0;
         for (int slot = firstSlot(jar); slot <= lastSlot(jar) && moved < amount; slot++) {
             ItemStack existing = items.getStackInSlot(slot);
             if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, stack)) {
-                int space = Math.min(existing.getMaxStackSize(), amount - moved);
-                int add = Math.min(space, existing.getMaxStackSize() - existing.getCount());
+                int add = Math.min(amount - moved, existing.getMaxStackSize() - existing.getCount());
                 existing.grow(add);
                 moved += add;
             }
@@ -88,7 +87,7 @@ public class SpiceJarBlockEntity extends BlockEntity {
                 moved += add;
             }
         }
-        return moved > 0;
+        return moved;
     }
 
     /** Takes one item, or a whole stack when {@code wholeStack} is set. */
@@ -119,5 +118,8 @@ public class SpiceJarBlockEntity extends BlockEntity {
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         items.deserializeNBT(registries, tag.getCompound("Items"));
+        // a stack handler rebuilt from old data can come back smaller than it is now;
+        // jars written before the four-corner rework stored Size=16
+        items.setSize(JAR_COUNT * SLOTS_PER_JAR);
     }
 }

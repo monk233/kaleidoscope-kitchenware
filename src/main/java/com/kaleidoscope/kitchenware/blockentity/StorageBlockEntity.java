@@ -113,5 +113,7 @@ public abstract class StorageBlockEntity extends BlockEntity {
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         items.deserializeNBT(registries, tag.getCompound("Items"));
+        // old data can carry a different Size; the container size is decided by the code, not the save
+        items.setSize(capacity());
     }
 }

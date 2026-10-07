@@ -1,5 +1,7 @@
 package com.kaleidoscope.kitchenware;
 
+import com.kaleidoscope.kitchenware.config.KitchenwareConfig;
+import com.kaleidoscope.kitchenware.event.SpiceJarEvents;
 import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import com.kaleidoscope.kitchenware.registry.ModBlocks;
 import com.kaleidoscope.kitchenware.registry.ModCreativeTabs;
@@ -8,6 +10,8 @@ import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
 @Mod(KaleidoscopeKitchenware.MOD_ID)
@@ -16,8 +20,11 @@ public class KaleidoscopeKitchenware {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public KaleidoscopeKitchenware(IEventBus modEventBus, ModContainer modContainer) {
-        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.COMMON,
-                com.kaleidoscope.kitchenware.config.KitchenwareConfig.SPEC);
+        modContainer.registerConfig(ModConfig.Type.COMMON, KitchenwareConfig.SPEC);
+
+        // game bus: scooping a jar has to intercept the click before the shovel's useOn eats it
+        NeoForge.EVENT_BUS.register(SpiceJarEvents.class);
+
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModBlockEntities.register(modEventBus);
