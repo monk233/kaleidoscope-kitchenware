@@ -1,6 +1,7 @@
 package com.kaleidoscope.kitchenware.event;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IPot;
+import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
 import com.kaleidoscope.kitchenware.block.SpiceJarBlock;
 import com.kaleidoscope.kitchenware.blockentity.SpiceJarBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -51,6 +52,10 @@ public final class SpiceJarEvents {
             return;
         }
         Player player = event.getEntity();
+        ItemStack carriedOnShovel = scooped(held, level.registryAccess());
+        KaleidoscopeKitchenware.LOGGER.info(
+                "[jar] click side={} held={} isShovelTag={} target={} carried={}",
+                level.isClientSide(), held.getItem(), held.is(KITCHEN_SHOVEL), state.getBlock(), carriedOnShovel);
 
         if (state.getBlock() instanceof SpiceJarBlock) {
             event.setUseBlock(TriState.FALSE);
@@ -66,7 +71,11 @@ public final class SpiceJarEvents {
             ItemStack carried = scooped(held, level.registryAccess());
             if (!carried.isEmpty()) {
                 // shovel already loaded: tip it back into the jar
-                if (jar.insert(index, carried, false) > 0) {
+                int room = jar.insert(index, carried, false);
+                KaleidoscopeKitchenware.LOGGER.info(
+                        "[jar] shovel carried={} -> tip back into corner {} result={}",
+                        carried, index, room);
+                if (room > 0) {
                     clearScooped(held);
                     level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.0F);
                     tell(player, "state.kaleidoscope_kitchenware.jar_returned", carried.getHoverName());
@@ -76,6 +85,9 @@ public final class SpiceJarEvents {
                 return;
             }
             ItemStack scooped = jar.extract(index, player.isShiftKeyDown());
+            KaleidoscopeKitchenware.LOGGER.info(
+                    "[jar] scoop from corner {} shift={} got={} x{}", index, player.isShiftKeyDown(),
+                    scooped.getItem(), scooped.getCount());
             if (scooped.isEmpty()) {
                 tell(player, "state.kaleidoscope_kitchenware.storage_empty");
                 return;
@@ -96,7 +108,10 @@ public final class SpiceJarEvents {
         if (level.isClientSide) {
             return;
         }
-        if (pot.addIngredient(level, player, carried.copy())) {
+        boolean added = pot.addIngredient(level, player, carried.copy());
+        KaleidoscopeKitchenware.LOGGER.info(
+                "[jar] wok addIngredient carried={} accepted={}", carried, added);
+        if (added) {
             clearScooped(held);
             level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.1F);
             tell(player, "state.kaleidoscope_kitchenware.jar_poured", carried.getHoverName());
@@ -137,3 +152,4 @@ public final class SpiceJarEvents {
         player.displayClientMessage(Component.translatable(key, args), true);
     }
 }
+

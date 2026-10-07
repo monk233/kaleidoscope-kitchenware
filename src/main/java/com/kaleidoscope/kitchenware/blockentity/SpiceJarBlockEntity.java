@@ -56,6 +56,15 @@ public class SpiceJarBlockEntity extends BlockEntity {
         return displayItem(jar).isEmpty();
     }
 
+    /** Diagnostics: how many individual items one jar holds right now. */
+    public int carryingCount(int jar) {
+        int count = 0;
+        for (int slot = firstSlot(jar); slot <= lastSlot(jar); slot++) {
+            count += items.getStackInSlot(slot).getCount();
+        }
+        return count;
+    }
+
     public boolean isEmpty() {
         for (int jar = 0; jar < JAR_COUNT; jar++) {
             if (!isJarEmpty(jar)) {
@@ -110,6 +119,23 @@ public class SpiceJarBlockEntity extends BlockEntity {
 
     /** Set when the drop has already been produced, so onRemove does not produce a second one. */
     private boolean dropped;
+    /** Ticks within which a second click on the same jar counts as "do the whole stack". */
+    private static final long DOUBLE_CLICK_TICKS = 7;
+    private long lastClickTick = Long.MIN_VALUE;
+    private int lastClickCorner = -1;
+
+    /**
+     * Remembers this click and reports whether it was the second half of a double click.
+     *
+     * Sneaking is the documented way to move a whole stack, but the sneak pose is not always
+     * held at the moment the click lands, so a quick double click does the same job.
+     */
+    public boolean registerClick(int corner, long gameTime) {
+        boolean doubled = corner == lastClickCorner && gameTime - lastClickTick <= DOUBLE_CLICK_TICKS;
+        lastClickCorner = corner;
+        lastClickTick = doubled ? Long.MIN_VALUE : gameTime; // reset so a triple click is not two doubles
+        return doubled;
+    }
 
     public boolean isDropped() {
         return dropped;
@@ -128,9 +154,22 @@ public class SpiceJarBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        items.deserializeNBT(registries, tag.getCompound("Items"));
+        CompoundTag saved = tag.getCompound("Items");
+        items.deserializeNBT(registries, saved);
         // a stack handler rebuilt from old data can come back smaller than it is now;
         // jars written before the four-corner rework stored Size=16
         items.setSize(JAR_COUNT * SLOTS_PER_JAR);
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                "[jar] loaded slots={} savedSize={} savedItems={} totalStored={}",
+                items.getSlots(), saved.getInt("Size"), saved.getList("Items", 10).size(), carryingTotal());
+    }
+
+    /** Diagnostics: total item count across all four jars. */
+    public int carryingTotal() {
+        int count = 0;
+        for (int jar = 0; jar < JAR_COUNT; jar++) {
+            count += carryingCount(jar);
+        }
+        return count;
     }
 }
