@@ -102,6 +102,19 @@ public class SeasoningTrayBlock extends HorizontalDirectionalBlock implements En
         return new SeasoningTrayBlockEntity(pos, state);
     }
 
+    /** Server side only: the entity pushes its contents once it has settled into the world. */
+    @Nullable
+    @Override
+    public <T extends BlockEntity> net.minecraft.world.level.block.entity.BlockEntityTicker<T> getTicker(
+            Level level, BlockState state,
+            net.minecraft.world.level.block.entity.BlockEntityType<T> type) {
+        if (level.isClientSide) {
+            return null;
+        }
+        return (lvl, pos2, st, be) ->
+                SeasoningTrayBlockEntity.serverTick(lvl, pos2, st, (SeasoningTrayBlockEntity) be);
+    }
+
     @Override
     public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                            Player player, InteractionHand hand, BlockHitResult hitResult) {

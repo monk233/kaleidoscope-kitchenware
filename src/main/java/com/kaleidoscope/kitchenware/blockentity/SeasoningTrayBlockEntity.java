@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -29,6 +30,7 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
 
     private final ItemStack[][] contents = new ItemStack[COMPARTMENTS][STACKS_PER_COMPARTMENT];
     private boolean dropped;
+    private boolean syncedOnce;
 
     public SeasoningTrayBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.SEASONING_TRAY.get(), pos, state);
@@ -188,11 +190,28 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
     }
 
     private void changed() {
+        syncNow();
+    }
+
+    /**
+     * Pushes the contents to clients. Called on every change, and once more on the entity's first
+     * tick: a tray filled while it was being placed sent its update before the client had the
+     * entity, so the client kept showing an empty tray until the chunk reloaded.
+     */
+    public void syncNow() {
         setChanged();
         if (level != null && !level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(),
                     net.minecraft.world.level.block.Block.UPDATE_ALL);
         }
+    }
+
+    public static void serverTick(Level level, BlockPos pos, BlockState state, SeasoningTrayBlockEntity tray) {
+        if (tray.syncedOnce) {
+            return;
+        }
+        tray.syncedOnce = true;
+        tray.syncNow();
     }
 
     /** Writes the contents onto an item so they travel with the tray. */
