@@ -47,6 +47,8 @@ public final class SeasoningTrayEvents {
             ResourceLocation.fromNamespaceAndPath("kaleidoscope_cookery", "kitchen_shovel"));
     /** Key inside the shovel's custom data holding what it currently carries. */
     private static final String SCOOPED = "kaleidoscope_kitchenware:scooped_seasoning";
+    /** Key marking the shovel as carrying water scooped from a vat. */
+    private static final String WATER = "kaleidoscope_kitchenware:scooped_water";
 
     private SeasoningTrayEvents() {
     }
@@ -62,7 +64,7 @@ public final class SeasoningTrayEvents {
         }
         Player player = event.getEntity();
 
-        // a dish rack: the shovel lifts a bowl or pot off the shelf it points at
+        // a dish rack: the shovel lifts one bowl or pot off the shelf it points at, and carries it
         if (state.getBlock() instanceof com.kaleidoscope.kitchenware.block.DishRackBlock) {
             event.setUseBlock(TriState.FALSE);
             event.setUseItem(TriState.FALSE);
@@ -70,15 +72,62 @@ public final class SeasoningTrayEvents {
                     || !(level.getBlockEntity(pos) instanceof com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity rack)) {
                 return;
             }
+            if (!carried(held, level.registryAccess()).isEmpty()) {
+                tell(player, "state.kaleidoscope_kitchenware.shovel_busy");
+                return;
+            }
             int shelf = com.kaleidoscope.kitchenware.block.DishRackBlock.shelfAt(event.getHitVec(), pos);
-            ItemStack lifted = rack.takeLast(shelf);
+            ItemStack lifted = rack.takeOne(shelf);
             if (lifted.isEmpty()) {
                 tell(player, "state.kaleidoscope_kitchenware.rack_shelf_empty");
                 return;
             }
-            player.getInventory().placeItemBackInInventory(lifted);
+            setCarried(held, lifted, level.registryAccess());
             level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.1F);
             tell(player, "state.kaleidoscope_kitchenware.rack_lifted", lifted.getHoverName());
+            return;
+        }
+
+        // a stockpot: water on the shovel becomes its soup base
+        if (state.getBlock() instanceof com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.StockpotBlock
+                && hasWater(held)
+                && level.getBlockEntity(pos) instanceof com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IStockpot stockpot) {
+            event.setUseBlock(TriState.FALSE);
+            event.setUseItem(TriState.FALSE);
+            if (level.isClientSide) {
+                return;
+            }
+            if (stockpot.addSoupBase(level, player, new ItemStack(net.minecraft.world.item.Items.WATER_BUCKET))) {
+                clearCarried(held);
+                level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 0.8F, 1.0F);
+                tell(player, "state.kaleidoscope_kitchenware.shovel_poured_water");
+            } else {
+                tell(player, "state.kaleidoscope_kitchenware.shovel_water_refused");
+            }
+            return;
+        }
+
+        // a water vat: scoop one level of water onto the shovel
+        if (state.getBlock() instanceof com.kaleidoscope.kitchenware.block.WaterVatBlock) {
+            event.setUseBlock(TriState.FALSE);
+            event.setUseItem(TriState.FALSE);
+            if (level.isClientSide) {
+                return;
+            }
+            int waterLevel = state.getValue(com.kaleidoscope.kitchenware.block.WaterVatBlock.LEVEL);
+            if (waterLevel <= 0) {
+                tell(player, "state.kaleidoscope_kitchenware.vat_empty");
+                return;
+            }
+            if (!carried(held, level.registryAccess()).isEmpty() || KitchenShovelItem.hasOil(held)) {
+                tell(player, "state.kaleidoscope_kitchenware.shovel_busy");
+                return;
+            }
+            level.setBlockAndUpdate(pos, state.setValue(com.kaleidoscope.kitchenware.block.WaterVatBlock.LEVEL,
+                    waterLevel - 1));
+            setWater(held);
+            level.playSound(null, pos, SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 0.8F, 1.0F);
+            tell(player, "state.kaleidoscope_kitchenware.shovel_scooped_water");
             return;
         }
 
@@ -105,10 +154,10 @@ public final class SeasoningTrayEvents {
             }
 
             // the shovel carries some other seasoning: tip it back in
-            ItemStack carried = scooped(held, level.registryAccess());
+            ItemStack carried = carried(held, level.registryAccess());
             if (!carried.isEmpty()) {
                 if (tray.insert(slot, carried, false) > 0) {
-                    clearScooped(held);
+                    clearCarried(held);
                     level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.0F);
                     tell(player, "state.kaleidoscope_kitchenware.tray_returned", carried.getHoverName());
                 } else {
@@ -126,16 +175,36 @@ public final class SeasoningTrayEvents {
             if (isOil(portion)) {
                 KitchenShovelItem.setHasOil(held, true);
             } else {
-                setScooped(held, portion, level.registryAccess());
+                setCarried(held, portion, level.registryAccess());
             }
             level.playSound(null, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8F, 1.2F);
             tell(player, "state.kaleidoscope_kitchenware.tray_scooped", portion.getHoverName());
             return;
         }
 
+        // a bowl or pot on the shovel takes out what the pot has cooked
+        ItemStack payload = carried(held, level.registryAccess());
+        if (!payload.isEmpty()
+                && com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity.accepts(payload)
+                && level.getBlockEntity(pos) instanceof IPot pot) {
+            event.setUseBlock(TriState.FALSE);
+            event.setUseItem(TriState.FALSE);
+            if (level.isClientSide) {
+                return;
+            }
+            if (pot.takeOutProduct(level, player, payload)) {
+                clearCarried(held);
+                level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.0F);
+                tell(player, "state.kaleidoscope_kitchenware.shovel_served");
+            } else {
+                tell(player, "state.kaleidoscope_kitchenware.shovel_nothing_to_serve");
+            }
+            return;
+        }
+
         // a wok: only seasoning we carry ourselves is handled here. Oil on the shovel is left to
         // the base mod, which already knows what to do with it.
-        ItemStack carried = scooped(held, level.registryAccess());
+        ItemStack carried = carried(held, level.registryAccess());
         if (carried.isEmpty() || !(level.getBlockEntity(pos) instanceof IPot pot)) {
             return;
         }
@@ -145,7 +214,7 @@ public final class SeasoningTrayEvents {
             return;
         }
         if (pot.addIngredient(level, player, carried.copy())) {
-            clearScooped(held);
+            clearCarried(held);
             level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.1F);
             tell(player, "state.kaleidoscope_kitchenware.tray_poured", carried.getHoverName());
         } else {
@@ -163,7 +232,7 @@ public final class SeasoningTrayEvents {
     }
 
     /** What the shovel is carrying, empty when it carries nothing. */
-    public static ItemStack scooped(ItemStack shovel, RegistryAccess access) {
+    public static ItemStack carried(ItemStack shovel, RegistryAccess access) {
         CustomData data = shovel.get(DataComponents.CUSTOM_DATA);
         if (data == null) {
             return ItemStack.EMPTY;
@@ -173,16 +242,29 @@ public final class SeasoningTrayEvents {
                 : ItemStack.EMPTY;
     }
 
-    private static void setScooped(ItemStack shovel, ItemStack seasoning, RegistryAccess access) {
+    private static void setCarried(ItemStack shovel, ItemStack seasoning, RegistryAccess access) {
         CompoundTag tag = new CompoundTag();
         tag.put(SCOOPED, seasoning.save(access));
         shovel.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         shovel.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
     }
 
-    private static void clearScooped(ItemStack shovel) {
+    private static void clearCarried(ItemStack shovel) {
         shovel.remove(DataComponents.CUSTOM_DATA);
         shovel.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
+    }
+
+    /** Marks the shovel as carrying water. */
+    private static void setWater(ItemStack shovel) {
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean(WATER, true);
+        shovel.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        shovel.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+    }
+
+    private static boolean hasWater(ItemStack shovel) {
+        CustomData data = shovel.get(DataComponents.CUSTOM_DATA);
+        return data != null && data.copyTag().getBoolean(WATER);
     }
 
     private static void tell(Player player, String key, Object... args) {

@@ -86,21 +86,21 @@ public class DishRackBlock extends HorizontalDirectionalBlock implements EntityB
         int shelf = shelfAt(hitResult, pos);
 
         if (!stack.isEmpty()) {
-            int placed = rack.insert(shelf, stack);
-            if (placed < 0) {
-                tell(player, DishRackBlockEntity.accepts(stack)
-                        ? "state.kaleidoscope_kitchenware.rack_shelf_full"
+            boolean takes = DishRackBlockEntity.accepts(stack);
+            int moved = rack.insert(shelf, stack);
+            if (moved <= 0) {
+                tell(player, takes ? "state.kaleidoscope_kitchenware.rack_shelf_full"
                         : "state.kaleidoscope_kitchenware.rack_bowls_only");
                 return ItemInteractionResult.FAIL;
             }
             level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.4F);
             if (!player.getAbilities().instabuild) {
-                stack.shrink(1);
+                stack.shrink(moved);
             }
             return ItemInteractionResult.SUCCESS;
         }
 
-        ItemStack taken = rack.takeLast(shelf);
+        ItemStack taken = rack.takeOne(shelf);
         if (taken.isEmpty()) {
             tell(player, "state.kaleidoscope_kitchenware.rack_shelf_empty");
             return ItemInteractionResult.FAIL;

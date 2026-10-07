@@ -10,24 +10,23 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * A two shelf dish rack holding bowls and flower pots, one per place, four places per shelf.
+ * A two shelf dish rack holding bowls and flower pots, up to sixty four per shelf.
  *
  * Reuses the cupboard's whitelist: anything the cupboard takes, the rack takes. Nothing here is
  * position dependent — a broken rack drops what it held, so there is no state to keep in step
  * with the contents.
  */
 public class DishRackBlockEntity extends BlockEntity {
-    /** Places on one shelf, drawn side by side. */
-    public static final int SHELF_SLOTS = 4;
     public static final int SHELVES = 2;
-    public static final int SLOTS = SHELF_SLOTS * SHELVES;
+    /** One kind of thing per shelf, this many of it. */
+    public static final int SHELF_CAPACITY = 64;
 
-    private final ItemStack[] slots = new ItemStack[SLOTS];
+    private final ItemStack[] shelves = new ItemStack[SHELVES];
 
     public DishRackBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.DISH_RACK.get(), pos, state);
-        for (int slot = 0; slot < SLOTS; slot++) {
-            slots[slot] = ItemStack.EMPTY;
+        for (int shelf = 0; shelf < SHELVES; shelf++) {
+            shelves[shelf] = ItemStack.EMPTY;
         }
     }
 
@@ -35,24 +34,16 @@ public class DishRackBlockEntity extends BlockEntity {
         return Math.max(0, Math.min(SHELVES - 1, shelf));
     }
 
-    public static int clampSlot(int slot) {
-        return Math.max(0, Math.min(SLOTS - 1, slot));
-    }
-
     public static boolean accepts(ItemStack stack) {
         return stack.is(com.kaleidoscope.kitchenware.registry.ModTags.CUPBOARD_STORABLE);
     }
 
-    public ItemStack stored(int slot) {
-        return slots[clampSlot(slot)];
-    }
-
-    public boolean isSlotEmpty(int slot) {
-        return stored(slot).isEmpty();
+    public ItemStack stored(int shelf) {
+        return shelves[clampShelf(shelf)];
     }
 
     public boolean isEmpty() {
-        for (ItemStack stack : slots) {
+        for (ItemStack stack : shelves) {
             if (!stack.isEmpty()) {
                 return false;
             }
@@ -60,66 +51,54 @@ public class DishRackBlockEntity extends BlockEntity {
         return true;
     }
 
-    /** First free place on a shelf, or -1 when that shelf is full. */
-    public int firstFree(int shelf) {
-        int start = clampShelf(shelf) * SHELF_SLOTS;
-        for (int index = start; index < start + SHELF_SLOTS; index++) {
-            if (slots[index].isEmpty()) {
-                return index;
-            }
-        }
-        return -1;
+    public int storedCount(int shelf) {
+        return stored(shelf).getCount();
     }
 
-    /** Last filled place on a shelf, or -1 when that shelf is empty. */
-    public int lastFilled(int shelf) {
-        int start = clampShelf(shelf) * SHELF_SLOTS;
-        for (int index = start + SHELF_SLOTS - 1; index >= start; index--) {
-            if (!slots[index].isEmpty()) {
-                return index;
-            }
-        }
-        return -1;
-    }
-
-    /** Puts one item on a shelf. Returns the place used, or -1 if it was refused. */
+    /** Adds to a shelf, returning how many went on. One shelf, one kind of thing. */
     public int insert(int shelf, ItemStack stack) {
+        shelf = clampShelf(shelf);
         if (level != null && level.isClientSide) {
-            return -1;
+            return 0;
         }
         if (stack.isEmpty() || !accepts(stack)) {
-            return -1;
+            return 0;
         }
-        int free = firstFree(shelf);
-        if (free < 0) {
-            return -1;
+        ItemStack held = shelves[shelf];
+        if (!held.isEmpty() && !ItemStack.isSameItemSameComponents(held, stack)) {
+            return 0;
         }
-        slots[free] = stack.copyWithCount(1);
+        int room = SHELF_CAPACITY - held.getCount();
+        if (room <= 0) {
+            return 0;
+        }
+        int moved = Math.min(room, stack.getCount());
+        if (held.isEmpty()) {
+            shelves[shelf] = stack.copyWithCount(moved);
+        } else {
+            held.grow(moved);
+        }
         changed();
-        return free;
+        return moved;
     }
 
-    /** Takes the last item off a shelf, or EMPTY when there is nothing there. */
-    public ItemStack takeLast(int shelf) {
+    /** Takes one item off a shelf, or EMPTY when there is nothing there. */
+    public ItemStack takeOne(int shelf) {
+        shelf = clampShelf(shelf);
         if (level != null && level.isClientSide) {
             return ItemStack.EMPTY;
         }
-        int filled = lastFilled(shelf);
-        if (filled < 0) {
+        ItemStack held = shelves[shelf];
+        if (held.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        ItemStack taken = slots[filled];
-        slots[filled] = ItemStack.EMPTY;
+        ItemStack taken = held.copyWithCount(1);
+        held.shrink(1);
+        if (held.isEmpty()) {
+            shelves[shelf] = ItemStack.EMPTY;
+        }
         changed();
         return taken;
-    }
-
-    public int storedCount() {
-        int count = 0;
-        for (ItemStack stack : slots) {
-            count += stack.getCount();
-        }
-        return count;
     }
 
     private void changed() {
@@ -157,9 +136,9 @@ public class DishRackBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        for (int slot = 0; slot < SLOTS; slot++) {
-            if (!slots[slot].isEmpty()) {
-                tag.put("S" + slot, slots[slot].save(registries));
+        for (int shelf = 0; shelf < SHELVES; shelf++) {
+            if (!shelves[shelf].isEmpty()) {
+                tag.put("S" + shelf, shelves[shelf].save(registries));
             }
         }
     }
@@ -167,18 +146,18 @@ public class DishRackBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        for (int slot = 0; slot < SLOTS; slot++) {
-            CompoundTag entry = tag.getCompound("S" + slot);
-            slots[slot] = entry.isEmpty() ? ItemStack.EMPTY : ItemStack.parseOptional(registries, entry);
+        for (int shelf = 0; shelf < SHELVES; shelf++) {
+            CompoundTag entry = tag.getCompound("S" + shelf);
+            shelves[shelf] = entry.isEmpty() ? ItemStack.EMPTY : ItemStack.parseOptional(registries, entry);
         }
     }
 
-    /** Drops one item per filled place; called before the block leaves the world. */
+    /** Drops what the rack held; called before the block leaves the world. */
     public void dropContents(Level level, BlockPos pos) {
-        for (int slot = 0; slot < SLOTS; slot++) {
-            if (!slots[slot].isEmpty()) {
-                net.minecraft.world.level.block.Block.popResource(level, pos, slots[slot].copy());
-                slots[slot] = ItemStack.EMPTY;
+        for (int shelf = 0; shelf < SHELVES; shelf++) {
+            if (!shelves[shelf].isEmpty()) {
+                net.minecraft.world.level.block.Block.popResource(level, pos, shelves[shelf].copy());
+                shelves[shelf] = ItemStack.EMPTY;
             }
         }
     }
