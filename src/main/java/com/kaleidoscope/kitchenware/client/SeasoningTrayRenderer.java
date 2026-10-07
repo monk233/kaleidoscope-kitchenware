@@ -36,7 +36,7 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
     /** The pile is drawn at most this many layers deep. */
     private static final int MAX_LAYERS = 16;
     /** Remaining diagnostic lines, so a per frame renderer does not flood the log. */
-    private static int watchLeft = 12;
+    private static int watchLeft = 60;
 
     public SeasoningTrayRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -80,7 +80,9 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
                 float twist = (layer % 2 == 0 ? -1.0F : 1.0F) * LAYER_TWIST * ((layer / 2) + 1);
                 pose.mulPose(Axis.ZP.rotationDegrees(twist));
                 pose.scale(SCALE, SCALE, SCALE);
-                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.NONE,
+                // FIXED rather than NONE: NONE is the "no context" model transform and the base mod
+                // ships an item render replacer, which is not reliable under it
+                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED,
                         packedLight, packedOverlay, pose, buffer, tray.getLevel(), 0);
                 pose.popPose();
             }
