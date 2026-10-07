@@ -735,8 +735,8 @@ def build_containers(textures_dir: Path) -> None:
         if level > 0:
             elements.append(box([2, water_y, 2], [14, water_y + 0.4, 14], "#water"))
         write_json(RES / "assets" / NS / "models" / "block" / f"water_vat_{level}.json",
-                   {"render_type": "minecraft:translucent",
-                    "textures": {"0": tex("vat_side"), "water": tex("vat_water"),
+                   {"render_type": "minecraft:cutout",
+                    "textures": {"0": tex("vat_side"), "water": WATER,
                                  "particle": tex("vat_side")}, "elements": elements})
     vat_variants = {}
     for facing, y in FACING_Y:
@@ -750,7 +750,7 @@ def build_containers(textures_dir: Path) -> None:
     write_json(RES / "assets" / NS / "models" / "item" / "water_vat.json", {
         "parent": f"{NS}:block/water_vat_3",
         "display": {
-            "gui": {"rotation": [30, 225, 0], "translation": [0, 1.0, 0], "scale": [0.6, 0.6, 0.6]},
+            "gui": {"rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.6, 0.6, 0.6]},
             "fixed": {"rotation": [0, 180, 0], "scale": [1.0, 1.0, 1.0]},
             "ground": {"translation": [0, 3, 0], "scale": [0.3, 0.3, 0.3]},
             "head": {"rotation": [0, 180, 0], "scale": [1.0, 1.0, 1.0]},

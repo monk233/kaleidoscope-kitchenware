@@ -1,8 +1,8 @@
 {
-  "render_type": "minecraft:translucent",
+  "render_type": "minecraft:cutout",
   "textures": {
     "0": "kaleidoscope_kitchenware:block/vat_side",
-    "water": "kaleidoscope_kitchenware:block/vat_water",
+    "water": "minecraft:block/water_still",
     "particle": "kaleidoscope_kitchenware:block/vat_side"
   },
   "elements": [
