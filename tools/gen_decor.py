@@ -380,27 +380,16 @@ def draw_tray_glaze_dark(img, ramp, rng) -> None:
 
 
 def draw_vat_clay(img, ramp, rng) -> None:
-    """Clay pot: a rammed earth body, even throwing marks up the wall, a lit line along the rim.
+    """Clay: one flat earth tone, nothing else.
 
-    The marks run vertically on purpose. A ring crops the same corner of the sheet, so vertical
-    detail lines up from ring to ring and reads as one continuous wall, while horizontal detail
-    repeats once per ring and reads as stacked planks.
+    Asked for plain and plain is right here - at this size any pattern reads as stray blocks once
+    the rings crop it, and the pot's shape already carries all the detail it needs.
     """
     size = img.width
-    body, dark, light, edge = (0xA3, 0x81, 0x4F, 255), (0x8A, 0x6A, 0x47, 255), \
-        (0xB8, 0x95, 0x5E, 255), (0x5E, 0x37, 0x23, 255)
+    body = (0xA3, 0x81, 0x4F, 255)
     for y in range(size):
         for x in range(size):
             img.putpixel((x, y), body)
-    step = max(2, size // 16)
-    for x in range(0, size, step):
-        for y in range(size):
-            img.putpixel((x, y), dark)
-    for i in range(size):
-        img.putpixel((i, 0), light)
-        img.putpixel((i, size - 1), edge)
-        img.putpixel((0, i), edge)
-        img.putpixel((size - 1, i), edge)
 
 
 def draw_vat_water(img, ramp, rng) -> None:
@@ -635,6 +624,10 @@ CONTAINER_TEXTURES = {
 }
 
 VAT_WATER_HEIGHT = {0: 4, 1: 8, 2: 12, 3: 14}
+# how far the surface reaches at each level: the inside of the ring it sits in, so the pot's
+# own wall is never visible between the water and the rim
+# half-width of the surface at each level: the ring it sits in, minus its wall, less a hair
+VAT_WATER_INSET = {0: 0.0, 1: 5.5, 2: 4.35, 3: 3.95}
 # the surface reuses vanilla's water, which is what a cauldron shows
 WATER = "minecraft:block/water_still"
 JAR_SPOTS = [(x, y) for y in (4.0, 10.0) for x in (1.5, 5.5, 9.5, 13.5)]
@@ -666,9 +659,12 @@ def build_containers(textures_dir: Path) -> None:
             elements.append(box([lo, y0, lo + thick], [lo + thick, y1, hi - thick], "#0"))
             elements.append(box([hi - thick, y0, lo + thick], [hi, y1, hi - thick], "#0"))
         if level > 0:
+            inset = VAT_WATER_INSET[level]
+            near, far = 8 - inset, 8 + inset
             elements.append({
-                "from": [4.4, water_y, 4.4], "to": [11.6, water_y + 0.4, 11.6],
-                "faces": {face: {"uv": [0, 0, 7, 7], "texture": "#water", "tintindex": 0}
+                "from": [near, water_y, near], "to": [far, water_y + 0.4, far],
+                "faces": {face: {"uv": [0, 0, inset * 2, inset * 2], "texture": "#water",
+                                 "tintindex": 0}
                           for face in ("north", "south", "east", "west", "up", "down")},
             })
         write_json(RES / "assets" / NS / "models" / "block" / f"water_vat_{level}.json",
