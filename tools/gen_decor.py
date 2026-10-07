@@ -380,16 +380,27 @@ def draw_tray_glaze_dark(img, ramp, rng) -> None:
 
 
 def draw_vat_clay(img, ramp, rng) -> None:
-    """Clay: a fine, even grain and nothing else.
+    """Clay pot: a rammed earth body, even throwing marks up the wall, a lit line along the rim.
 
-    Bands were the mistake. A horizontal band repeats once per ring, because every ring crops the
-    same corner of the sheet, so the pot came out looking stacked from planks.
+    The marks run vertically on purpose. A ring crops the same corner of the sheet, so vertical
+    detail lines up from ring to ring and reads as one continuous wall, while horizontal detail
+    repeats once per ring and reads as stacked planks.
     """
     size = img.width
-    body, grain = (0xA3, 0x81, 0x4F, 255), (0x93, 0x74, 0x47, 255)
+    body, dark, light, edge = (0xA3, 0x81, 0x4F, 255), (0x8A, 0x6A, 0x47, 255), \
+        (0xB8, 0x95, 0x5E, 255), (0x5E, 0x37, 0x23, 255)
     for y in range(size):
         for x in range(size):
-            img.putpixel((x, y), grain if (x + y * 3) % 7 == 0 else body)
+            img.putpixel((x, y), body)
+    step = max(2, size // 16)
+    for x in range(0, size, step):
+        for y in range(size):
+            img.putpixel((x, y), dark)
+    for i in range(size):
+        img.putpixel((i, 0), light)
+        img.putpixel((i, size - 1), edge)
+        img.putpixel((0, i), edge)
+        img.putpixel((size - 1, i), edge)
 
 
 def draw_vat_water(img, ramp, rng) -> None:
@@ -642,8 +653,8 @@ def build_containers(textures_dir: Path) -> None:
 
     # water vat: seven rings tapering in and out, which is as round as block model elements
     # get; a hollow body like a cauldron, with the level deciding how high the water sits
-    vat_rings = [(0.0, 1.0, 3.4), (1.0, 2.5, 5.0), (2.5, 5.0, 6.0), (5.0, 8.0, 6.6),
-                 (8.0, 11.0, 6.2), (11.0, 13.5, 5.4), (13.5, 15.0, 4.8)]
+    vat_rings = [(0.0, 1.0, 3.6), (1.0, 2.5, 5.0), (2.5, 5.5, 6.0), (5.5, 8.5, 6.6),
+                 (8.5, 11.5, 6.2), (11.5, 13.5, 5.4), (13.5, 14.5, 5.0), (14.5, 15.0, 5.6)]
     for level, water_y in VAT_WATER_HEIGHT.items():
         elements = [box([2.2, 0, 2.2], [13.8, 1, 13.8], "#0")]
         for y0, y1, half in vat_rings[1:]:
