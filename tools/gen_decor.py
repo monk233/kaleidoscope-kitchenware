@@ -42,19 +42,7 @@ WOOD = {
 }
 
 # name, zh, en, shape, texture spec (None = reuse the base block's texture)
-DECOR = [
-    ("blue_brick", "青砖", "Blue Brick", "block", {"kind": "brick", "ramp": BRICK}),
-    ("blue_brick_stairs", "青砖楼梯", "Blue Brick Stairs", "stairs", None),
-    ("blue_brick_slab", "青砖台阶", "Blue Brick Slab", "slab", None),
-    ("blue_brick_wall", "青砖墙", "Blue Brick Wall", "wall", None),
-    ("blue_roof_tile", "青瓦", "Blue Roof Tile", "block", {"kind": "roof_tile", "ramp": ROOF}),
-    ("blue_roof_tile_stairs", "青瓦楼梯", "Blue Roof Tile Stairs", "stairs", None),
-    ("blue_roof_tile_slab", "青瓦台阶", "Blue Roof Tile Slab", "slab", None),
-    ("roof_ridge_tile", "屋脊瓦", "Roof Ridge Tile", "block", {"kind": "roof_tile", "ramp": RIDGE}),
-    ("stone_floor_tile", "青石地砖", "Stone Floor Tile", "block", {"kind": "tile_floor", "ramp": FLOOR_TILE}),
-    ("lattice_window", "木格窗", "Lattice Window", "thin", {"kind": "lattice", "species": "oak"}),
-    ("bamboo_curtain", "竹帘", "Bamboo Curtain", "thin", {"kind": "curtain", "species": "bamboo"}),
-]
+DECOR = []
 
 BASE_OF = {
     "blue_brick_stairs": "blue_brick",

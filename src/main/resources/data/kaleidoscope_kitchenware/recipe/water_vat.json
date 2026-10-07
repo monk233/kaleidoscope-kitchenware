@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["T T", "TTT", "TTT"],
+  "key": {"T": {"item": "minecraft:terracotta"}},
+  "result": {"id": "kaleidoscope_kitchenware:water_vat", "count": 1}
+}

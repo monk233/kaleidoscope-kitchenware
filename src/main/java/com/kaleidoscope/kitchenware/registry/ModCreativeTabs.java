@@ -16,7 +16,7 @@ public final class ModCreativeTabs {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KITCHEN = TABS.register("kitchen",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.kaleidoscope_kitchenware.kitchen"))
-                    .icon(() -> new ItemStack(ModBlocks.BLUE_BRICK.get()))
+                    .icon(() -> new ItemStack(ModBlocks.FIREWOOD_STOVE.get()))
                     .displayItems((parameters, output) -> ModItems.ALL.forEach(item -> output.accept(item.get())))
                     .build());
 
