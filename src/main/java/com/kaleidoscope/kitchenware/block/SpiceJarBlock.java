@@ -87,10 +87,7 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = defaultBlockState();
-        int corner = jarIndexAt(context.getClickLocation(), context.getClickedPos());
-        KaleidoscopeKitchenware.LOGGER.info("[jar] placing block, corner={} hit={}",
-                corner, context.getClickLocation());
-        return state.setValue(JARS[corner], true);
+        return state.setValue(JARS[jarIndexAt(context.getClickLocation(), context.getClickedPos())], true);
     }
 
     /** Corner index 0..3 from the hit position, matching {@link #JARS}. */
@@ -152,12 +149,8 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         int aimed = jarIndexAt(hitResult.getLocation(), pos);
         int index = resolveJarIndex(state, hitResult.getLocation(), pos);
         boolean hasJar = index >= 0;
+        // registerClick has a side effect, so it must be called exactly once per interaction
         boolean wholeStack = player.isShiftKeyDown() || jar.registerClick(index, level.getGameTime());
-        KaleidoscopeKitchenware.LOGGER.info(
-                "[jar] useItemOn side={} held={} x{} shift={} double={} whole={} aimed={} resolved={} corners={}{}{}{}",
-                level.isClientSide, BuiltInRegistries.ITEM.getKey(stack.getItem()), stack.getCount(),
-                player.isShiftKeyDown(), wholeStack, aimed, index,
-                state.getValue(JARS[0]), state.getValue(JARS[1]), state.getValue(JARS[2]), state.getValue(JARS[3]));
 
         // a jar in hand goes down as a new jar in the corner that was aimed at.
         // the fallback used for storage must NOT apply here, or a second jar could never be placed
@@ -169,23 +162,18 @@ public class SpiceJarBlock extends Block implements EntityBlock {
                 if (!player.getAbilities().instabuild) {
                     stack.shrink(1);
                 }
-                KaleidoscopeKitchenware.LOGGER.info("[jar] placed jar in corner {}", target);
                 return ItemInteractionResult.SUCCESS;
             }
             tell(player, "state.kaleidoscope_kitchenware.jar_taken");
-            KaleidoscopeKitchenware.LOGGER.info("[jar] refused: corner {} already has a jar", target);
             return ItemInteractionResult.FAIL;
         }
 
         if (!stack.isEmpty()) {
             if (!hasJar) {
                 tell(player, "state.kaleidoscope_kitchenware.jar_missing");
-                KaleidoscopeKitchenware.LOGGER.info("[jar] refused: no jar on this block at all");
                 return ItemInteractionResult.FAIL;
             }
             int moved = jar.insert(index, stack, wholeStack);
-            KaleidoscopeKitchenware.LOGGER.info("[jar] store corner={} whole={} moved={} carriedBefore={}",
-                    index, wholeStack, moved, jar.carryingCount(index));
             if (moved == 0) {
                 tell(player, "state.kaleidoscope_kitchenware.storage_full");
                 return ItemInteractionResult.FAIL;
@@ -202,8 +190,6 @@ public class SpiceJarBlock extends Block implements EntityBlock {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         ItemStack taken = jar.extract(index, wholeStack);
-        KaleidoscopeKitchenware.LOGGER.info("[jar] take corner={} whole={} taken={} x{}",
-                index, wholeStack, BuiltInRegistries.ITEM.getKey(taken.getItem()), taken.getCount());
         if (taken.isEmpty()) {
             tell(player, "state.kaleidoscope_kitchenware.storage_empty");
             return ItemInteractionResult.FAIL;
@@ -254,9 +240,6 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar) {
-            KaleidoscopeKitchenware.LOGGER.info("[jar] willDestroy corners={}{}{}{} empty={} be={}",
-                    state.getValue(JARS[0]), state.getValue(JARS[1]), state.getValue(JARS[2]),
-                    state.getValue(JARS[3]), jar.isEmpty(), jar);
             dropJars(level, pos, state, jar);
             jar.markDropped();
         }
@@ -266,24 +249,17 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     /** Fallback for anything that is not a player breaking the block: explosions, pistons. */
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && !level.isClientSide) {
-            BlockEntity entityHere = level.getBlockEntity(pos);
-            KaleidoscopeKitchenware.LOGGER.info("[jar] onRemove be={} droppedAlready={}", entityHere,
-                    entityHere instanceof SpiceJarBlockEntity jarEntity && jarEntity.isDropped());
-            if (entityHere instanceof SpiceJarBlockEntity jar && !jar.isDropped()) {
-                dropJars(level, pos, state, jar);
-                jar.markDropped();
-            }
+        if (!state.is(newState.getBlock()) && !level.isClientSide
+                && level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar && !jar.isDropped()) {
+            dropJars(level, pos, state, jar);
+            jar.markDropped();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     private static void dropJars(Level level, BlockPos pos, BlockState state, SpiceJarBlockEntity jar) {
         int count = Math.max(1, jarCount(state));
-        ItemStack drop = jarStack(jar, level.registryAccess());
-        KaleidoscopeKitchenware.LOGGER.info("[jar] dropping count={} withData={}",
-                count, drop.has(DataComponents.BLOCK_ENTITY_DATA));
-        Block.popResource(level, pos, drop);
+        Block.popResource(level, pos, jarStack(jar, level.registryAccess()));
         for (int i = 1; i < count; i++) {
             Block.popResource(level, pos, new ItemStack(ModItems.SPICE_JAR.get()));
         }
