@@ -204,27 +204,50 @@ public final class SeasoningTrayEvents {
             return;
         }
 
-        // A bowl or pot on the shovel, pointing at a pot: leave the click entirely to the base
-        // mod. Its pot and stockpot blocks already serve a finished dish out through
-        // takeOutProduct, and a shovel carrying a bowl is the item they expect. Intercepting
-        // here only ever got in their way, so this branch steps aside.
+        // A bowl or pot on the shovel, pointing at a pot: serve the dish out with that bowl.
+        //
+        // The base mod checks the carrier against whatever item it is handed, and its own click path
+        // only ever hands it the main hand item - which a shovel is not, so a shovel can never pass
+        // that test when the pot has a carrier. Handing it the bowl from the shovel satisfies the
+        // check, and the pot consumes it from there.
         ItemStack payload = carried(held, level.registryAccess());
+        if (!payload.isEmpty()
+                && com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity.accepts(payload)
+                && level.getBlockEntity(pos) instanceof com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IPot pot) {
+            event.setUseBlock(TriState.FALSE);
+            event.setUseItem(TriState.FALSE);
+            if (level.isClientSide) {
+                return;
+            }
+            if (pot.takeOutProduct(level, player, payload)) {
+                clearCarried(held);
+                level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.0F);
+                tell(player, "state.kaleidoscope_kitchenware.shovel_served");
+            } else {
+                tell(player, "state.kaleidoscope_kitchenware.shovel_nothing_to_serve");
+            }
+            return;
+        }
+        if (!payload.isEmpty()
+                && com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity.accepts(payload)
+                && level.getBlockEntity(pos) instanceof com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IStockpot stockpot) {
+            event.setUseBlock(TriState.FALSE);
+            event.setUseItem(TriState.FALSE);
+            if (level.isClientSide) {
+                return;
+            }
+            if (stockpot.takeOutProduct(level, player, payload)) {
+                clearCarried(held);
+                level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.0F);
+                tell(player, "state.kaleidoscope_kitchenware.shovel_served");
+            } else {
+                tell(player, "state.kaleidoscope_kitchenware.shovel_nothing_to_serve");
+            }
+            return;
+        }
         if (!payload.isEmpty()
                 && com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity.accepts(payload)) {
             return;
-        }
-        if (!level.isClientSide && player.isSecondaryUseActive()) {
-            // diagnostic: which block the sneak click reached, and what the base mod's pot thinks
-            // its state is. Read only, so it cannot disturb the click it is describing.
-            var be = level.getBlockEntity(pos);
-            String detail = "n/a";
-            if (be instanceof com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity pot) {
-                detail = "status=" + pot.getStatus() + " carrier=" + pot.hasCarrier();
-            }
-            com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                    "[servedbg] sneak + shovel on {} | {} | payload={}",
-                    be == null ? "none" : be.getClass().getSimpleName(), detail,
-                    payload.isEmpty() ? "none" : payload.getHoverName().getString());
         }
 
         // a wok: only seasoning we carry ourselves is handled here. Oil on the shovel is left to
