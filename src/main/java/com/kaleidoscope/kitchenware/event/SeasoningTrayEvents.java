@@ -209,13 +209,13 @@ public final class SeasoningTrayEvents {
         ItemStack payload = carried(held, level.registryAccess());
         if (!payload.isEmpty()
                 && com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity.accepts(payload)
-                && level.getBlockEntity(pos) instanceof com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.PotBlockEntity pot) {
+                && level.getBlockEntity(pos) instanceof com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity pot) {
             event.setUseBlock(TriState.FALSE);
             event.setUseItem(TriState.FALSE);
             if (level.isClientSide) {
                 return;
             }
-            boolean ready = pot.getStatus() == com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.PotBlockEntity.FINISHED
+            boolean ready = pot.getStatus() == com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity.FINISHED
                     && !pot.hasCarrier();
             if (ready && pot.takeOutProduct(level, player, held)) {
                 clearCarried(held);
