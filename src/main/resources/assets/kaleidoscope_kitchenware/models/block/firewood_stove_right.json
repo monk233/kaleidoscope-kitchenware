@@ -1,5 +1,9 @@
 {
   "textures": {
+    "stove_front": "kaleidoscope_kitchenware:block/stove_front",
+    "stove_soot": "kaleidoscope_kitchenware:block/stove_soot",
+    "stove_top": "kaleidoscope_kitchenware:block/stove_top",
+    "stove_side": "kaleidoscope_kitchenware:block/stove_side",
     "particle": "kaleidoscope_kitchenware:block/stove_side"
   },
   "elements": [
@@ -22,7 +26,7 @@
             16,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_front"
+          "texture": "#stove_front"
         },
         "south": {
           "uv": [
@@ -31,7 +35,7 @@
             16,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         },
         "up": {
           "uv": [
@@ -40,7 +44,7 @@
             16,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "down": {
           "uv": [
@@ -49,7 +53,7 @@
             16,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_side"
+          "texture": "#stove_side"
         },
         "east": {
           "uv": [
@@ -58,7 +62,7 @@
             3.0,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_side"
+          "texture": "#stove_side"
         },
         "west": {
           "uv": [
@@ -67,7 +71,7 @@
             3.0,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_side"
+          "texture": "#stove_side"
         }
       }
     },
@@ -90,7 +94,7 @@
             16,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_side"
+          "texture": "#stove_side"
         },
         "north": {
           "uv": [
@@ -99,7 +103,7 @@
             16,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         },
         "up": {
           "uv": [
@@ -108,7 +112,7 @@
             16,
             3
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "down": {
           "uv": [
@@ -117,7 +121,7 @@
             16,
             3
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_side"
+          "texture": "#stove_side"
         },
         "east": {
           "uv": [
@@ -126,7 +130,7 @@
             3,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_side"
+          "texture": "#stove_side"
         },
         "west": {
           "uv": [
@@ -135,7 +139,7 @@
             3,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_side"
+          "texture": "#stove_side"
         }
       }
     },
@@ -158,7 +162,7 @@
             10.0,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_side"
+          "texture": "#stove_side"
         },
         "east": {
           "uv": [
@@ -167,7 +171,7 @@
             10.0,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         },
         "up": {
           "uv": [
@@ -176,7 +180,7 @@
             3.0,
             10.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "down": {
           "uv": [
@@ -185,7 +189,7 @@
             3.0,
             10.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_side"
+          "texture": "#stove_side"
         },
         "north": {
           "uv": [
@@ -194,7 +198,7 @@
             3.0,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         },
         "south": {
           "uv": [
@@ -203,7 +207,7 @@
             3.0,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         }
       }
     },
@@ -226,7 +230,7 @@
             10.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         },
         "south": {
           "uv": [
@@ -235,7 +239,7 @@
             10.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         },
         "east": {
           "uv": [
@@ -244,7 +248,7 @@
             10.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         },
         "west": {
           "uv": [
@@ -253,7 +257,7 @@
             10.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         },
         "up": {
           "uv": [
@@ -262,7 +266,7 @@
             10.0,
             10.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         },
         "down": {
           "uv": [
@@ -271,7 +275,7 @@
             10.0,
             10.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         }
       }
     },
@@ -294,7 +298,7 @@
             10.0,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_side"
+          "texture": "#stove_side"
         },
         "west": {
           "uv": [
@@ -303,7 +307,7 @@
             10.0,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         },
         "up": {
           "uv": [
@@ -312,7 +316,7 @@
             3,
             10.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "down": {
           "uv": [
@@ -321,7 +325,7 @@
             3,
             10.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_side"
+          "texture": "#stove_side"
         },
         "north": {
           "uv": [
@@ -330,7 +334,7 @@
             3,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         },
         "south": {
           "uv": [
@@ -339,7 +343,7 @@
             3,
             13.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_soot"
+          "texture": "#stove_soot"
         }
       }
     },
@@ -362,7 +366,7 @@
             16,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "south": {
           "uv": [
@@ -371,7 +375,7 @@
             16,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "east": {
           "uv": [
@@ -380,7 +384,7 @@
             3.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "west": {
           "uv": [
@@ -389,7 +393,7 @@
             3.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "up": {
           "uv": [
@@ -398,7 +402,7 @@
             16,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "down": {
           "uv": [
@@ -407,7 +411,7 @@
             16,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         }
       }
     },
@@ -430,7 +434,7 @@
             16,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "south": {
           "uv": [
@@ -439,7 +443,7 @@
             16,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "east": {
           "uv": [
@@ -448,7 +452,7 @@
             3,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "west": {
           "uv": [
@@ -457,7 +461,7 @@
             3,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "up": {
           "uv": [
@@ -466,7 +470,7 @@
             16,
             3
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "down": {
           "uv": [
@@ -475,7 +479,7 @@
             16,
             3
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         }
       }
     },
@@ -498,7 +502,7 @@
             3.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "south": {
           "uv": [
@@ -507,7 +511,7 @@
             3.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "east": {
           "uv": [
@@ -516,7 +520,7 @@
             10.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "west": {
           "uv": [
@@ -525,7 +529,7 @@
             10.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "up": {
           "uv": [
@@ -534,7 +538,7 @@
             3.0,
             10.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "down": {
           "uv": [
@@ -543,7 +547,7 @@
             3.0,
             10.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         }
       }
     },
@@ -566,7 +570,7 @@
             3,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "south": {
           "uv": [
@@ -575,7 +579,7 @@
             3,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "east": {
           "uv": [
@@ -584,7 +588,7 @@
             10.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "west": {
           "uv": [
@@ -593,7 +597,7 @@
             10.0,
             3.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "up": {
           "uv": [
@@ -602,7 +606,7 @@
             3,
             10.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         },
         "down": {
           "uv": [
@@ -611,7 +615,7 @@
             3,
             10.0
           ],
-          "texture": "kaleidoscope_kitchenware:block/stove_top"
+          "texture": "#stove_top"
         }
       }
     }

@@ -715,22 +715,39 @@ STOVE_FACES = ("north", "south", "east", "west", "up", "down")
 
 
 def stove_box(from_xyz, to_xyz, face_textures: dict) -> dict:
-    """An element whose six faces each carry their own texture (uv defaults to the face size)."""
+    """An element whose six faces each name a texture from the model's own texture table.
+
+    Faces must reference the table with "#name" - a full resource path here is not resolved and
+    every face comes out as the missing texture checkerboard - so callers pass short names and
+    {@link assemble_model} builds the table.
+    """
     dx, dy, dz = (round(to_xyz[i] - from_xyz[i], 2) for i in range(3))
     defaults = {"north": [0, 0, dx, dy], "south": [0, 0, dx, dy],
                 "east": [0, 0, dz, dy], "west": [0, 0, dz, dy],
                 "up": [0, 0, dx, dz], "down": [0, 0, dx, dz]}
     faces = {}
     for face, ref in face_textures.items():
-        faces[face] = {"uv": defaults[face], "texture": ref}
+        faces[face] = {"uv": defaults[face], "texture": f"#{ref}"}
     return {"from": from_xyz, "to": to_xyz, "faces": faces}
+
+
+def assemble_model(elements: list, particle: str) -> dict:
+    """Collect every "#name" the elements use into the model's texture table."""
+    used = []
+    for element in elements:
+        for spec in element["faces"].values():
+            name = spec["texture"].lstrip("#")
+            if name not in used:
+                used.append(name)
+    return {"textures": {name: tex(name) for name in used} | {"particle": tex(particle)},
+            "elements": elements}
 
 
 def stove_cell(part: str, lit: bool) -> dict:
     """One half of the range. The side facing the partner carries no wall: the partner brings it,
     which keeps the two cells from drawing the same plane twice."""
-    front = tex("stove_front_lit" if lit else "stove_front")
-    side, top, soot = tex("stove_side"), tex("stove_top"), tex("stove_soot")
+    front = "stove_front_lit" if lit else "stove_front"
+    side, top, soot = "stove_side", "stove_top", "stove_soot"
     elements = [
         # the front wall, which is where the fire mouth is painted
         stove_box([0, 0, 0], [16, STOVE_RIM, STOVE_WALL],
@@ -752,7 +769,7 @@ def stove_cell(part: str, lit: bool) -> dict:
     for x0, z0, x1, z1 in ((0, 0, 16, STOVE_WALL), (0, 13, 16, 16),
                            (0, STOVE_WALL, STOVE_WALL, 13), (13, STOVE_WALL, 16, 13)):
         elements.append(stove_box([x0, STOVE_RIM, z0], [x1, 16, z1], {face: top for face in STOVE_FACES}))
-    return {"textures": {"particle": side}, "elements": elements}
+    return assemble_model(elements, side)
 
 
 def build_stove_counter(textures_dir: Path) -> None:
@@ -847,7 +864,7 @@ def build_iron_wok(textures_dir: Path) -> None:
     for seed, (name, spec) in enumerate(sorted(WOK_TEXTURES.items())):
         make_texture(spec, seed=901 + seed * 23).save(textures_dir / f"{name}.png")
 
-    outer, inner, bottom = tex("wok_outer"), tex("wok_inner"), tex("wok_bottom")
+    outer, inner, bottom = "wok_outer", "wok_inner", "wok_bottom"
     elements = []
     # the lip, which is what the player actually sees resting on the brick
     rim_lo, rim_hi = WOK_CENTRE - WOK_RIM_OUTER, WOK_CENTRE + WOK_RIM_OUTER
@@ -870,18 +887,15 @@ def build_iron_wok(textures_dir: Path) -> None:
                               {"up": inner, "down": bottom, "north": outer, "south": outer,
                                "east": outer, "west": outer}))
 
-    write_json(RES / "assets" / NS / "models" / "block" / "iron_wok.json",
-               {"textures": {"particle": outer}, "elements": elements})
+    write_json(RES / "assets" / NS / "models" / "block" / "iron_wok.json", assemble_model(elements, outer))
     # the two liquid states are separate models rather than renderer work: a surface inside the
     # bowl is one more box, and that keeps the block entity out of the liquid business entirely
     for state, texture_name, top, half in (("oil", "wok_oil", -3.95, 2.4),
                                            ("soup", "wok_soup", -3.6, 2.5)):
-        liquid = tex(texture_name)
         lo, hi = WOK_CENTRE - half, WOK_CENTRE + half
         write_json(RES / "assets" / NS / "models" / "block" / f"iron_wok_{state}.json",
-                   {"textures": {"particle": outer},
-                    "elements": elements + [stove_box([lo, -4.2, lo], [hi, top, hi],
-                                                      {face: liquid for face in STOVE_FACES})]})
+                   assemble_model(elements + [stove_box([lo, -4.2, lo], [hi, top, hi],
+                                                        {face: texture_name for face in STOVE_FACES})], outer))
 
     variants = {}
     for facing, y in FACING_Y:

@@ -115,7 +115,18 @@ for folder in ("item", "block"):
             if not target.exists():
                 problems.append(f"{folder}/{model_file.name} points at missing model {parent}")
         boxes = []
+        declared = body.get("textures", {})
         for element in body.get("elements", []):
+            # a face has to point into the model's own texture table; a raw path there renders as
+            # the missing texture checkerboard, which is a silent failure in game
+            for face, spec in element.get("faces", {}).items():
+                ref = spec.get("texture", "")
+                if not ref.startswith("#"):
+                    problems.append(f"{folder}/{model_file.name} face {face} uses the raw path {ref!r}; "
+                                    f"faces must reference the texture table as '#name'")
+                elif ref[1:] not in declared:
+                    problems.append(f"{folder}/{model_file.name} face {face} uses {ref} "
+                                    f"but the model does not declare it")
             rotation = element.get("rotation")
             if isinstance(rotation, dict) and float(rotation.get("angle", 0)) not in ALLOWED_ANGLES:
                 problems.append(f"{folder}/{model_file.name} uses illegal element rotation "
