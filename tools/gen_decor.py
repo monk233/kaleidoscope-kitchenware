@@ -358,84 +358,58 @@ def draw_jar_top_filled(img, ramp, rng):
 
 
 def draw_tray_glaze(img, ramp, rng) -> None:
-    """White porcelain: warm white body, faint glaze shading, a pale celadon band at the rim."""
+    """Porcelain: flat china white, one shared-outline rim, one inner shadow line."""
     size = img.width
-    body, shade, highlight = (0xEF, 0xEE, 0xE2, 255), (0xDA, 0xD7, 0xC3, 255), (0xF5, 0xF5, 0xF5, 255)
-    celadon, edge = (0xA8, 0xCF, 0xC8, 255), (0x5E, 0x37, 0x23, 255)
+    body, shade, edge = (0xEF, 0xEE, 0xE2, 255), (0xDA, 0xD7, 0xC3, 255), (0x5E, 0x37, 0x23, 255)
     for y in range(size):
         for x in range(size):
             img.putpixel((x, y), body)
-    # a few soft glaze patches, so the white does not read as a flat fill
-    for _ in range(size // 2):
-        cx, cy = rng.randrange(2, size - 2), rng.randrange(2, size - 2)
-        colour = shade if rng.random() < 0.6 else highlight
-        radius = rng.choice((1, 1, 2))
-        for dy in range(-radius, radius + 1):
-            for dx in range(-radius, radius + 1):
-                if abs(dx) + abs(dy) > radius:
-                    continue
-                x, y = cx + dx, cy + dy
-                if 1 <= x < size - 1 and 1 <= y < size - 1:
-                    img.putpixel((x, y), colour)
-    band = max(1, size // 14)
+    band = max(2, size // 12)
     for i in range(band, size - band):
-        img.putpixel((i, band), celadon)
-        img.putpixel((i, size - band - 1), celadon)
-        img.putpixel((band, i), celadon)
-        img.putpixel((size - band - 1, i), celadon)
+        img.putpixel((i, band), shade)
+        img.putpixel((i, size - band - 1), shade)
+        img.putpixel((band, i), shade)
+        img.putpixel((size - band - 1, i), shade)
     for i in range(size):
         img.putpixel((i, 0), edge)
         img.putpixel((i, size - 1), edge)
         img.putpixel((0, i), edge)
         img.putpixel((size - 1, i), edge)
 
-
 def draw_tray_glaze_dark(img, ramp, rng) -> None:
-    """Inner walls and base: the same porcelain, a shade cooler where shadow falls."""
+    """Inner walls: one step down from the china white, with a single seam line."""
     size = img.width
-    body, shade, light = (0xDA, 0xD7, 0xC3, 255), (0xC2, 0xBF, 0xAC, 255), (0xEF, 0xEE, 0xE2, 255)
+    body, shade = (0xDA, 0xD7, 0xC3, 255), (0xC2, 0xBF, 0xAC, 255)
     for y in range(size):
         for x in range(size):
             img.putpixel((x, y), body)
-    for _ in range(size - 8):
-        cx, cy = rng.randrange(size), rng.randrange(size)
-        colour = shade if rng.random() < 0.6 else light
-        radius = rng.choice((0, 1, 1, 2))
-        for dy in range(-radius, radius + 1):
-            for dx in range(-radius, radius + 1):
-                if abs(dx) + abs(dy) > radius:
-                    continue
-                x, y = cx + dx, cy + dy
-                if 0 <= x < size and 0 <= y < size:
-                    img.putpixel((x, y), colour)
-
+    seam = size // 2
+    for i in range(size):
+        img.putpixel((i, seam), shade)
 
 def draw_vat_clay(img, ramp, rng) -> None:
-    """Unglazed brown clay: a thrown pot, so vertical marks, with lighter glaze patches."""
+    """A thrown pot: even vertical throwing marks, a lit band under the rim, a shadowed belly.
+    Regular marks rather than scattered specks - the series reads as structure, not noise."""
     size = img.width
-    body, dark, light = (0xA3, 0x81, 0x4F, 255), (0x8A, 0x6A, 0x47, 255), (0x5E, 0x37, 0x23, 255)
+    body, dark, light, edge = (0xA3, 0x81, 0x4F, 255), (0x8A, 0x6A, 0x47, 255), \
+        (0xB8, 0x95, 0x5E, 255), (0x5E, 0x37, 0x23, 255)
+    step = max(1, size // 16)
     for y in range(size):
         for x in range(size):
             img.putpixel((x, y), body)
+    for x in range(0, size, step * 2):
+        for y in range(size):
+            img.putpixel((x, y), dark)
     for x in range(size):
-        if x % 2 == 0:
-            for y in range(size):
-                if y % 3 != 2:
-                    img.putpixel((x, y), dark)
-        else:
-            for y in range(0, size, 4):
-                img.putpixel((x, y), light)
-    for _ in range(size // 2):
-        cx, cy = rng.randrange(size), rng.randrange(size)
-        colour = dark if rng.random() < 0.5 else light
-        for dy in (-1, 0, 1):
-            for dx in (-1, 0, 1):
-                if abs(dx) + abs(dy) > 1:
-                    continue
-                x, y = cx + dx, cy + dy
-                if 0 <= x < size and 0 <= y < size:
-                    img.putpixel((x, y), colour)
-
+        for y in range(step, step * 2):
+            img.putpixel((x, y), light)
+        for y in range(size - step * 3, size - step * 2):
+            img.putpixel((x, y), dark)
+    for i in range(size):
+        img.putpixel((i, 0), edge)
+        img.putpixel((i, size - 1), edge)
+        img.putpixel((0, i), edge)
+        img.putpixel((size - 1, i), edge)
 
 def draw_vat_water(img, ramp, rng) -> None:
     """Still water. Vanilla's water texture is greyscale and gets its colour from the biome tint,
@@ -683,21 +657,24 @@ def build_containers(textures_dir: Path) -> None:
     for seed, (name, spec) in enumerate(sorted(CONTAINER_TEXTURES.items())):
         make_texture(spec, seed=401 + seed * 11).save(textures_dir / f"{name}.png")
 
-    # water vat: hollow like a cauldron, so the water inside is visible and a player can stand in
-    # it. Full block footprint, the vanilla water texture for the surface, and the level decides
-    # how high that surface sits.
+    # water vat: seven rings tapering in and out, which is as round as block model elements
+    # get; a hollow body like a cauldron, with the level deciding how high the water sits
+    vat_rings = [(0.0, 1.0, 3.0), (1.0, 2.5, 4.2), (2.5, 5.0, 5.0), (5.0, 8.0, 5.6),
+                 (8.0, 11.0, 5.2), (11.0, 13.5, 4.6), (13.5, 15.0, 4.2)]
     for level, water_y in VAT_WATER_HEIGHT.items():
-        elements = [
-            box([0, 0, 0], [16, 1, 16], "#0"),
-            box([0, 1, 0], [16, 16, 2], "#0"),
-            box([0, 1, 14], [16, 16, 16], "#0"),
-            box([0, 1, 2], [2, 16, 14], "#0"),
-            box([14, 1, 2], [16, 16, 14], "#0"),
-        ]
+        elements = [box([2.4, 0, 2.4], [13.6, 1, 13.6], "#0")]
+        for y0, y1, half in vat_rings[1:]:
+            lo, hi = 8 - half, 8 + half
+            thick = 1.0
+            # four walls per ring: hollow, so the water inside is visible from above
+            elements.append(box([lo, y0, lo], [hi, y1, lo + thick], "#0"))
+            elements.append(box([lo, y0, hi - thick], [hi, y1, hi], "#0"))
+            elements.append(box([lo, y0, lo + thick], [lo + thick, y1, hi - thick], "#0"))
+            elements.append(box([hi - thick, y0, lo + thick], [hi, y1, hi - thick], "#0"))
         if level > 0:
             elements.append({
-                "from": [2, water_y, 2], "to": [14, water_y + 0.4, 14],
-                "faces": {face: {"uv": [0, 0, 12, 12], "texture": "#water", "tintindex": 0}
+                "from": [4.8, water_y, 4.8], "to": [11.2, water_y + 0.4, 11.2],
+                "faces": {face: {"uv": [0, 0, 7, 7], "texture": "#water", "tintindex": 0}
                           for face in ("north", "south", "east", "west", "up", "down")},
             })
         write_json(RES / "assets" / NS / "models" / "block" / f"water_vat_{level}.json",
@@ -813,8 +790,7 @@ def build_dish_rack(textures_dir: Path) -> None:
         make_texture(spec, seed=811 + seed * 17).save(textures_dir / f"{name}.png")
 
     textures = {"0": tex("rack_wood"), "1": tex("rack_frame"), "particle": tex("rack_frame")}
-    # two trays, four posts and two rails across the back: no solid back panel, which read as a
-    # blank slab from the side
+    # two trays, four posts, two rails, and slats across each tray so the frame has detail
     elements = [
         box([2, 0, 2], [14, 1, 12], "#0"),
         box([2, 7, 2], [14, 8, 12], "#0"),
@@ -825,6 +801,10 @@ def build_dish_rack(textures_dir: Path) -> None:
         box([1, 0, 12], [2, 16, 13], "#1"),
         box([14, 0, 12], [15, 16, 13], "#1"),
     ]
+    for shelf_y in (1, 8):
+        for x in range(3, 14, 3):
+            elements.append(box([x, shelf_y, 3], [x + 1, shelf_y + 1, 11], "#1"))
+
     write_json(RES / "assets" / NS / "models" / "block" / "dish_rack.json", {
         "render_type": "minecraft:cutout",
         "textures": textures,
