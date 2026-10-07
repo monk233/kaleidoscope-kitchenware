@@ -158,8 +158,8 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         }
         BlockState state = level.getBlockState(pos);
         BlockState restored = state.setValue(JARS[placedCorner], true);
-        KaleidoscopeKitchenware.LOGGER.info("[jardbg] settlePlaced corner={} carriedItems={} stored={}",
-                placedCorner, carried.getList("Items", 10).size(), jar.carryingTotal());
+        KaleidoscopeKitchenware.LOGGER.info("[jardbg] settlePlaced corner={} carriedKeys={} stored={}",
+                placedCorner, carried.getAllKeys(), jar.carryingTotal());
         if (restored != state) {
             level.setBlockAndUpdate(pos, restored);
         }
