@@ -21,11 +21,11 @@ import net.minecraft.world.item.ItemStack;
  */
 public class DishRackRenderer implements BlockEntityRenderer<DishRackBlockEntity> {
     /** At most this many pieces are drawn on a shelf, however many it holds. */
-    private static final int MAX_SHOWN = 8;
+    private static final int MAX_SHOWN = 12;
     /** The leftmost place on a shelf; pieces fill from here rightwards. */
-    private static final double FIRST_PLACE = -0.34D;
+    private static final double FIRST_PLACE = -0.36D;
     /** Distance between neighbouring pieces, whatever the count. */
-    private static final double PLACE_STEP = 0.097D;
+    private static final double PLACE_STEP = 0.0655D;
     private static final double UPPER_SHELF = 0.62D;
     private static final double LOWER_SHELF = 0.2D;
     private static final float SCALE = 0.5F;

@@ -213,6 +213,19 @@ public final class SeasoningTrayEvents {
                 && com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity.accepts(payload)) {
             return;
         }
+        if (!level.isClientSide && player.isSecondaryUseActive()) {
+            // diagnostic: which block the sneak click reached, and what the base mod's pot thinks
+            // its state is. Read only, so it cannot disturb the click it is describing.
+            var be = level.getBlockEntity(pos);
+            String detail = "n/a";
+            if (be instanceof com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity pot) {
+                detail = "status=" + pot.getStatus() + " carrier=" + pot.hasCarrier();
+            }
+            com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                    "[servedbg] sneak + shovel on {} | {} | payload={}",
+                    be == null ? "none" : be.getClass().getSimpleName(), detail,
+                    payload.isEmpty() ? "none" : payload.getHoverName().getString());
+        }
 
         // a wok: only seasoning we carry ourselves is handled here. Oil on the shovel is left to
         // the base mod, which already knows what to do with it.

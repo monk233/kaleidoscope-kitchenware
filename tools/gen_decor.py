@@ -799,11 +799,13 @@ def build_dish_rack(textures_dir: Path) -> None:
         make_texture(spec, seed=811 + seed * 17).save(textures_dir / f"{name}.png")
 
     textures = {"0": tex("rack_wood"), "1": tex("rack_frame"), "particle": tex("rack_frame")}
-    # two trays, a back panel and four corner posts, laid out so no two elements interpenetrate
+    # two trays, four posts and two rails across the back: no solid back panel, which read as a
+    # blank slab from the side
     elements = [
         box([2, 0, 2], [14, 1, 12], "#0"),
         box([2, 7, 2], [14, 8, 12], "#0"),
-        box([1, 0, 13], [15, 16, 14], "#1"),
+        box([2, 14, 12], [14, 15, 13], "#1"),
+        box([2, 1, 12], [14, 2, 13], "#1"),
         box([1, 0, 1], [2, 16, 2], "#1"),
         box([14, 0, 1], [15, 16, 2], "#1"),
         box([1, 0, 12], [2, 16, 13], "#1"),
