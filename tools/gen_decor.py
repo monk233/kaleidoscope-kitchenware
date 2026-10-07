@@ -771,8 +771,6 @@ def build_tray(textures_dir: Path) -> None:
             model["y"] = y
         variants[f"facing={facing}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "seasoning_tray.json", {"variants": variants})
-    write_json(RES / "assets" / NS / "models" / "item" / "seasoning_tray.json",
-               {"parent": f"{NS}:block/seasoning_tray"})
     # the block drops itself with its contents; an empty loot pool avoids a second, empty drop
     write_json(RES / "data" / NS / "loot_table" / "blocks" / "seasoning_tray.json",
                {"type": "minecraft:block", "pools": []})
