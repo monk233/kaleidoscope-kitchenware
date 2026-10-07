@@ -725,18 +725,20 @@ TRAY_TEXTURES = {
 }
 
 
-def _tray_elements(wall_height: int) -> list:
+def _tray_elements(wall_height: int, inset: int = 1) -> list:
     """A dish: thin base, walls, and a cross divider split into three so nothing interpenetrates."""
+    lo, hi = inset, 16 - inset
     top = 1 + wall_height
+    mid_lo, mid_hi = 8 - 1, 8 + 1
     return [
-        box([1, 0, 1], [15, 1, 15], "#0"),
-        box([1, 1, 1], [15, top, 2], "#1"),
-        box([1, 1, 14], [15, top, 15], "#1"),
-        box([1, 1, 2], [2, top, 14], "#1"),
-        box([14, 1, 2], [15, top, 14], "#1"),
-        box([7, 1, 2], [9, top, 14], "#1"),
-        box([2, 1, 7], [7, top, 9], "#1"),
-        box([9, 1, 7], [14, top, 9], "#1"),
+        box([lo, 0, lo], [hi, 1, hi], "#0"),
+        box([lo, 1, lo], [hi, top, lo + 1], "#1"),
+        box([lo, 1, hi - 1], [hi, top, hi], "#1"),
+        box([lo, 1, lo + 1], [lo + 1, top, hi - 1], "#1"),
+        box([hi - 1, 1, lo + 1], [hi, top, hi - 1], "#1"),
+        box([mid_lo, 1, lo + 1], [mid_hi, top, hi - 1], "#1"),
+        box([lo + 1, 1, mid_lo], [mid_lo, top, mid_hi], "#1"),
+        box([mid_hi, 1, mid_lo], [hi - 1, top, mid_hi], "#1"),
     ]
 
 
@@ -754,7 +756,7 @@ def build_tray(textures_dir: Path) -> None:
     # size a low dish reads as a flat bar whatever the lighting does
     write_json(RES / "assets" / NS / "models" / "item" / "seasoning_tray.json", {
         "textures": textures,
-        "elements": _tray_elements(8),
+        "elements": _tray_elements(8, inset=0),
         "display": {
             "gui": {"rotation": [45, 225, 0], "scale": [0.625, 0.625, 0.625]},
             "fixed": {"rotation": [0, 90, 0], "scale": [0.5, 0.5, 0.5]},
