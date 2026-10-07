@@ -104,6 +104,35 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         return state.setValue(JARS[jarIndexAt(context.getClickLocation(), context.getClickedPos())], true);
     }
 
+    /**
+     * Settles a block that has just been placed from a jar item: the item's contents were loaded
+     * into the first slot range, so move them to the corner the player aimed at and then rebuild
+     * the corner flags from the actual contents.
+     *
+     * Kept static and side-effect-only so the startup self test can drive it without a player.
+     */
+    public static void settlePlacement(Level level, BlockPos pos, int placedCorner) {
+        if (!(level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar)) {
+            return;
+        }
+        jar.moveJarRange(0, placedCorner);
+        BlockState state = level.getBlockState(pos);
+        BlockState restored = state;
+        boolean anyFilled = false;
+        for (int corner = 0; corner < JAR_COUNT; corner++) {
+            boolean filled = !jar.isJarEmpty(corner);
+            anyFilled |= filled;
+            restored = restored.setValue(JARS[corner], filled);
+        }
+        if (!anyFilled) {
+            // an empty jar still needs to stand somewhere
+            restored = restored.setValue(JARS[placedCorner], true);
+        }
+        if (restored != state) {
+            level.setBlockAndUpdate(pos, restored);
+        }
+    }
+
     /** Corner index 0..3 from the hit position, matching {@link #JARS}. */
     public static int jarIndexAt(Vec3 hit, BlockPos pos) {
         double localX = hit.x - pos.getX();
@@ -242,20 +271,20 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         if (jar.isJarEmpty(corner)) {
             return stack;
         }
-        // vanilla wraps block entity data as {id, data:{...}} and unwraps it on placement; build
-        // it with its own helper, or the wrapper is wrong and the contents never come back
-        BlockItem.setBlockEntityData(stack, ModBlockEntities.SPICE_JAR.get(),
-                jar.saveSingleJar(corner, registries));
+        // the item must carry the block entity's own tag shape: {Items: <stack handler tag>}.
+        // Passing the handler tag on its own loses everything, because loadAdditional reads the
+        // contents from the "Items" child.
+        CompoundTag entityTag = new CompoundTag();
+        entityTag.put("Items", jar.saveSingleJar(corner, registries));
+        BlockItem.setBlockEntityData(stack, ModBlockEntities.SPICE_JAR.get(), entityTag);
         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(FILLED_MODEL_DATA));
         return stack;
     }
 
-    /** Contents a jar item is carrying, empty when it is a plain empty jar. */
+    /** The stack handler tag a jar item is carrying, empty when it is a plain empty jar. */
     public static CompoundTag carriedItems(ItemStack stack) {
         CustomData data = stack.get(DataComponents.BLOCK_ENTITY_DATA);
-        // BlockItem.setBlockEntityData writes the entity tag flat with an "id" alongside it;
-        // the stack handler readers ignore the extra key
-        return data == null ? new CompoundTag() : data.copyTag();
+        return data == null ? new CompoundTag() : data.copyTag().getCompound("Items");
     }
 
     /**
