@@ -714,16 +714,16 @@ def build_containers(textures_dir: Path) -> None:
     # how high that surface sits.
     for level, water_y in VAT_WATER_HEIGHT.items():
         elements = [
-            box([1, 0, 1], [15, 1, 15], "#0"),
-            box([1, 1, 1], [15, 16, 3], "#0"),
-            box([1, 1, 13], [15, 16, 15], "#0"),
-            box([1, 1, 3], [3, 16, 13], "#0"),
-            box([13, 1, 3], [15, 16, 13], "#0"),
+            box([0, 0, 0], [16, 1, 16], "#0"),
+            box([0, 1, 0], [16, 16, 2], "#0"),
+            box([0, 1, 14], [16, 16, 16], "#0"),
+            box([0, 1, 2], [2, 16, 14], "#0"),
+            box([14, 1, 2], [16, 16, 14], "#0"),
         ]
         if level > 0:
-            elements.append(box([3, water_y, 3], [13, water_y + 0.4, 13], WATER))
+            elements.append(box([2, water_y, 2], [14, water_y + 0.4, 14], "#water"))
         write_json(RES / "assets" / NS / "models" / "block" / f"water_vat_{level}.json",
-                   {"textures": {"0": tex("vat_side"), "1": tex("vat_rim"),
+                   {"textures": {"0": tex("vat_side"), "water": WATER,
                                  "particle": tex("vat_side")}, "elements": elements})
     vat_variants = {}
     for facing, y in FACING_Y:
@@ -737,7 +737,7 @@ def build_containers(textures_dir: Path) -> None:
     write_json(RES / "assets" / NS / "models" / "item" / "water_vat.json", {
         "parent": f"{NS}:block/water_vat_3",
         "display": {
-            "gui": {"rotation": [30, 225, 0], "translation": [0, 1.0, 0], "scale": [0.95, 0.95, 0.95]},
+            "gui": {"rotation": [30, 225, 0], "translation": [0, 1.0, 0], "scale": [0.75, 0.75, 0.75]},
             "fixed": {"rotation": [0, 180, 0], "scale": [1.0, 1.0, 1.0]},
             "ground": {"translation": [0, 3, 0], "scale": [0.3, 0.3, 0.3]},
             "head": {"rotation": [0, 180, 0], "scale": [1.0, 1.0, 1.0]},
