@@ -362,6 +362,16 @@ def draw_jar_side(img, ramp, rng) -> None:
         img.putpixel((x, size - 1), glass_edge)
 
 
+def draw_jar_side_filled(img, ramp, rng) -> None:
+    """Same bottle, with seasoning visible through the glass."""
+    draw_jar_side(img, ramp, rng)
+    size = img.width
+    amber, amber_dark = (0xC2, 0x7A, 0x2E, 255), (0x9C, 0x5C, 0x1C, 255)
+    for y in range(size // 2, size - 1):
+        for x in range(2, size - 2):
+            img.putpixel((x, y), amber if (x * y) % 5 else amber_dark)
+
+
 def draw_jar_top(img, ramp, rng, filled: bool = False) -> None:
     """Metal lid from above: brushed ring with a dark grip slot in the middle."""
     size = img.width
@@ -401,6 +411,7 @@ PATTERNS = {
     "glass_jar": draw_glass_jar,
     "glass_jar_filled": draw_glass_jar_filled,
     "jar_side": draw_jar_side,
+    "jar_side_filled": draw_jar_side_filled,
     "jar_top": draw_jar_top,
     "jar_top_filled": draw_jar_top_filled,
 }
@@ -615,6 +626,7 @@ CONTAINER_TEXTURES = {
     "counter_top": {"kind": "counter_top", "ramp": ["#B9B4A5", "#93A3A3", "#55636C", "#3F4447"]},
     "counter_side": {"kind": "counter_side", "species": "spruce"},
     "jar_side": {"kind": "jar_side", "ramp": WOOD["oak"]},
+    "jar_side_filled": {"kind": "jar_side_filled", "ramp": WOOD["oak"]},
     "jar_top": {"kind": "jar_top", "ramp": WOOD["oak"]},
 }
 
@@ -692,6 +704,14 @@ def build_containers(textures_dir: Path) -> None:
             "elements": [jar_element(x, z)],
         })
 
+    # the stocked jar shows seasoning through the glass, used by the item form in hand
+    write_json(RES / "assets" / NS / "models" / "block" / "spice_jar_filled.json", {
+        "render_type": "minecraft:cutout",
+        "textures": {"0": tex("jar_side_filled"), "1": tex("jar_top"),
+                     "particle": tex("jar_side_filled")},
+        "elements": [jar_element(*jar_corners["nw"])],
+    })
+
     write_json(RES / "assets" / NS / "blockstates" / "spice_jar.json", {
         "multipart": [
             {"when": {f"jar_{corner}": "true"}, "apply": {"model": f"{NS}:block/spice_jar_{corner}"}}
@@ -699,8 +719,15 @@ def build_containers(textures_dir: Path) -> None:
         ],
     })
 
-    write_json(RES / "assets" / NS / "models" / "item" / "spice_jar.json",
-               {"parent": f"{NS}:block/spice_jar_nw"})
+    # item form: plain bottle when empty, filled model once the jar holds something
+    write_json(RES / "assets" / NS / "models" / "item" / "spice_jar_filled.json",
+               {"parent": f"{NS}:block/spice_jar_filled"})
+    write_json(RES / "assets" / NS / "models" / "item" / "spice_jar.json", {
+        "parent": f"{NS}:block/spice_jar_nw",
+        "overrides": [
+            {"predicate": {"custom_model_data": 1}, "model": f"{NS}:item/spice_jar_filled"},
+        ],
+    })
     # drops are produced by the block itself so the stored contents survive; no loot pool here
     write_json(RES / "data" / NS / "loot_table" / "blocks" / "spice_jar.json",
                {"type": "minecraft:block", "pools": []})
@@ -790,7 +817,8 @@ def main() -> None:
                   f"state.{NS}.vat_empty": "缸里没水了",
                   f"state.{NS}.vat_hint": "拿空桶或空瓶来打水",
                   f"state.{NS}.jar_missing": "这个角上没有罐子",
-                  f"state.{NS}.jar_taken": "这个角上已经有罐子了"})
+                  f"state.{NS}.jar_taken": "这个角上已经有罐子了",
+                  f"state.{NS}.jar_scooped": "舀出了 %s"})
     write_json(RES / "assets" / NS / "lang" / "en_us.json",
                {f"block.{NS}.{n}": en for n, _, en, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "Kaleidoscope Kitchenware"}
@@ -814,7 +842,8 @@ def main() -> None:
                   f"state.{NS}.vat_empty": "The vat is empty",
                   f"state.{NS}.vat_hint": "Bring a bucket or a bottle",
                   f"state.{NS}.jar_missing": "No jar in this corner",
-                  f"state.{NS}.jar_taken": "This corner already has a jar"})
+                  f"state.{NS}.jar_taken": "This corner already has a jar",
+                  f"state.{NS}.jar_scooped": "Scooped out %s"})
 
     print(f"generated {len(DECOR)} decorative blocks and 4 functional blocks into {RES}")
 

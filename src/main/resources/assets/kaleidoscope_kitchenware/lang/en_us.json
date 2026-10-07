@@ -37,5 +37,6 @@
   "state.kaleidoscope_kitchenware.vat_empty": "The vat is empty",
   "state.kaleidoscope_kitchenware.vat_hint": "Bring a bucket or a bottle",
   "state.kaleidoscope_kitchenware.jar_missing": "No jar in this corner",
-  "state.kaleidoscope_kitchenware.jar_taken": "This corner already has a jar"
+  "state.kaleidoscope_kitchenware.jar_taken": "This corner already has a jar",
+  "state.kaleidoscope_kitchenware.jar_scooped": "Scooped out %s"
 }

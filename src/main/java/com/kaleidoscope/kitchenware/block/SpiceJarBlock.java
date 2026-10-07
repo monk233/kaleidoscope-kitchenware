@@ -18,6 +18,7 @@ import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -54,6 +55,8 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE = Shapes.or(
             Block.box(1, 0, 1, 6, 7, 6), Block.box(10, 0, 1, 15, 7, 6),
             Block.box(1, 0, 10, 6, 7, 15), Block.box(10, 0, 10, 15, 7, 15));
+    /** custom_model_data value that switches the item to the "has seasoning" model. */
+    public static final int FILLED_MODEL_DATA = 1;
 
     public SpiceJarBlock(Properties properties) {
         super(properties);
@@ -174,7 +177,8 @@ public class SpiceJarBlock extends Block implements EntityBlock {
 
     /**
      * The block as an item. An empty jar stays a plain stack so it stacks normally; a stocked
-     * jar carries block entity data, which must include the block entity id.
+     * jar carries block entity data (with the mandatory id) and is flagged for the filled
+     * inventory model, so it looks different in the hand.
      */
     public static ItemStack jarStack(SpiceJarBlockEntity jar, RegistryAccess access) {
         ItemStack stack = new ItemStack(ModItems.SPICE_JAR.get());
@@ -184,6 +188,7 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         CompoundTag contents = jar.saveCustomOnly(access);
         contents.putString("id", BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(jar.getType()).toString());
         stack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(contents));
+        stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(FILLED_MODEL_DATA));
         return stack;
     }
 
