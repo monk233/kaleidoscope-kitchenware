@@ -27,7 +27,8 @@
     "blue_brick": ["#7A8B8C", "#617274", "#4E5E60", "#3C4A4C", "#2F3A3C"],
     "blue_roof_tile": ["#6E7C84", "#55636C", "#38424A", "#2A3138"],
     "plaster_wall": ["#F2EFE6", "#E7E3D8", "#D8D3C6"],
-    "rammed_earth": ["#A3814F", "#8A6A47"]
+    "rammed_earth": ["#A3814F", "#8A6A47"],
+    "red_brick": ["#B4715A", "#9E5E48", "#8A4E3C", "#6E3C2E", "#4E2A20"]
   },
   "rules": {
     "ladder_steps_per_texture": [4, 8],

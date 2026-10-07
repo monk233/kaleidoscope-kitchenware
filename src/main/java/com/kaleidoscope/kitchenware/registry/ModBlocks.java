@@ -20,9 +20,12 @@ public final class ModBlocks {
             DeferredRegister.createBlocks(KaleidoscopeKitchenware.MOD_ID);
 
     // --- 功能方块 / functional blocks ---
-    /** Carries the vanilla LIT property, which is exactly what the base mod checks for a heat source. */
+    /**
+     * Carries the vanilla LIT property, which is exactly what the base mod checks for a heat source.
+     * Two cells, one item: {@code noOcclusion} because the burners are open at the top.
+     */
     public static final DeferredHolder<Block, FirewoodStoveBlock> FIREWOOD_STOVE = reg("firewood_stove",
-            () -> new FirewoodStoveBlock(stone().randomTicks()));
+            () -> new FirewoodStoveBlock(stone().randomTicks().noOcclusion()));
     public static final DeferredHolder<Block, WaterVatBlock> WATER_VAT = reg("water_vat",
             () -> new WaterVatBlock(stone().noOcclusion().strength(1.5F, 4.0F)));
     /** Two shelf dish rack holding bowls and flower pots, no interface. */

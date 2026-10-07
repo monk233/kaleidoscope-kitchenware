@@ -1,6 +1,7 @@
 {
   "itemGroup.kaleidoscope_kitchenware.kitchen": "森罗物语：家什",
-  "block.kaleidoscope_kitchenware.firewood_stove": "柴火灶",
+  "block.kaleidoscope_kitchenware.firewood_stove": "柴火灶台",
+  "state.kaleidoscope_kitchenware.burner_wok_only": "锅眼上只能放大铁锅",
   "tier.kaleidoscope_kitchenware.low": "文火",
   "tier.kaleidoscope_kitchenware.mid": "中火",
   "tier.kaleidoscope_kitchenware.high": "猛火",

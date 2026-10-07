@@ -2,6 +2,7 @@ package com.kaleidoscope.kitchenware;
 
 import com.kaleidoscope.kitchenware.config.KitchenwareConfig;
 import com.kaleidoscope.kitchenware.event.SeasoningTrayEvents;
+import com.kaleidoscope.kitchenware.event.StoveBurnerEvents;
 import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import com.kaleidoscope.kitchenware.registry.ModBlocks;
 import com.kaleidoscope.kitchenware.registry.ModCreativeTabs;
@@ -24,6 +25,8 @@ public class KaleidoscopeKitchenware {
 
         // game bus: the shovel's scoop has to intercept the click before its own useOn eats it
         NeoForge.EVENT_BUS.register(SeasoningTrayEvents.class);
+        // ... and the burners have to refuse the base mod's pans at placement time
+        NeoForge.EVENT_BUS.register(StoveBurnerEvents.class);
 
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);

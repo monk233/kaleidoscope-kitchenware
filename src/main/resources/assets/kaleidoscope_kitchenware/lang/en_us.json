@@ -1,6 +1,7 @@
 {
   "itemGroup.kaleidoscope_kitchenware.kitchen": "Kaleidoscope Kitchenware",
   "block.kaleidoscope_kitchenware.firewood_stove": "Firewood Stove",
+  "state.kaleidoscope_kitchenware.burner_wok_only": "Only the iron wok fits on this burner",
   "tier.kaleidoscope_kitchenware.low": "Low heat",
   "tier.kaleidoscope_kitchenware.mid": "Medium heat",
   "tier.kaleidoscope_kitchenware.high": "High heat",

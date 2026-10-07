@@ -66,8 +66,9 @@
 
 ### 4.1 结构与状态
 
-- 方块类：`FirewoodStoveBlock extends HorizontalDirectionalBlock implements EntityBlock, SimpleWaterloggedBlock`（含水保留）。
-- 状态：`facing`（前侧烧火面）、`lit`（该格是否在燃烧）、`part`（`left` / `right`，枚举属性）、`waterlogged`。
+- 方块类：`FirewoodStoveBlock extends HorizontalDirectionalBlock implements EntityBlock`。
+- 状态：`facing`（前侧烧火面）、`lit`（该格是否在燃烧）、`part`（`left` / `right`，枚举属性）。
+- 不做含水：1.0.0 实际也没有实现 `waterlogged`，灶体带开孔，进水后怎么流都说不清，本次不引入。
 - 左右两格**沿垂直于 `facing` 的方向并排**；放置时一次性生成两格，主格由 `setPlacedBy` 生成副格。
 - 破坏：任一格被破坏，两格一起消失，只掉落 **1 个**柴火灶台（用 `playerWillDestroy` 清副格 + 掉落表只给主格，避免双掉）。
 - 需要正确的工具才能掉落（沿用 1.0.0 的 `stone()` 属性与 `requiresCorrectToolForDrops`）。
@@ -175,18 +176,18 @@
 | 用途 | 色阶 |
 | --- | --- |
 | 红砖（原版砖体质感） | `#B4715A` `#9E5E48` `#8A4E3C` `#6E3C2E` `#4E2A20` |
-| 黏土抹面 | `#C7B7A3` `#B3A18C` `#9C8A75` `#7F6F5C` |
 | 生铁锅体 | 复用金属 `#606572` `#6E7179` `#747474` `#8B8B8B`，锅内壁亮一阶，锅底最暗 |
+
+黏土不做贴图，只进配方（原版 `minecraft:bricks` + `minecraft:clay`）；16 px 下的抹面读起来像脏点，实机前先不出。
 
 ### 7.2 贴图（32×32）
 
 | 名称 | 内容 |
 | --- | --- |
-| `stove_brick_side` | 红砖错缝砌体 |
-| `stove_clay_side` | 黏土抹面（砖体上部收口） |
-| `stove_front` / `stove_front_lit` | 前侧：抹面 + 烧火口（口内暗）+ 灰坑；点燃态口内亮、灰白 |
-| `stove_top` | 灶面砖台 + 锅眼沿 |
-| `stove_mouth` | 烧火口内壁（暗部 + 灰） |
+| `stove_side` | 红砖错缝砌体 |
+| `stove_front` / `stove_front_lit` | 前侧：红砖 + 烧火口（口内暗）+ 口底煤灰；点燃态口内发亮 |
+| `stove_top` | 灶面砖台 |
+| `stove_soot` | 锅眼与烧火口内壁（暗部 + 灰） |
 | `wok_outer` | 生铁锅外壁（下暗上亮） |
 | `wok_inner` | 锅内壁（更亮一阶） |
 | `wok_bottom` | 锅底最暗 |

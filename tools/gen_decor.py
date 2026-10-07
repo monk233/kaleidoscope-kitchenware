@@ -32,6 +32,9 @@ RIDGE = ["#93A3A3", "#7A8B8C", "#55636C", "#2A3138"]
 PLASTER = ["#F2EFE6", "#E7E3D8", "#D8D3C6"]
 EARTH = ["#A3814F", "#8A6A47", "#6E523A"]
 FLOOR_TILE = ["#7A8B8C", "#617274", "#4E5E60", "#2F3A3C"]
+# the range is built from plain red brick, the same ladder vanilla's own bricks sit on, so it
+# reads as a village stove rather than as another piece of the blue brick set
+RED_BRICK = ["#B4715A", "#9E5E48", "#8A4E3C", "#6E3C2E", "#4E2A20"]
 
 # shared outline trio from the base mod, appended to every wood ladder
 OUTLINE = ["#82563F", "#6D442F", "#5E3723"]
@@ -158,31 +161,68 @@ def draw_curtain(img, ramp, rng):
             img.putpixel((x, y), colour)
 
 
-def draw_stove_face(img, ramp, rng, lit: bool = False) -> None:
-    """Brick face with a dark fire mouth; the lit variant burns orange inside."""
+# --- the brick range ----------------------------------------------------------
+
+SOOT = (0x1A, 0x14, 0x12, 255)
+EMBER = [(0xE8, 0x8E, 0x24, 255), (0xF2, 0xB1, 0x3C, 255), (0xD2, 0xAB, 0x4C, 255)]
+ASH = [(0xD8, 0xD3, 0xC6, 255), (0xB0, 0xAA, 0x9C, 255)]
+
+
+def draw_stove_front(img, ramp, rng, lit: bool = False) -> None:
+    """Red brick face, sooted around the fire mouth; the lit variant glows inside it.
+
+    The face is sampled top aligned (uv 0..13 of 16), so the mouth has to sit above y=13 units or
+    the model's uv crops it in half.
+    """
+    size = img.width
+    draw_brick(img, ramp, rng)
+    # smoke comes back out around the mouth, so the lower half of the face is darker
+    for _ in range(size * size // 6):
+        img.putpixel((rng.randrange(size), size // 2 + rng.randrange(size // 2)), ramp[-1])
+
+    def unit(value: float) -> int:
+        return int(value / 16 * size)
+
+    x0, x1 = unit(6), unit(10)          # half a block wide
+    y0, y1 = unit(5.5), unit(12.5)      # and most of the wall's height
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            img.putpixel((x, y), SOOT)
+    for x in range(x0, x1):             # lintel catches the light, sill sits in shadow
+        img.putpixel((x, y0 - 1), ramp[0])
+        img.putpixel((x, y1), ramp[-1])
+    for y in range(y1 - 2, y1):         # ash left in the bottom of the opening
+        for x in range(x0 + 1, x1 - 1):
+            img.putpixel((x, y), ASH[(x + y) % len(ASH)])
+    if lit:
+        for y in range(y0 + 2, y1 - 3):
+            for x in range(x0 + 1, x1 - 1):
+                img.putpixel((x, y), EMBER[(x + y) % len(EMBER)])
+
+
+def draw_stove_front_lit(img, ramp, rng):
+    draw_stove_front(img, ramp, rng, lit=True)
+
+
+def draw_stove_top(img, ramp, rng):
+    """Brick counter top: even courses with the front and left edges catching the light."""
+    size = img.width
+    draw_brick(img, ramp, rng)
+    for i in range(size):
+        img.putpixel((i, 0), ramp[0])
+        img.putpixel((0, i), ramp[0])
+        img.putpixel((i, size - 1), ramp[-1])
+        img.putpixel((size - 1, i), ramp[-1])
+
+
+def draw_stove_soot(img, ramp, rng):
+    """The inside of a burner: soot, with the odd brick showing through."""
     size = img.width
     for y in range(size):
         for x in range(size):
-            img.putpixel((x, y), ramp[1] if (x + y) % 7 else ramp[0])
-    for y in range(size):
-        img.putpixel((0, y), ramp[-1])
-        img.putpixel((size - 1, y), ramp[-1])
-        img.putpixel((y, 0), ramp[-1])
-        img.putpixel((y, size - 1), ramp[-1])
-    mouth_x0, mouth_x1 = 3, size - 4
-    mouth_y0, mouth_y1 = size // 2 - 1, size - 3
-    for y in range(mouth_y0, mouth_y1 + 1):
-        for x in range(mouth_x0, mouth_x1 + 1):
-            img.putpixel((x, y), (0x1A, 0x14, 0x12, 255))
-    if lit:
-        flame = [(0xE8, 0x8E, 0x24, 255), (0xF2, 0xB1, 0x3C, 255), (0xD2, 0xAB, 0x4C, 255)]
-        for y in range(mouth_y1 - 2, mouth_y1 + 1):
-            for x in range(mouth_x0 + 1, mouth_x1):
-                img.putpixel((x, y), flame[(x + y) % len(flame)])
-
-
-def draw_stove_face_lit(img, ramp, rng):
-    draw_stove_face(img, ramp, rng, lit=True)
+            img.putpixel((x, y), SOOT)
+    for _ in range(size * size // 8):
+        img.putpixel((rng.randrange(size), rng.randrange(size)), ramp[-1])
 
 
 def draw_wood_pile(img, ramp, rng):
@@ -420,8 +460,10 @@ PATTERNS = {
     "tile_floor": draw_tile_floor,
     "lattice": draw_lattice,
     "curtain": draw_curtain,
-    "stove_face": draw_stove_face,
-    "stove_face_lit": draw_stove_face_lit,
+    "stove_front": draw_stove_front,
+    "stove_front_lit": draw_stove_front_lit,
+    "stove_top": draw_stove_top,
+    "stove_soot": draw_stove_soot,
     "wood_pile": draw_wood_pile,
     "cabinet_front": draw_cabinet_front,
     "cabinet_open": draw_cabinet_open,
@@ -562,10 +604,6 @@ def merge_lang(path: Path, entries: dict[str, str]) -> None:
 # --- functional blocks --------------------------------------------------------
 
 FUNCTIONAL_TEXTURES = {
-    "stove_side": {"kind": "brick", "ramp": EARTH},
-    "stove_front": {"kind": "stove_face", "ramp": EARTH},
-    "stove_front_lit": {"kind": "stove_face_lit", "ramp": EARTH},
-    "stove_top": {"kind": "tile_floor", "ramp": FLOOR_TILE},
     "pile_side": {"kind": "plank", "species": "spruce"},
     "pile_top": {"kind": "wood_pile", "species": "spruce"},
 }
@@ -582,31 +620,111 @@ def cube_model(faces: dict[str, str], particle: str) -> dict:
     return {"parent": "minecraft:block/cube", "textures": {**faces, "particle": particle}}
 
 
+# --- the brick range ----------------------------------------------------------
+
+STOVE_TEXTURES = {
+    "stove_side": {"kind": "brick", "size": 32, "ramp": RED_BRICK},
+    "stove_front": {"kind": "stove_front", "size": 32, "ramp": RED_BRICK},
+    "stove_front_lit": {"kind": "stove_front_lit", "size": 32, "ramp": RED_BRICK},
+    "stove_top": {"kind": "stove_top", "size": 32, "ramp": RED_BRICK},
+    "stove_soot": {"kind": "stove_soot", "size": 32, "ramp": RED_BRICK},
+}
+
+# one cell of the range: a 10 px burner opening inside 3 px brick walls
+STOVE_WALL = 3.0
+STOVE_RIM = 13.0
+STOVE_CAVITY_FLOOR = 3.0
+STOVE_FACES = ("north", "south", "east", "west", "up", "down")
+
+
+def stove_box(from_xyz, to_xyz, face_textures: dict) -> dict:
+    """An element whose six faces each carry their own texture (uv defaults to the face size)."""
+    dx, dy, dz = (round(to_xyz[i] - from_xyz[i], 2) for i in range(3))
+    defaults = {"north": [0, 0, dx, dy], "south": [0, 0, dx, dy],
+                "east": [0, 0, dz, dy], "west": [0, 0, dz, dy],
+                "up": [0, 0, dx, dz], "down": [0, 0, dx, dz]}
+    faces = {}
+    for face, ref in face_textures.items():
+        faces[face] = {"uv": defaults[face], "texture": ref}
+    return {"from": from_xyz, "to": to_xyz, "faces": faces}
+
+
+def stove_cell(part: str, lit: bool) -> dict:
+    """One half of the range. The side facing the partner carries no wall: the partner brings it,
+    which keeps the two cells from drawing the same plane twice."""
+    front = tex("stove_front_lit" if lit else "stove_front")
+    side, top, soot = tex("stove_side"), tex("stove_top"), tex("stove_soot")
+    elements = [
+        # the front wall, which is where the fire mouth is painted
+        stove_box([0, 0, 0], [16, STOVE_RIM, STOVE_WALL],
+                  {"north": front, "south": soot, "up": top, "down": side, "east": side, "west": side}),
+        stove_box([0, 0, 13], [16, STOVE_RIM, 16],
+                  {"south": side, "north": soot, "up": top, "down": side, "east": side, "west": side}),
+        stove_box([0, 0, STOVE_WALL], [STOVE_WALL, STOVE_RIM, 13],
+                  {"west": side, "east": soot, "up": top, "down": side, "north": soot, "south": soot}),
+        # the burner floor
+        stove_box([STOVE_WALL, 0, STOVE_WALL], [13, STOVE_CAVITY_FLOOR, 13],
+                  {face: soot for face in STOVE_FACES}),
+    ]
+    if part == "right":
+        # the right hand cell draws the wall the two burners share, plus its own outer wall
+        elements.append(
+            stove_box([13, 0, STOVE_WALL], [16, STOVE_RIM, 13],
+                      {"east": side, "west": soot, "up": top, "down": side, "north": soot, "south": soot}))
+    # four courses of brick around the opening
+    for x0, z0, x1, z1 in ((0, 0, 16, STOVE_WALL), (0, 13, 16, 16),
+                           (0, STOVE_WALL, STOVE_WALL, 13), (13, STOVE_WALL, 16, 13)):
+        elements.append(stove_box([x0, STOVE_RIM, z0], [x1, 16, z1], {face: top for face in STOVE_FACES}))
+    return {"textures": {"particle": side}, "elements": elements}
+
+
+def build_stove_counter(textures_dir: Path) -> None:
+    for seed, (name, spec) in enumerate(sorted(STOVE_TEXTURES.items())):
+        make_texture(spec, seed=301 + seed * 19).save(textures_dir / f"{name}.png")
+
+    for part in ("left", "right"):
+        for lit in (False, True):
+            suffix = "_lit" if lit else ""
+            write_json(RES / "assets" / NS / "models" / "block" / f"firewood_stove_{part}{suffix}.json",
+                       stove_cell(part, lit))
+
+    variants = {}
+    for facing, y in FACING_Y:
+        for part in ("left", "right"):
+            for lit in (False, True):
+                model = {"model": f"{NS}:block/firewood_stove_{part}{'_lit' if lit else ''}"}
+                if y:
+                    model["y"] = y
+                variants[f"facing={facing},lit={'true' if lit else 'false'},part={part}"] = model
+    write_json(RES / "assets" / NS / "blockstates" / "firewood_stove.json", {"variants": variants})
+
+    # the item form shows one cell, at the angle the base mod's own furniture uses
+    write_json(RES / "assets" / NS / "models" / "item" / "firewood_stove.json", {
+        "parent": f"{NS}:block/firewood_stove_left",
+        "display": {
+            "gui": {"rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.6, 0.6, 0.6]},
+            "fixed": {"rotation": [0, 180, 0], "scale": [1, 1, 1]},
+            "ground": {"translation": [0, 3, 0], "scale": [0.3, 0.3, 0.3]},
+            "head": {"rotation": [0, 180, 0], "scale": [1, 1, 1]},
+            "thirdperson_righthand": {"rotation": [0, 90, 0], "translation": [0, 3, 0], "scale": [0.4, 0.4, 0.4]},
+        },
+    })
+    # one item per pair: the partner cell is removed with setBlock and rolls no loot
+    write_json(RES / "data" / NS / "loot_table" / "blocks" / "firewood_stove.json",
+               loot_table("firewood_stove"))
+    write_json(RES / "data" / NS / "recipe" / "firewood_stove.json", {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "pattern": ["BBB", "BCB", "BBB"],
+        "key": {"B": {"item": "minecraft:bricks"},
+                "C": {"item": "minecraft:clay"}},
+        "result": {"id": f"{NS}:firewood_stove", "count": 1},
+    })
+
+
 def build_functional(textures_dir: Path) -> None:
     for seed, (name, spec) in enumerate(sorted(FUNCTIONAL_TEXTURES.items())):
         make_texture(spec, seed=101 + seed * 13).save(textures_dir / f"{name}.png")
-
-    # stove: brick body, a fire mouth on the north face, lit variant swaps that face
-    for lit in (False, True):
-        write_json(RES / "assets" / NS / "models" / "block" / f"firewood_stove{'_lit' if lit else ''}.json",
-                   cube_model({"up": tex("stove_top"), "down": tex("stove_side"),
-                               "north": tex("stove_front_lit" if lit else "stove_front"),
-                               "south": tex("stove_side"), "east": tex("stove_side"),
-                               "west": tex("stove_side")}, tex("stove_side")))
-    stove_variants = {}
-    for facing, y in FACING_Y:
-        for lit in (False, True):
-            model = {"model": f"{NS}:block/firewood_stove{'_lit' if lit else ''}"}
-            if y:
-                model["y"] = y
-            stove_variants[f"facing={facing},lit={'true' if lit else 'false'}"] = model
-    write_json(RES / "assets" / NS / "blockstates" / "firewood_stove.json", {"variants": stove_variants})
-
-
-    write_json(RES / "assets" / NS / "models" / "item" / "firewood_stove.json",
-               {"parent": f"{NS}:block/firewood_stove"})
-    write_json(RES / "data" / NS / "loot_table" / "blocks" / "firewood_stove.json",
-               loot_table("firewood_stove"))
 
     # range hood was removed: venting turned out to be a gimmick nobody asked for
 
@@ -860,6 +978,7 @@ def main() -> None:
         write_json(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json", loot_table(name))
 
     build_functional(textures_dir)
+    build_stove_counter(textures_dir)
     build_containers(textures_dir)
     build_tray(textures_dir)
     build_dish_rack(textures_dir)
@@ -867,8 +986,8 @@ def main() -> None:
     write_json(RES / "assets" / NS / "lang" / "zh_cn.json",
                {f"block.{NS}.{n}": zh for n, zh, _, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "森罗物语：家什"}
-               | {"block." + NS + ".firewood_stove": "柴火灶",
-                  f"tier.{NS}.low": "文火",
+               | {"block." + NS + ".firewood_stove": "柴火灶台",
+                  f"state.{NS}.burner_wok_only": "锅眼上只能放大铁锅",                  f"tier.{NS}.low": "文火",
                   f"tier.{NS}.mid": "中火",
                   f"tier.{NS}.high": "猛火",
                   f"state.{NS}.tier": "火力：%s",
@@ -920,6 +1039,7 @@ def main() -> None:
                {f"block.{NS}.{n}": en for n, _, en, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "Kaleidoscope Kitchenware"}
                | {"block." + NS + ".firewood_stove": "Firewood Stove",
+                  f"state.{NS}.burner_wok_only": "Only the iron wok fits on this burner",
                   f"tier.{NS}.low": "Low heat",
                   f"tier.{NS}.mid": "Medium heat",
                   f"tier.{NS}.high": "High heat",

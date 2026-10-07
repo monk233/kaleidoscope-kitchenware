@@ -51,12 +51,21 @@ for name, zh, en, shape, _spec in DECOR:
 zh_lang = json.loads((RES / "assets" / NS / "lang" / "zh_cn.json").read_text(encoding="utf-8"))
 en_lang = json.loads((RES / "assets" / NS / "lang" / "en_us.json").read_text(encoding="utf-8"))
 
-for name, texture in (("firewood_stove", "stove_side"),):
+for name, textures, models in (
+        ("firewood_stove",
+         ("stove_side", "stove_front", "stove_front_lit", "stove_top", "stove_soot"),
+         ("firewood_stove_left", "firewood_stove_right",
+          "firewood_stove_left_lit", "firewood_stove_right_lit")),):
     require(RES / "assets" / NS / "blockstates" / f"{name}.json")
     require(RES / "assets" / NS / "models" / "item" / f"{name}.json")
     require(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json")
-    require(RES / "assets" / NS / "textures" / "block" / f"{texture}.png")
-    for key in (f"block.{NS}.{name}", f"tier.{NS}.low", f"state.{NS}.need_fuel"):
+    require(RES / "data" / NS / "recipe" / f"{name}.json")
+    for texture in textures:
+        require(RES / "assets" / NS / "textures" / "block" / f"{texture}.png")
+    for model in models:
+        require(RES / "assets" / NS / "models" / "block" / f"{model}.json")
+    for key in (f"block.{NS}.{name}", f"tier.{NS}.low", f"state.{NS}.need_fuel",
+                f"state.{NS}.burner_wok_only"):
         if key not in zh_lang or key not in en_lang:
             problems.append(f"missing lang key {key}")
 for name, zh, en, _shape, _spec in DECOR:
