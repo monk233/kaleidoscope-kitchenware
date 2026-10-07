@@ -1,0 +1,44 @@
+{
+  "_comment": "Colour ladders reverse engineered from Kaleidoscope Cookery 1.6.0 block textures. Use these instead of inventing new palettes.",
+  "shared": {
+    "outline_deepest": "#5E3723",
+    "outline_dark": "#6D442F",
+    "outline_mid": "#82563F",
+    "metal": ["#606572", "#6E7179", "#747474", "#7F7F7F", "#8B8B8B"],
+    "porcelain": ["#F5F5F5", "#EFEEE2", "#DAD7C3"],
+    "accent_gold": ["#BD9538", "#D2AB4C"],
+    "brick_stone": ["#683A2F", "#4E3A39"]
+  },
+  "wood_species": {
+    "oak": ["#C1A266", "#BA975A", "#AE8E52", "#A38249", "#937544"],
+    "birch": ["#D5C78A", "#CFBD81", "#C8B277", "#BAA36A", "#B19860", "#A68E57"],
+    "spruce": ["#8A663A", "#7D5D37", "#6C5532", "#5F4F2B"],
+    "jungle": ["#BF9165", "#B4865A", "#A58A52", "#A08048", "#907640"],
+    "acacia": ["#C46340", "#AC603F", "#A25937"],
+    "dark_oak": ["#82563F", "#6D442F", "#554229", "#483924", "#3B3020"],
+    "mangrove": ["#7A3731", "#6F302A", "#5D241E"],
+    "cherry": ["#DF9CA4", "#D99499", "#D2898D", "#C88185", "#BE7470", "#B26A67"],
+    "crimson": ["#A5486C", "#963E62", "#89395B", "#7E3452", "#6F2843"],
+    "warped": ["#3DA9A6", "#3B9997", "#318D8C", "#2E8578", "#28786C", "#21685D"],
+    "bamboo": ["#B9DB5F", "#ADBE4D", "#98B145", "#8A9A3D", "#809038", "#758333", "#657030"]
+  },
+  "building_blocks_new": {
+    "_comment": "Base mod ships no brick/roof tiles; these are newly designed with the same ladder rule.",
+    "blue_brick": ["#7A8B8C", "#617274", "#4E5E60", "#3C4A4C", "#2F3A3C"],
+    "blue_roof_tile": ["#6E7C84", "#55636C", "#38424A", "#2A3138"],
+    "plaster_wall": ["#F2EFE6", "#E7E3D8", "#D8D3C6"],
+    "rammed_earth": ["#A3814F", "#8A6A47"]
+  },
+  "rules": {
+    "ladder_steps_per_texture": [4, 8],
+    "outline_color": "#5E3723",
+    "transparent_padding": true,
+    "texture_sizes": {
+      "flat_or_regular_block": 16,
+      "small_prop": 32,
+      "large_furniture": 64,
+      "giant": 128,
+      "dyed_variant": 32
+    }
+  }
+}
