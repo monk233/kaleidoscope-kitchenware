@@ -758,9 +758,9 @@ def build_tray(textures_dir: Path) -> None:
         "textures": textures,
         "elements": _tray_elements(8, inset=0),
         "display": {
-            # the dish is only nine pixels tall against a block model's sixteen, so it sits low in
-            # the slot; the translation lifts it back to the middle
-            "gui": {"rotation": [30, 225, 0], "translation": [0, -1.5, 0], "scale": [0.65, 0.65, 0.65]},
+            # the dish is nine pixels tall against a block model's sixteen, so its centre sits 3.5
+            # pixels low in the slot; lift it by about that much
+            "gui": {"rotation": [30, 225, 0], "translation": [0, -4, 0], "scale": [0.65, 0.65, 0.65]},
             "fixed": {"rotation": [0, 180, 0], "translation": [0, 0, 0], "scale": [1.0, 1.0, 1.0]},
             "ground": {"rotation": [0, 0, 0], "translation": [0, 3, 0], "scale": [0.25, 0.25, 0.25]},
             "head": {"rotation": [0, 180, 0], "scale": [1, 1, 1]},
