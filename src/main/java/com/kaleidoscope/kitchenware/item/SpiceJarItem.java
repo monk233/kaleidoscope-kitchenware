@@ -40,7 +40,7 @@ public class SpiceJarItem extends BlockItem {
                 break;
             }
         }
-        SpiceJarBlock.settlePlacement(level, pos, placedCorner);
+        SpiceJarBlock.settlePlacedItem(level, pos, placedCorner, context.getItemInHand());
         return result;
     }
 }

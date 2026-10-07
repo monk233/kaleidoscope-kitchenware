@@ -251,14 +251,25 @@ public class SpiceJarBlockEntity extends BlockEntity {
         tag.put("Items", items.serializeNBT(registries));
     }
 
+    /** Empties every corner. Used when a jar item's own contents are written in wholesale. */
+    public void clearAll() {
+        for (int slot = 0; slot < items.getSlots(); slot++) {
+            items.setStackInSlot(slot, ItemStack.EMPTY);
+        }
+    }
+
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         CompoundTag saved = tag.getCompound("Items");
         items.deserializeNBT(registries, saved);
-        // a stack handler rebuilt from old data can come back smaller than it is now;
-        // jars written before the four-corner rework stored Size=16
+        // deserializeNBT resizes the handler to whatever Size the data carries (an item holds one
+        // jar, so 16); grow it back to the full four-jar layout before anything reads a slot
         items.setSize(JAR_COUNT * SLOTS_PER_JAR);
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                "[jardbg] loadAdditional keys={} savedSize={} savedItems={} slots={} stored={}",
+                tag.getAllKeys(), saved.getInt("Size"), saved.getList("Items", 10).size(),
+                items.getSlots(), carryingTotal());
     }
 
     /** Diagnostics: total item count across all four jars. */

@@ -89,15 +89,45 @@ public final class JarSelfTest {
             }
             level.removeBlock(pos3, false);
 
+            // 3d. placing into the first corner must keep the contents there (moving a range onto
+            //     itself is a no-op, so this path took a different branch)
+            BlockPos pos4 = new BlockPos(6, 200, 0);
+            level.setBlock(pos4, state.setValue(SpiceJarBlock.JARS[0], true), 3);
+            boolean firstCornerKept = false;
+            if (level.getBlockEntity(pos4) instanceof SpiceJarBlockEntity first) {
+                first.absorbSingleJar(SpiceJarBlock.carriedItems(item), 0, registries);
+                SpiceJarBlock.settlePlacement(level, pos4, 0);
+                firstCornerKept = first.carryingCount(0) == 7
+                        && level.getBlockState(pos4).getValue(SpiceJarBlock.JARS[0]);
+            }
+            level.removeBlock(pos4, false);
+
+            // 3e. placing a stocked jar into every corner must keep the contents, corner 0 included
+            boolean allCornersKept = true;
+            for (int corner = 0; corner < SpiceJarBlock.JAR_COUNT; corner++) {
+                BlockPos probe = new BlockPos(20 + corner * 2, 200, 0);
+                level.setBlock(probe, state.setValue(SpiceJarBlock.JARS[corner], true), 3);
+                if (level.getBlockEntity(probe) instanceof SpiceJarBlockEntity be) {
+                    SpiceJarBlock.settlePlacedItem(level, probe, corner, item);
+                    boolean kept = be.carryingCount(corner) == 7
+                            && level.getBlockState(probe).getValue(SpiceJarBlock.JARS[corner]);
+                    allCornersKept &= kept;
+                    KaleidoscopeKitchenware.LOGGER.info(
+                            "[jartest] corner {} kept={} stored={}", corner, kept, be.carryingCount(corner));
+                }
+                level.removeBlock(probe, false);
+            }
+
             boolean pass = stored && itemHasData && itemHasModel && handlerSlots == 1
                     && unpackedCount == 7 && placedStored && cornersCorrect && fallbackMoved
-                    && emptyStaysStanding;
+                    && emptyStaysStanding && firstCornerKept && allCornersKept;
             KaleidoscopeKitchenware.LOGGER.info(
                     "[jartest] {} stored={} itemHasData={} itemHasModel={} handlerSlots={} "
                             + "unpackedIntoCorner1={} placedIntoCorner2={} cornersCorrect={} "
-                            + "relocates={} emptyStaysStanding={}",
+                            + "relocates={} emptyStaysStanding={} firstCornerKept={} allCornersKept={}",
                     pass ? "PASS" : "FAIL", stored, itemHasData, itemHasModel, handlerSlots,
-                    unpackedCount, placedStored, cornersCorrect, fallbackMoved, emptyStaysStanding);
+                    unpackedCount, placedStored, cornersCorrect, fallbackMoved, emptyStaysStanding,
+                    firstCornerKept, allCornersKept);
 
             // 4. a jar takes seasoning only, and only one kind of it, up to 1024
             SpiceJarBlockEntity mixed = new SpiceJarBlockEntity(BlockPos.ZERO, state);

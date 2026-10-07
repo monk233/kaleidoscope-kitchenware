@@ -115,10 +115,13 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         if (!(level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar)) {
             return;
         }
-        KaleidoscopeKitchenware.LOGGER.info("[jardbg] settle at corner {} before: flags={} counts={},{},{},{}",
+        KaleidoscopeKitchenware.LOGGER.info("[jardbg] settle corner={} before flags={} counts={},{},{},{}",
                 placedCorner, dumpFlags(level.getBlockState(pos)), jar.carryingCount(0),
                 jar.carryingCount(1), jar.carryingCount(2), jar.carryingCount(3));
         jar.moveJarRange(0, placedCorner);
+        KaleidoscopeKitchenware.LOGGER.info("[jardbg] settle corner={} after  counts={},{},{},{}",
+                placedCorner, jar.carryingCount(0), jar.carryingCount(1),
+                jar.carryingCount(2), jar.carryingCount(3));
         BlockState state = level.getBlockState(pos);
         BlockState restored = state;
         boolean anyFilled = false;
@@ -131,6 +134,32 @@ public class SpiceJarBlock extends Block implements EntityBlock {
             // an empty jar still needs to stand somewhere
             restored = restored.setValue(JARS[placedCorner], true);
         }
+        if (restored != state) {
+            level.setBlockAndUpdate(pos, restored);
+        }
+    }
+
+    /**
+     * Writes a jar item's own contents into the corner it was placed at.
+     *
+     * Deliberately does not rely on vanilla's block entity load: that path resizes the slot
+     * handler to the size stored in the item (one jar's worth) and left the two out of step.
+     * Here the entity is cleared and filled from the item, so the result is the same whichever
+     * corner was aimed at.
+     */
+    public static void settlePlacedItem(Level level, BlockPos pos, int placedCorner, ItemStack item) {
+        if (!(level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar)) {
+            return;
+        }
+        jar.clearAll();
+        CompoundTag carried = carriedItems(item);
+        if (!carried.isEmpty()) {
+            jar.absorbSingleJar(carried, placedCorner, level.registryAccess());
+        }
+        BlockState state = level.getBlockState(pos);
+        BlockState restored = state.setValue(JARS[placedCorner], true);
+        KaleidoscopeKitchenware.LOGGER.info("[jardbg] settlePlaced corner={} carriedItems={} stored={}",
+                placedCorner, carried.getList("Items", 10).size(), jar.carryingTotal());
         if (restored != state) {
             level.setBlockAndUpdate(pos, restored);
         }
