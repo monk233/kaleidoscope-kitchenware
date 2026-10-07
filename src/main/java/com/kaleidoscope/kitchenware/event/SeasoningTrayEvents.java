@@ -120,6 +120,37 @@ public final class SeasoningTrayEvents {
             return;
         }
 
+        // Any water source: a bucket's worth onto the shovel, or tipped back. A source block, a
+        // waterlogged block and a full cauldron all count, and scooping does not drain them, the
+        // same way the vat behaves.
+        boolean waterSource = state.is(net.minecraft.world.level.block.Blocks.WATER)
+                || state.is(net.minecraft.world.level.block.Blocks.WATER_CAULDRON)
+                || (state.hasProperty(
+                        net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED)
+                    && state.getValue(
+                        net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED));
+        if (waterSource) {
+            event.setUseBlock(TriState.FALSE);
+            event.setUseItem(TriState.FALSE);
+            if (level.isClientSide) {
+                return;
+            }
+            if (hasWater(held)) {
+                clearCarried(held);
+                level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 0.8F, 1.0F);
+                tell(player, "state.kaleidoscope_kitchenware.shovel_returned_water");
+                return;
+            }
+            if (!carried(held, level.registryAccess()).isEmpty() || KitchenShovelItem.hasOil(held)) {
+                tell(player, "state.kaleidoscope_kitchenware.shovel_busy");
+                return;
+            }
+            setWater(held);
+            level.playSound(null, pos, SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 0.8F, 1.0F);
+            tell(player, "state.kaleidoscope_kitchenware.shovel_scooped_water");
+            return;
+        }
+
         // a water vat: scoop water onto the shovel, or tip it back in
         if (state.getBlock() instanceof com.kaleidoscope.kitchenware.block.WaterVatBlock) {
             event.setUseBlock(TriState.FALSE);
