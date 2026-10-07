@@ -35,8 +35,9 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
     private static final double WELL_OFFSET = 0.22D;
     /** The pile is drawn at most this many layers deep. */
     private static final int MAX_LAYERS = 16;
-    /** Remaining diagnostic lines, so a per frame renderer does not flood the log. */
-    private static int watchLeft = 60;
+    /** Per position diagnostic budget: a global counter gets used up by whichever tray is in view. */
+    private static final java.util.Map<net.minecraft.core.BlockPos, Integer> WATCHED = new java.util.HashMap<>();
+    private static final int WATCH_PER_POSITION = 8;
 
     public SeasoningTrayRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -44,8 +45,9 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
     @Override
     public void render(SeasoningTrayBlockEntity tray, float partialTick, PoseStack pose, MultiBufferSource buffer,
                        int packedLight, int packedOverlay) {
-        if (watchLeft > 0) {
-            watchLeft--;
+        int seen = WATCHED.getOrDefault(tray.getBlockPos(), 0);
+        if (seen < WATCH_PER_POSITION) {
+            WATCHED.put(tray.getBlockPos(), seen + 1);
             com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
                     "[trayrender] {} stacks={},{},{},{} items={},{},{},{}",
                     tray.getBlockPos(), tray.storedStacks(0), tray.storedStacks(1),

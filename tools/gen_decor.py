@@ -758,7 +758,7 @@ def build_tray(textures_dir: Path) -> None:
         "textures": textures,
         "elements": _tray_elements(8, inset=0),
         "display": {
-            "gui": {"rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [1.0, 1.0, 1.0]},
+            "gui": {"rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.8, 0.8, 0.8]},
             "fixed": {"rotation": [0, 180, 0], "translation": [0, 0, 0], "scale": [1.0, 1.0, 1.0]},
             "ground": {"rotation": [0, 0, 0], "translation": [0, 3, 0], "scale": [0.25, 0.25, 0.25]},
             "head": {"rotation": [0, 180, 0], "scale": [1, 1, 1]},
