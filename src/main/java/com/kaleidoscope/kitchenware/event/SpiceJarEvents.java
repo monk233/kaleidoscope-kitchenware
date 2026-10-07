@@ -51,35 +51,6 @@ public final class SpiceJarEvents {
     private SpiceJarEvents() {
     }
 
-    /** Left-click takes exactly one item out; sneaking still lets you break the block. */
-    @SubscribeEvent
-    public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
-        Level level = event.getLevel();
-        BlockPos pos = event.getPos();
-        BlockState state = level.getBlockState(pos);
-        Player player = event.getEntity();
-        if (!(state.getBlock() instanceof SpiceJarBlock) || player.isShiftKeyDown()) {
-            return;
-        }
-        event.setUseBlock(TriState.FALSE);
-        event.setUseItem(TriState.FALSE);
-        if (level.isClientSide || !(level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar)) {
-            return;
-        }
-        // LeftClickBlock carries no hit position, so the corner comes from where the player
-        // stands relative to the block, with the usual nearest-jar fallback.
-        int index = SpiceJarBlock.resolveJarIndex(state, player.getEyePosition(), pos);
-        if (index < 0) {
-            return;
-        }
-        ItemStack taken = jar.extract(index, false);
-        if (taken.isEmpty()) {
-            return;
-        }
-        player.getInventory().placeItemBackInInventory(taken);
-        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4F, 1.2F);
-    }
-
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         Level level = event.getLevel();

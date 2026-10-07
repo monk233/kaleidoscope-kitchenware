@@ -74,9 +74,14 @@ public class SpiceJarBlockEntity extends BlockEntity {
         return true;
     }
 
-    /** Stores items, returning how many actually went in. */
+    /** Stores items, returning how many actually went in. One jar holds one kind of thing. */
     public int insert(int jar, ItemStack stack, boolean wholeStack) {
         if (stack.isEmpty() || !accepts(stack)) {
+            return 0;
+        }
+        // a jar is a one-seasoning container: refuse anything that is not already in it
+        ItemStack resident = displayItem(jar);
+        if (!resident.isEmpty() && !ItemStack.isSameItemSameComponents(resident, stack)) {
             return 0;
         }
         int amount = wholeStack ? stack.getCount() : 1;

@@ -43,5 +43,6 @@
   "state.kaleidoscope_kitchenware.jar_scooped_on_shovel": "Picked up %s on the shovel",
   "state.kaleidoscope_kitchenware.jar_returned": "Tipped %s back into the jar",
   "state.kaleidoscope_kitchenware.jar_poured": "Added %s to the wok",
-  "state.kaleidoscope_kitchenware.jar_wok_refused": "The wok will not take %s yet (oil it first)"
+  "state.kaleidoscope_kitchenware.jar_wok_refused": "The wok will not take %s yet (oil it first)",
+  "state.kaleidoscope_kitchenware.jar_wrong_kind": "This jar already holds a different seasoning"
 }
