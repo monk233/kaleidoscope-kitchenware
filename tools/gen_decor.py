@@ -342,36 +342,40 @@ def draw_glass_jar_filled(img, ramp, rng):
 
 
 def draw_jar_side(img, ramp, rng) -> None:
-    """Glass jar wall: pale blue panes with a highlight stripe and a wooden rim on top."""
+    """Clear glass bottle side seen in a reference photo: metal lid on top, glass walls
+    left transparent so whatever the jar holds shows through."""
     size = img.width
-    glass, glass_dark, highlight = (0xC8, 0xE4, 0xF0, 255), (0x9C, 0xC2, 0xD6, 255), (0xEF, 0xF7, 0xFA, 255)
-    for y in range(size):
+    metal, metal_dark, metal_light = (0x8B, 0x8B, 0x8B, 255), (0x60, 0x65, 0x72, 255), (0xC2, 0xC7, 0xCB, 255)
+    glass_edge, glass_shine = (0x9C, 0xC2, 0xD6, 255), (0xEF, 0xF7, 0xFA, 255)
+    # metal lid across the top three rows
+    for y in range(0, 3):
         for x in range(size):
-            img.putpixel((x, y), glass if (x + y) % 5 else glass_dark)
+            img.putpixel((x, y), metal_light if y == 0 else metal if (x % 3) else metal_dark)
     for x in range(size):
-        img.putpixel((x, 0), ramp[1])
-        img.putpixel((x, 1), ramp[0])
-        img.putpixel((x, size - 1), glass_dark)
-    for y in range(2, size - 2):
-        img.putpixel((2, y), highlight)
-    img.putpixel((0, size - 2), glass_dark)
-    img.putpixel((size - 1, size - 2), glass_dark)
+        img.putpixel((x, 3), metal_dark)
+    # glass: only the rim, the base and one shine stripe stay opaque
+    for y in range(4, size - 1):
+        img.putpixel((0, y), glass_edge)
+        img.putpixel((size - 1, y), glass_edge)
+        img.putpixel((3, y), glass_shine)
+    for x in range(size):
+        img.putpixel((x, size - 1), glass_edge)
 
 
 def draw_jar_top(img, ramp, rng, filled: bool = False) -> None:
-    """Lid seen from above: wooden ring outside, dark or amber opening inside."""
+    """Metal lid from above: brushed ring with a dark grip slot in the middle."""
     size = img.width
-    inner = (0xC2, 0x7A, 0x2E, 255) if filled else (0x3B, 0x2A, 0x1C, 255)
+    metal, metal_dark, metal_light = (0x8B, 0x8B, 0x8B, 255), (0x60, 0x65, 0x72, 255), (0xC2, 0xC7, 0xCB, 255)
     for y in range(size):
         for x in range(size):
             edge = x in (0, size - 1) or y in (0, size - 1)
-            ring = x in (1, 2, size - 3, size - 2) or y in (1, 2, size - 3, size - 2)
+            inner = 3 <= x <= size - 4 and 3 <= y <= size - 4
             if edge:
-                img.putpixel((x, y), ramp[-1])
-            elif ring:
-                img.putpixel((x, y), ramp[0] if (x + y) % 3 else ramp[1])
+                img.putpixel((x, y), metal_dark)
+            elif inner:
+                img.putpixel((x, y), metal_dark if (x + y) % 3 == 0 else (0x3B, 0x2A, 0x1C, 255))
             else:
-                img.putpixel((x, y), inner)
+                img.putpixel((x, y), metal_light if (x + y) % 2 else metal)
 
 
 def draw_jar_top_filled(img, ramp, rng):
@@ -610,7 +614,7 @@ CONTAINER_TEXTURES = {
     "spice_jar": {"kind": "spice_jar", "species": "oak"},
     "counter_top": {"kind": "counter_top", "ramp": ["#B9B4A5", "#93A3A3", "#55636C", "#3F4447"]},
     "counter_side": {"kind": "counter_side", "species": "spruce"},
-    "jar_side": {"kind": "tile_floor", "ramp": WOOD["oak"]},
+    "jar_side": {"kind": "jar_side", "ramp": WOOD["oak"]},
     "jar_top": {"kind": "jar_top", "ramp": WOOD["oak"]},
 }
 
@@ -667,7 +671,7 @@ def build_containers(textures_dir: Path) -> None:
     # Presence is per corner so the blockstate can be a multipart; the contents are shown
     # by a block entity renderer, not by the model.
     jar_size = 5.0
-    jar_height = 4.0
+    jar_height = 7.0
     jar_corners = {
         "nw": (1.5, 1.5),
         "ne": (9.5, 1.5),

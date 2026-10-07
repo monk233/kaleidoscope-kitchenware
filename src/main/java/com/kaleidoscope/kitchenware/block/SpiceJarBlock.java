@@ -52,8 +52,8 @@ public class SpiceJarBlock extends Block implements EntityBlock {
             BooleanProperty.create("jar_se"),
     };
     private static final VoxelShape SHAPE = Shapes.or(
-            Block.box(1, 0, 1, 6, 5, 6), Block.box(10, 0, 1, 15, 5, 6),
-            Block.box(1, 0, 10, 6, 5, 15), Block.box(10, 0, 10, 15, 5, 15));
+            Block.box(1, 0, 1, 6, 7, 6), Block.box(10, 0, 1, 15, 7, 6),
+            Block.box(1, 0, 10, 6, 7, 15), Block.box(10, 0, 10, 15, 7, 15));
 
     public SpiceJarBlock(Properties properties) {
         super(properties);

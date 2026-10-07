@@ -33,8 +33,9 @@ public class SpiceJarRenderer implements BlockEntityRenderer<SpiceJarBlockEntity
             }
             double[] offset = cornerOffset(index);
             pose.pushPose();
-            pose.translate(offset[0], 0.30D, offset[1]);
-            pose.scale(0.4F, 0.4F, 0.4F);
+            // sit the icon inside the glass, low enough to read as "contents in a jar"
+            pose.translate(offset[0], 0.10D, offset[1]);
+            pose.scale(0.32F, 0.32F, 0.32F);
             Minecraft.getInstance().getItemRenderer().renderStatic(display, ItemDisplayContext.GROUND,
                     packedLight, packedOverlay, pose, buffer, jar.getLevel(), 0);
             pose.popPose();
