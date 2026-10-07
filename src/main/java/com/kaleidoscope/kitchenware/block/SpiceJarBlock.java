@@ -1,5 +1,6 @@
 package com.kaleidoscope.kitchenware.block;
 
+import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
 import com.kaleidoscope.kitchenware.blockentity.SpiceJarBlockEntity;
 import com.kaleidoscope.kitchenware.item.SpiceJarItem;
 import com.kaleidoscope.kitchenware.registry.ModItems;
@@ -98,30 +99,6 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = defaultBlockState();
         return state.setValue(JARS[jarIndexAt(context.getClickLocation(), context.getClickedPos())], true);
-    }
-
-    /**
-     * Rebuilds the corner flags from whatever the item carried. Without this a recovered block
-     * showed one jar while the contents sat in the other three corners, which read as "the
-     * contents were lost".
-     */
-    @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer,
-                            ItemStack stack) {
-        super.setPlacedBy(level, pos, state, placer, stack);
-        if (level.isClientSide || !(level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar)) {
-            return;
-        }
-        BlockState restored = state;
-        boolean anyFilled = false;
-        for (int corner = 0; corner < JAR_COUNT; corner++) {
-            boolean filled = !jar.isJarEmpty(corner);
-            anyFilled |= filled;
-            restored = restored.setValue(JARS[corner], filled);
-        }
-        if (anyFilled && restored != state) {
-            level.setBlockAndUpdate(pos, restored);
-        }
     }
 
     /** Corner index 0..3 from the hit position, matching {@link #JARS}. */
@@ -254,12 +231,15 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     public static ItemStack jarStack(SpiceJarBlockEntity jar, RegistryAccess access) {
         ItemStack stack = new ItemStack(ModItems.SPICE_JAR.get());
         if (jar.isEmpty()) {
+            KaleidoscopeKitchenware.LOGGER.info("[jar] dropping an empty jar item");
             return stack;
         }
         CompoundTag contents = jar.saveCustomOnly(access);
         contents.putString("id", BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(jar.getType()).toString());
         stack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(contents));
         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(FILLED_MODEL_DATA));
+        KaleidoscopeKitchenware.LOGGER.info("[jar] dropping item with stored={} savedSize={}",
+                jar.carryingTotal(), contents.getCompound("Items").getInt("Size"));
         return stack;
     }
 

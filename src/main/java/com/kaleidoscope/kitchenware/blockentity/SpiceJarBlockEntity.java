@@ -158,10 +158,13 @@ public class SpiceJarBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        items.deserializeNBT(registries, tag.getCompound("Items"));
+        CompoundTag saved = tag.getCompound("Items");
+        items.deserializeNBT(registries, saved);
         // a stack handler rebuilt from old data can come back smaller than it is now;
         // jars written before the four-corner rework stored Size=16
         items.setSize(JAR_COUNT * SLOTS_PER_JAR);
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                "[jar] loaded savedSize={} stored={}", saved.getInt("Size"), carryingTotal());
     }
 
     /** Diagnostics: total item count across all four jars. */
