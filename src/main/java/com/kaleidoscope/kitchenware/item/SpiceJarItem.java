@@ -63,10 +63,6 @@ public class SpiceJarItem extends BlockItem {
             // an empty jar still needs to stand somewhere
             restored = restored.setValue(SpiceJarBlock.JARS[placedCorner], true);
         }
-        KaleidoscopeKitchenware.LOGGER.info("[jar] placed at corner {} stored={} lit={}{}{}{}",
-                placedCorner, jar.carryingTotal(), restored.getValue(SpiceJarBlock.JARS[0]),
-                restored.getValue(SpiceJarBlock.JARS[1]), restored.getValue(SpiceJarBlock.JARS[2]),
-                restored.getValue(SpiceJarBlock.JARS[3]));
         if (restored != state) {
             level.setBlockAndUpdate(pos, restored);
         }

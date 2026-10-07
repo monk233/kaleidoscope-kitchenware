@@ -3,6 +3,7 @@ package com.kaleidoscope.kitchenware.block;
 import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
 import com.kaleidoscope.kitchenware.blockentity.SpiceJarBlockEntity;
 import com.kaleidoscope.kitchenware.item.SpiceJarItem;
+import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import com.kaleidoscope.kitchenware.registry.ModItems;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -18,6 +19,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.CustomModelData;
@@ -240,9 +242,10 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         if (jar.isJarEmpty(corner)) {
             return stack;
         }
-        CompoundTag contents = jar.saveSingleJar(corner, registries);
-        contents.putString("id", BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(jar.getType()).toString());
-        stack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(contents));
+        // vanilla wraps block entity data as {id, data:{...}} and unwraps it on placement; build
+        // it with its own helper, or the wrapper is wrong and the contents never come back
+        BlockItem.setBlockEntityData(stack, ModBlockEntities.SPICE_JAR.get(),
+                jar.saveSingleJar(corner, registries));
         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(FILLED_MODEL_DATA));
         return stack;
     }
@@ -250,7 +253,9 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     /** Contents a jar item is carrying, empty when it is a plain empty jar. */
     public static CompoundTag carriedItems(ItemStack stack) {
         CustomData data = stack.get(DataComponents.BLOCK_ENTITY_DATA);
-        return data == null ? new CompoundTag() : data.copyTag().getCompound("Items");
+        // BlockItem.setBlockEntityData writes the entity tag flat with an "id" alongside it;
+        // the stack handler readers ignore the extra key
+        return data == null ? new CompoundTag() : data.copyTag();
     }
 
     /**

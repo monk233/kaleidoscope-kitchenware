@@ -188,8 +188,6 @@ public class SpiceJarBlockEntity extends BlockEntity {
         // a stack handler rebuilt from old data can come back smaller than it is now;
         // jars written before the four-corner rework stored Size=16
         items.setSize(JAR_COUNT * SLOTS_PER_JAR);
-        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                "[jar] loaded savedSize={} stored={}", saved.getInt("Size"), carryingTotal());
     }
 
     /** Diagnostics: total item count across all four jars. */
