@@ -12,10 +12,10 @@ public final class ModTags {
             TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(
                     KaleidoscopeKitchenware.MOD_ID, "cupboard_storable"));
 
-    /** Seasoning a spice jar accepts. Datapacks can add to this list. */
-    public static final TagKey<Item> SPICE_JAR_ACCEPTS =
+    /** Seasoning a tray accepts. Datapacks can add to this list. */
+    public static final TagKey<Item> SEASONING =
             TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(
-                    KaleidoscopeKitchenware.MOD_ID, "spice_jar_accepts"));
+                    KaleidoscopeKitchenware.MOD_ID, "seasoning"));
 
     private ModTags() {
     }

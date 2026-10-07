@@ -767,6 +767,46 @@ def build_containers(textures_dir: Path) -> None:
         write_json(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json", loot_table(name))
 
 
+# --- seasoning tray -----------------------------------------------------------
+
+TRAY_TEXTURES = {
+    "tray_side": {"kind": "plank", "species": "spruce"},
+    "tray_front": {"kind": "tile_floor", "ramp": WOOD["oak"]},
+    "tray_top": {"kind": "counter_top", "ramp": ["#B9B4A5", "#93A3A3", "#55636C", "#3F4447"]},
+}
+
+
+def build_tray(textures_dir: Path) -> None:
+    for seed, (name, spec) in enumerate(sorted(TRAY_TEXTURES.items())):
+        make_texture(spec, seed=701 + seed * 13).save(textures_dir / f"{name}.png")
+
+    write_json(RES / "assets" / NS / "models" / "block" / "seasoning_tray.json", {
+        "parent": "minecraft:block/cube",
+        "textures": {"up": tex("tray_top"), "down": tex("tray_side"), "north": tex("tray_front"),
+                     "south": tex("tray_side"), "east": tex("tray_side"), "west": tex("tray_side"),
+                     "particle": tex("tray_side")},
+    })
+    variants = {}
+    for facing, y in FACING_Y:
+        model = {"model": f"{NS}:block/seasoning_tray"}
+        if y:
+            model["y"] = y
+        variants[f"facing={facing}"] = model
+    write_json(RES / "assets" / NS / "blockstates" / "seasoning_tray.json", {"variants": variants})
+    write_json(RES / "assets" / NS / "models" / "item" / "seasoning_tray.json",
+               {"parent": f"{NS}:block/seasoning_tray"})
+    # the block drops itself with its contents; an empty loot pool avoids a second, empty drop
+    write_json(RES / "data" / NS / "loot_table" / "blocks" / "seasoning_tray.json",
+               {"type": "minecraft:block", "pools": []})
+    write_json(RES / "data" / NS / "recipe" / "seasoning_tray.json", {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "pattern": ["WWW", "W W", "WWW"],
+        "key": {"W": {"item": "minecraft:spruce_planks"}},
+        "result": {"id": f"{NS}:seasoning_tray", "count": 1},
+    })
+
+
 # --- main ---------------------------------------------------------------------
 
 def main() -> None:
@@ -793,6 +833,7 @@ def main() -> None:
 
     build_functional(textures_dir)
     build_containers(textures_dir)
+    build_tray(textures_dir)
 
     write_json(RES / "assets" / NS / "lang" / "zh_cn.json",
                {f"block.{NS}.{n}": zh for n, zh, _, _, _ in DECOR}
@@ -810,6 +851,11 @@ def main() -> None:
                   "block." + NS + ".water_vat": "水缸",
                   "block." + NS + ".cupboard": "碗柜",
                   "block." + NS + ".spice_jar": "调料罐",
+                  "block." + NS + ".seasoning_tray": "调味盘",
+                  f"state.{NS}.tray_stored": "存入了 %s 个",
+                  f"state.{NS}.tray_empty": "这个格子是空的",
+                  f"state.{NS}.tray_wrong_kind": "这个格子已经装着别的调料了",
+                  f"state.{NS}.tray_accepts_seasoning_only": "调味盘只放调料",
                   "block." + NS + ".kitchen_counter": "料理台",
                   f"state.{NS}.storage_full": "已经塞满了",
                   f"state.{NS}.storage_empty": "里面是空的",
@@ -841,6 +887,11 @@ def main() -> None:
                   "block." + NS + ".water_vat": "Water Vat",
                   "block." + NS + ".cupboard": "Cupboard",
                   "block." + NS + ".spice_jar": "Spice Jar",
+                  "block." + NS + ".seasoning_tray": "Seasoning Tray",
+                  f"state.{NS}.tray_stored": "Stored %s",
+                  f"state.{NS}.tray_empty": "This compartment is empty",
+                  f"state.{NS}.tray_wrong_kind": "This compartment already holds another seasoning",
+                  f"state.{NS}.tray_accepts_seasoning_only": "The tray only takes seasoning",
                   "block." + NS + ".kitchen_counter": "Kitchen Counter",
                   f"state.{NS}.storage_full": "It is full",
                   f"state.{NS}.storage_empty": "It is empty",

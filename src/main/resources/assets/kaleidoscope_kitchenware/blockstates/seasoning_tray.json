@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "kaleidoscope_kitchenware:block/seasoning_tray"
+    },
+    "facing=east": {
+      "model": "kaleidoscope_kitchenware:block/seasoning_tray",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "kaleidoscope_kitchenware:block/seasoning_tray",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "kaleidoscope_kitchenware:block/seasoning_tray",
+      "y": 270
+    }
+  }
+}

@@ -5,7 +5,7 @@ import com.kaleidoscope.kitchenware.block.CupboardBlock;
 import com.kaleidoscope.kitchenware.block.FacingThinBlock;
 import com.kaleidoscope.kitchenware.block.FirewoodPileBlock;
 import com.kaleidoscope.kitchenware.block.FirewoodStoveBlock;
-import com.kaleidoscope.kitchenware.block.SpiceJarBlock;
+import com.kaleidoscope.kitchenware.block.SeasoningTrayBlock;
 import com.kaleidoscope.kitchenware.block.WaterVatBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
@@ -73,13 +73,12 @@ public final class ModBlocks {
     /** 16 slots of bowls and flower pots, no GUI anywhere. */
     public static final DeferredHolder<Block, CupboardBlock> CUPBOARD = reg("cupboard",
             () -> new CupboardBlock(wood().strength(2.0F, 3.0F)));
-    /** Placed like a teacup; holds 16 stacks and is scooped back up with the kitchen shovel. */
-    public static final DeferredHolder<Block, SpiceJarBlock> SPICE_JAR = regNoItem("spice_jar",
-            () -> new SpiceJarBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_LIGHT_BLUE)
-                    .sound(SoundType.GLASS)
-                    .strength(0.3F)
-                    .forceSolidOn()
+    /** Four-compartment seasoning tray; contents travel with the item, like a drawer. */
+    public static final DeferredHolder<Block, SeasoningTrayBlock> SEASONING_TRAY = regNoItem("seasoning_tray",
+            () -> new SeasoningTrayBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .sound(SoundType.WOOD)
+                    .strength(1.5F, 3.0F)
                     .noOcclusion()));
     /** Plain block; the boards tile so a row of them reads as one continuous counter. */
     public static final DeferredHolder<Block, Block> KITCHEN_COUNTER = reg("kitchen_counter",

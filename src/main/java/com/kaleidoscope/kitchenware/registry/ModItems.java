@@ -1,7 +1,7 @@
 package com.kaleidoscope.kitchenware.registry;
 
 import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
-import com.kaleidoscope.kitchenware.item.SpiceJarItem;
+import com.kaleidoscope.kitchenware.item.SeasoningTrayItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -27,12 +27,12 @@ public final class ModItems {
         ITEMS.register(modEventBus);
     }
 
-    /** The spice jar is a BlockItem subclass, so it registers itself rather than via ModBlocks. */
-    public static final DeferredHolder<Item, SpiceJarItem> SPICE_JAR = ITEMS.register("spice_jar",
-            () -> new SpiceJarItem(ModBlocks.SPICE_JAR.get(), new Item.Properties().stacksTo(16)));
+    /** The tray carries its contents in its own custom data, so it holds one stack at a time. */
+    public static final DeferredHolder<Item, SeasoningTrayItem> SEASONING_TRAY = ITEMS.register("seasoning_tray",
+            () -> new SeasoningTrayItem(ModBlocks.SEASONING_TRAY.get(), new Item.Properties().stacksTo(1)));
 
     static {
-        ALL.add(SPICE_JAR);
+        ALL.add(SEASONING_TRAY);
     }
 
     static void blockItem(DeferredHolder<Block, ? extends Block> block) {
