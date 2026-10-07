@@ -29,7 +29,6 @@
   "state.kaleidoscope_kitchenware.pile_take": "取出一根柴",
   "block.kaleidoscope_kitchenware.water_vat": "水缸",
   "block.kaleidoscope_kitchenware.cupboard": "碗柜",
-  "block.kaleidoscope_kitchenware.spice_jar": "调料罐",
   "block.kaleidoscope_kitchenware.seasoning_tray": "调味盘",
   "state.kaleidoscope_kitchenware.tray_stored": "存入了 %s 个",
   "state.kaleidoscope_kitchenware.tray_empty": "这个格子是空的",

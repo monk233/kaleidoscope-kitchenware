@@ -29,7 +29,6 @@
   "state.kaleidoscope_kitchenware.pile_take": "Took one piece of firewood",
   "block.kaleidoscope_kitchenware.water_vat": "Water Vat",
   "block.kaleidoscope_kitchenware.cupboard": "Cupboard",
-  "block.kaleidoscope_kitchenware.spice_jar": "Spice Jar",
   "block.kaleidoscope_kitchenware.seasoning_tray": "Seasoning Tray",
   "state.kaleidoscope_kitchenware.tray_stored": "Stored %s",
   "state.kaleidoscope_kitchenware.tray_empty": "This compartment is empty",

@@ -266,24 +266,6 @@ def draw_cabinet_open(img, ramp, rng):
             img.putpixel((x, base_y + 2), PORCELAIN_SHADE)
 
 
-def draw_spice_jar(img, ramp, rng):
-    """Small ceramic jar for the spice rack."""
-    size = img.width
-    for y in range(size):
-        for x in range(size):
-            edge = x in (0, size - 1) or y == size - 1
-            if edge:
-                img.putpixel((x, y), ramp[-1])
-            elif y <= 1:
-                img.putpixel((x, y), ramp[-1] if 2 <= x <= size - 3 else ramp[1])
-            elif x <= 1 or x >= size - 2:
-                img.putpixel((x, y), ramp[1])
-            else:
-                img.putpixel((x, y), ramp[0])
-    for y in range(3, size - 3):
-        img.putpixel((3, y), PORCELAIN_SHADE)
-
-
 def draw_counter_top(img, ramp, rng):
     """Counter worktop: stone slab with a wooden rim."""
     size = img.width
@@ -452,7 +434,6 @@ PATTERNS = {
     "wood_pile": draw_wood_pile,
     "cabinet_front": draw_cabinet_front,
     "cabinet_open": draw_cabinet_open,
-    "spice_jar": draw_spice_jar,
     "counter_top": draw_counter_top,
     "counter_side": draw_counter_side,
     "glass_jar": draw_glass_jar,
@@ -671,7 +652,6 @@ CONTAINER_TEXTURES = {
     "cupboard_front": {"kind": "cabinet_front", "species": "oak"},
     "cupboard_front_open": {"kind": "cabinet_open", "species": "oak"},
     "rack_board": {"kind": "plank", "species": "spruce"},
-    "spice_jar": {"kind": "spice_jar", "species": "oak"},
     "counter_top": {"kind": "counter_top", "ramp": ["#B9B4A5", "#93A3A3", "#55636C", "#3F4447"]},
     "counter_side": {"kind": "counter_side", "species": "spruce"},
     "jar_side": {"kind": "jar_side", "ramp": WOOD["oak"]},
@@ -733,90 +713,6 @@ def build_containers(textures_dir: Path) -> None:
     # by a block entity renderer, not by the model.
     jar_size = 5.0
     jar_height = 7.0
-    jar_corners = {
-        "nw": (1.5, 1.5),
-        "ne": (9.5, 1.5),
-        "sw": (1.5, 9.5),
-        "se": (9.5, 9.5),
-    }
-
-    def jar_element(x: float, z: float) -> dict:
-        faces = {face: {"uv": [0, 0, 16, 16], "texture": "#0"}
-                 for face in ("north", "south", "east", "west", "down")}
-        faces["up"] = {"uv": [0, 0, 16, 16], "texture": "#1"}
-        return {"from": [x, 0, z], "to": [x + jar_size, jar_height, z + jar_size], "faces": faces}
-
-    for corner, (x, z) in jar_corners.items():
-        write_json(RES / "assets" / NS / "models" / "block" / f"spice_jar_{corner}.json", {
-            "render_type": "minecraft:cutout",
-            "textures": {"0": tex("jar_side"), "1": tex("jar_top"), "particle": tex("jar_side")},
-            "elements": [jar_element(x, z)],
-        })
-
-    # the stocked jar shows seasoning through the glass, used by the item form in hand
-    write_json(RES / "assets" / NS / "models" / "block" / "spice_jar_filled.json", {
-        "render_type": "minecraft:cutout",
-        "textures": {"0": tex("jar_side_filled"), "1": tex("jar_top"),
-                     "particle": tex("jar_side_filled")},
-        "elements": [jar_element(*jar_corners["nw"])],
-    })
-
-    write_json(RES / "assets" / NS / "blockstates" / "spice_jar.json", {
-        "multipart": [
-            {"when": {f"jar_{corner}": "true"}, "apply": {"model": f"{NS}:block/spice_jar_{corner}"}}
-            for corner in jar_corners
-        ],
-    })
-
-    # item form: plain bottle when empty, filled model once the jar holds something
-    write_json(RES / "assets" / NS / "models" / "item" / "spice_jar_filled.json",
-               {"parent": f"{NS}:block/spice_jar_filled"})
-    write_json(RES / "assets" / NS / "models" / "item" / "spice_jar.json", {
-        "parent": f"{NS}:block/spice_jar_nw",
-        "overrides": [
-            {"predicate": {"custom_model_data": 1}, "model": f"{NS}:item/spice_jar_filled"},
-        ],
-    })
-    # drops are produced by the block itself so the stored contents survive; no loot pool here
-    write_json(RES / "data" / NS / "loot_table" / "blocks" / "spice_jar.json",
-               {"type": "minecraft:block", "pools": []})
-    write_json(RES / "data" / NS / "recipe" / "spice_jar.json", {
-        "type": "minecraft:crafting_shaped",
-        "category": "misc",
-        "pattern": ["G G", "G G", " G "],
-        "key": {"G": {"item": "minecraft:glass"}},
-        "result": {"id": f"{NS}:spice_jar", "count": 1},
-    })
-
-    # kitchen counter: stone worktop sitting on a panelled body
-    write_json(RES / "assets" / NS / "models" / "block" / "kitchen_counter.json", {
-        "textures": {"0": tex("counter_side"), "1": tex("counter_top"),
-                     "particle": tex("counter_side")},
-        "elements": [
-            {"from": [0, 12, 0], "to": [16, 16, 16],
-             "faces": {"up": {"uv": [0, 0, 16, 16], "texture": "#1"},
-                       "down": {"uv": [0, 0, 16, 16], "texture": "#0"},
-                       "north": {"uv": [0, 12, 16, 16], "texture": "#0"},
-                       "south": {"uv": [0, 12, 16, 16], "texture": "#0"},
-                       "east": {"uv": [0, 12, 16, 16], "texture": "#0"},
-                       "west": {"uv": [0, 12, 16, 16], "texture": "#0"}}},
-            {"from": [1, 0, 1], "to": [15, 12, 15],
-             "faces": {face: {"uv": [0, 0, 14, 12], "texture": "#0"}
-                       for face in ("north", "south", "east", "west", "up", "down")}},
-        ],
-    })
-    write_json(RES / "assets" / NS / "blockstates" / "kitchen_counter.json",
-               {"variants": {"": {"model": f"{NS}:block/kitchen_counter"}}})
-
-    for name in ("water_vat", "cupboard", "kitchen_counter"):
-        # the item form shows a specific variant: a full vat, a full rack, a closed cupboard
-        item_parent = {"water_vat": "water_vat_3", "spice_rack": "spice_rack_4"}.get(name, name)
-        write_json(RES / "assets" / NS / "models" / "item" / f"{name}.json",
-                   {"parent": f"{NS}:block/{item_parent}"})
-        write_json(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json", loot_table(name))
-
-
-# --- seasoning tray -----------------------------------------------------------
 
 TRAY_TEXTURES = {
     "tray_glaze": {"kind": "tray_glaze", "ramp": ["#8FA8A8", "#5F7A7A", "#B8CCCC", "#3F5252"]},
@@ -910,7 +806,6 @@ def main() -> None:
                   f"state.{NS}.pile_take": "取出一根柴",
                   "block." + NS + ".water_vat": "水缸",
                   "block." + NS + ".cupboard": "碗柜",
-                  "block." + NS + ".spice_jar": "调料罐",
                   "block." + NS + ".seasoning_tray": "调味盘",
                   f"state.{NS}.tray_stored": "存入了 %s 个",
                   f"state.{NS}.tray_empty": "这个格子是空的",
@@ -946,7 +841,6 @@ def main() -> None:
                   f"state.{NS}.pile_take": "Took one piece of firewood",
                   "block." + NS + ".water_vat": "Water Vat",
                   "block." + NS + ".cupboard": "Cupboard",
-                  "block." + NS + ".spice_jar": "Spice Jar",
                   "block." + NS + ".seasoning_tray": "Seasoning Tray",
                   f"state.{NS}.tray_stored": "Stored %s",
                   f"state.{NS}.tray_empty": "This compartment is empty",
