@@ -6,6 +6,7 @@ import com.kaleidoscope.kitchenware.item.SpiceJarItem;
 import com.kaleidoscope.kitchenware.registry.ModItems;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -163,6 +164,12 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         if (stack.getItem() instanceof SpiceJarItem) {
             int target = jarIndexAt(hitResult.getLocation(), pos);
             if (!state.getValue(JARS[target])) {
+                // a stocked jar carries its seasoning in the item and this path never sees
+                // vanilla's data application, so copy it in here
+                CompoundTag carried = carriedItems(stack);
+                if (!carried.isEmpty()) {
+                    jar.absorbSingleJar(carried, target, level.registryAccess());
+                }
                 level.setBlockAndUpdate(pos, state.setValue(JARS[target], true));
                 level.playSound(null, pos, SoundEvents.GLASS_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
                 if (!player.getAbilities().instabuild) {
@@ -225,33 +232,37 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     }
 
     /**
-     * The whole block as one item, carrying every jar it holds, like a shulker box. Placing it
-     * restores the jars and their contents wherever it is put down.
+     * One corner's jar as an item: a block with four jars drops four of these, each carrying
+     * only its own contents (an empty jar drops as a plain item).
      */
-    public static ItemStack jarStack(SpiceJarBlockEntity jar, RegistryAccess access) {
+    public static ItemStack jarStack(SpiceJarBlockEntity jar, int corner, HolderLookup.Provider registries) {
         ItemStack stack = new ItemStack(ModItems.SPICE_JAR.get());
-        if (jar.isEmpty()) {
-            KaleidoscopeKitchenware.LOGGER.info("[jar] dropping an empty jar item");
+        if (jar.isJarEmpty(corner)) {
             return stack;
         }
-        CompoundTag contents = jar.saveCustomOnly(access);
+        CompoundTag contents = jar.saveSingleJar(corner, registries);
         contents.putString("id", BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(jar.getType()).toString());
         stack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(contents));
         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(FILLED_MODEL_DATA));
-        KaleidoscopeKitchenware.LOGGER.info("[jar] dropping item with stored={} savedSize={}",
-                jar.carryingTotal(), contents.getCompound("Items").getInt("Size"));
         return stack;
     }
 
+    /** Contents a jar item is carrying, empty when it is a plain empty jar. */
+    public static CompoundTag carriedItems(ItemStack stack) {
+        CustomData data = stack.get(DataComponents.BLOCK_ENTITY_DATA);
+        return data == null ? new CompoundTag() : data.copyTag().getCompound("Items");
+    }
+
     /**
-     * Drops the block as a single item. Dropping happens in playerWillDestroy rather than
-     * onRemove because a block entity can already be gone by the time onRemove runs, which
-     * silently lost everything.
+     * Drops one jar per standing jar, each with its own contents.
+     *
+     * Dropping happens in playerWillDestroy rather than onRemove because a block entity can
+     * already be gone by the time onRemove runs, which silently lost everything.
      */
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar) {
-            Block.popResource(level, pos, jarStack(jar, level.registryAccess()));
+            dropJars(level, pos, state, jar);
             jar.markDropped();
         }
         return super.playerWillDestroy(level, pos, state, player);
@@ -262,9 +273,17 @@ public class SpiceJarBlock extends Block implements EntityBlock {
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide
                 && level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar && !jar.isDropped()) {
-            Block.popResource(level, pos, jarStack(jar, level.registryAccess()));
+            dropJars(level, pos, state, jar);
             jar.markDropped();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    private static void dropJars(Level level, BlockPos pos, BlockState state, SpiceJarBlockEntity jar) {
+        for (int corner = 0; corner < JAR_COUNT; corner++) {
+            if (state.getValue(JARS[corner])) {
+                Block.popResource(level, pos, jarStack(jar, corner, level.registryAccess()));
+            }
+        }
     }
 }

@@ -135,8 +135,7 @@ public class SpiceJarBlockEntity extends BlockEntity {
 
     /**
      * One jar's own contents as a tag, so a block with four jars drops four jars that each
-     * carry their own seasoning. Dumping all four sets into one item used to hide three of
-     * them behind a block state that only had room for one.
+     * carry their own seasoning.
      */
     public CompoundTag saveSingleJar(int corner, HolderLookup.Provider registries) {
         ItemStackHandler single = new ItemStackHandler(SLOTS_PER_JAR);
@@ -147,6 +146,32 @@ public class SpiceJarBlockEntity extends BlockEntity {
             }
         }
         return single.serializeNBT(registries);
+    }
+
+    /** Moves one jar's contents to another corner, used when an item is put down. */
+    public void moveJarRange(int from, int to) {
+        if (from == to) {
+            return;
+        }
+        for (int slot = 0; slot < SLOTS_PER_JAR; slot++) {
+            items.setStackInSlot(firstSlot(to) + slot, items.getStackInSlot(firstSlot(from) + slot));
+            items.setStackInSlot(firstSlot(from) + slot, ItemStack.EMPTY);
+        }
+    }
+
+    /**
+     * Copies the contents carried by a jar item into one corner. Needed when a stocked jar is
+     * placed onto a block that already exists, where vanilla never applies the item's data.
+     */
+    public void absorbSingleJar(CompoundTag itemsTag, int corner, HolderLookup.Provider registries) {
+        ItemStackHandler single = new ItemStackHandler(SLOTS_PER_JAR);
+        single.deserializeNBT(registries, itemsTag);
+        for (int slot = 0; slot < SLOTS_PER_JAR; slot++) {
+            ItemStack stack = single.getStackInSlot(slot);
+            if (!stack.isEmpty()) {
+                items.setStackInSlot(firstSlot(corner) + slot, stack);
+            }
+        }
     }
 
     @Override

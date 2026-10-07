@@ -40,6 +40,18 @@ public class SpiceJarItem extends BlockItem {
             return result;
         }
         BlockState state = level.getBlockState(pos);
+
+        // the item carries one jar, which vanilla loaded into corner 0; move it to the corner
+        // the player actually aimed at, so contents and the visible jar always agree
+        int placedCorner = 0;
+        for (int corner = 0; corner < SpiceJarBlock.JAR_COUNT; corner++) {
+            if (state.getValue(SpiceJarBlock.JARS[corner])) {
+                placedCorner = corner;
+                break;
+            }
+        }
+        jar.moveJarRange(0, placedCorner);
+
         BlockState restored = state;
         boolean anyFilled = false;
         for (int corner = 0; corner < SpiceJarBlock.JAR_COUNT; corner++) {
@@ -47,11 +59,15 @@ public class SpiceJarItem extends BlockItem {
             anyFilled |= filled;
             restored = restored.setValue(SpiceJarBlock.JARS[corner], filled);
         }
-        KaleidoscopeKitchenware.LOGGER.info("[jar] placed, stored={} cornersFilled={}{}{}{}",
-                jar.carryingTotal(), anyFilled && restored.getValue(SpiceJarBlock.JARS[0]),
+        if (!anyFilled) {
+            // an empty jar still needs to stand somewhere
+            restored = restored.setValue(SpiceJarBlock.JARS[placedCorner], true);
+        }
+        KaleidoscopeKitchenware.LOGGER.info("[jar] placed at corner {} stored={} lit={}{}{}{}",
+                placedCorner, jar.carryingTotal(), restored.getValue(SpiceJarBlock.JARS[0]),
                 restored.getValue(SpiceJarBlock.JARS[1]), restored.getValue(SpiceJarBlock.JARS[2]),
                 restored.getValue(SpiceJarBlock.JARS[3]));
-        if (anyFilled && restored != state) {
+        if (restored != state) {
             level.setBlockAndUpdate(pos, restored);
         }
         return result;
