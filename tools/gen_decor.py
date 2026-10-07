@@ -750,16 +750,18 @@ def build_tray(textures_dir: Path) -> None:
         "textures": textures,
         "elements": _tray_elements(2),
     })
-    # the item form is taller than the placed one: at inventory size a three pixel dish reads as
-    # a flat plate, and the gui angle shows the depth
+    # the item form is much taller than the placed one, and shown at a steeper angle: at inventory
+    # size a low dish reads as a flat bar whatever the lighting does
     write_json(RES / "assets" / NS / "models" / "item" / "seasoning_tray.json", {
         "textures": textures,
-        "elements": _tray_elements(5),
+        "elements": _tray_elements(8),
         "display": {
-            "gui": {"rotation": [30, 225, 0], "scale": [0.62, 0.62, 0.62]},
+            "gui": {"rotation": [45, 225, 0], "scale": [0.5, 0.5, 0.5]},
             "fixed": {"rotation": [0, 90, 0], "scale": [0.5, 0.5, 0.5]},
             "ground": {"rotation": [0, 0, 0], "translation": [0, 3, 0], "scale": [0.25, 0.25, 0.25]},
             "head": {"rotation": [0, 180, 0], "scale": [1, 1, 1]},
+            "thirdperson_righthand": {"rotation": [0, 90, 0], "scale": [0.55, 0.55, 0.55]},
+            "firstperson_righthand": {"rotation": [0, 45, 0], "scale": [0.4, 0.4, 0.4]},
         },
     })
     variants = {}

@@ -25,7 +25,7 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
     /** How much each further layer rises; sixteen layers end up just proud of the dish rim. */
     private static final float LAYER_STEP = 0.0125F;
     /** Twist of the first pair of layers; each pair opens a little wider than the last. */
-    private static final float LAYER_TWIST = 8.0F;
+    private static final float LAYER_TWIST = 16.0F;
     private static final float SCALE = 0.32F;
     /**
      * Distance from the dish centre to a compartment centre. The dish is a 16px model whose four
@@ -61,8 +61,11 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
                 pose.pushPose();
                 pose.translate(x, BASE_HEIGHT + layer * LAYER_STEP, z);
                 pose.mulPose(Axis.XP.rotationDegrees(90.0F));
-                // criss-cross: alternate the lean left and right, spreading a little wider with
-                // each pair so the pile reads as stacked rather than as one rotated item
+                // every other layer is flipped end for end, so the pile looks interleaved rather
+                // than like one item rotated a little
+                if (layer % 2 == 1) {
+                    pose.mulPose(Axis.YP.rotationDegrees(180.0F));
+                }
                 float twist = (layer % 2 == 0 ? -1.0F : 1.0F) * LAYER_TWIST * ((layer / 2) + 1);
                 pose.mulPose(Axis.ZP.rotationDegrees(twist));
                 pose.scale(SCALE, SCALE, SCALE);

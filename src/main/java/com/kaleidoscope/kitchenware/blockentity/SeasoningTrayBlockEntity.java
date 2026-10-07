@@ -30,7 +30,10 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
 
     private final ItemStack[][] contents = new ItemStack[COMPARTMENTS][STACKS_PER_COMPARTMENT];
     private boolean dropped;
-    private boolean syncedOnce;
+    /** How many ticks the entity has spent re-sending its contents after being loaded. */
+    private int syncTicks;
+    /** Ticks spent pushing contents at startup, to cover a client that is not ready yet. */
+    private static final int SYNC_BURST = 5;
 
     public SeasoningTrayBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.SEASONING_TRAY.get(), pos, state);
@@ -230,11 +233,18 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
         }
     }
 
+    /**
+     * Keeps re-sending the contents for the first few ticks.
+     *
+     * A single push on the first tick was not enough: putting something in immediately after
+     * placing the tray landed before the client had the entity, so the first insert never showed
+     * up until the next change. A short burst covers that window.
+     */
     public static void serverTick(Level level, BlockPos pos, BlockState state, SeasoningTrayBlockEntity tray) {
-        if (tray.syncedOnce) {
+        if (tray.syncTicks >= SYNC_BURST) {
             return;
         }
-        tray.syncedOnce = true;
+        tray.syncTicks++;
         tray.syncNow();
     }
 
