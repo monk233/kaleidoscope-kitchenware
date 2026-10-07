@@ -38,6 +38,7 @@ OUTLINE = ["#82563F", "#6D442F", "#5E3723"]
 WOOD = {
     "oak": ["#C1A266", "#BA975A", "#AE8E52", "#A38249", "#937544"] + OUTLINE,
     "spruce": ["#8A663A", "#7D5D37", "#6C5532", "#5F4F2B"] + OUTLINE,
+    "dark_oak": ["#82563F", "#6D442F", "#554229", "#483924", "#3B3020"] + OUTLINE,
     "bamboo": ["#B9DB5F", "#ADBE4D", "#98B145", "#8A9A3D", "#809038"] + OUTLINE,
 }
 
@@ -359,13 +360,13 @@ def draw_jar_top_filled(img, ramp, rng):
 def draw_tray_glaze(img, ramp, rng) -> None:
     """White porcelain: warm white body, faint glaze shading, a pale celadon band at the rim."""
     size = img.width
-    body, shade, highlight = (0xF2, 0xF2, 0xEC, 255), (0xDC, 0xDC, 0xD4, 255), (0xFF, 0xFF, 0xFB, 255)
-    celadon, edge = (0xA8, 0xCF, 0xC8, 255), (0x7E, 0x9B, 0x96, 255)
+    body, shade, highlight = (0xEF, 0xEE, 0xE2, 255), (0xDA, 0xD7, 0xC3, 255), (0xF5, 0xF5, 0xF5, 255)
+    celadon, edge = (0xA8, 0xCF, 0xC8, 255), (0x5E, 0x37, 0x23, 255)
     for y in range(size):
         for x in range(size):
             img.putpixel((x, y), body)
     # a few soft glaze patches, so the white does not read as a flat fill
-    for _ in range(12):
+    for _ in range(size // 2):
         cx, cy = rng.randrange(2, size - 2), rng.randrange(2, size - 2)
         colour = shade if rng.random() < 0.6 else highlight
         radius = rng.choice((1, 1, 2))
@@ -376,11 +377,12 @@ def draw_tray_glaze(img, ramp, rng) -> None:
                 x, y = cx + dx, cy + dy
                 if 1 <= x < size - 1 and 1 <= y < size - 1:
                     img.putpixel((x, y), colour)
-    for i in range(1, size - 1):
-        img.putpixel((i, 1), celadon)
-        img.putpixel((i, size - 2), celadon)
-        img.putpixel((1, i), celadon)
-        img.putpixel((size - 2, i), celadon)
+    band = max(1, size // 14)
+    for i in range(band, size - band):
+        img.putpixel((i, band), celadon)
+        img.putpixel((i, size - band - 1), celadon)
+        img.putpixel((band, i), celadon)
+        img.putpixel((size - band - 1, i), celadon)
     for i in range(size):
         img.putpixel((i, 0), edge)
         img.putpixel((i, size - 1), edge)
@@ -391,11 +393,11 @@ def draw_tray_glaze(img, ramp, rng) -> None:
 def draw_tray_glaze_dark(img, ramp, rng) -> None:
     """Inner walls and base: the same porcelain, a shade cooler where shadow falls."""
     size = img.width
-    body, shade, light = (0xE4, 0xE6, 0xE2, 255), (0xCB, 0xD0, 0xCC, 255), (0xF6, 0xF8, 0xF5, 255)
+    body, shade, light = (0xDA, 0xD7, 0xC3, 255), (0xC2, 0xBF, 0xAC, 255), (0xEF, 0xEE, 0xE2, 255)
     for y in range(size):
         for x in range(size):
             img.putpixel((x, y), body)
-    for _ in range(16):
+    for _ in range(size - 8):
         cx, cy = rng.randrange(size), rng.randrange(size)
         colour = shade if rng.random() < 0.6 else light
         radius = rng.choice((0, 1, 1, 2))
@@ -411,7 +413,7 @@ def draw_tray_glaze_dark(img, ramp, rng) -> None:
 def draw_vat_clay(img, ramp, rng) -> None:
     """Unglazed brown clay: a thrown pot, so vertical marks, with lighter glaze patches."""
     size = img.width
-    body, dark, light = (0xA8, 0x7C, 0x4E, 255), (0x84, 0x5E, 0x38, 255), (0xC2, 0x99, 0x6A, 255)
+    body, dark, light = (0xA3, 0x81, 0x4F, 255), (0x8A, 0x6A, 0x47, 255), (0x5E, 0x37, 0x23, 255)
     for y in range(size):
         for x in range(size):
             img.putpixel((x, y), body)
@@ -423,7 +425,7 @@ def draw_vat_clay(img, ramp, rng) -> None:
         else:
             for y in range(0, size, 4):
                 img.putpixel((x, y), light)
-    for _ in range(8):
+    for _ in range(size // 2):
         cx, cy = rng.randrange(size), rng.randrange(size)
         colour = dark if rng.random() < 0.5 else light
         for dy in (-1, 0, 1):
@@ -655,8 +657,8 @@ def build_functional(textures_dir: Path) -> None:
 # --- containers and vat -------------------------------------------------------
 
 CONTAINER_TEXTURES = {
-    "vat_side": {"kind": "vat_clay", "ramp": ["#A87C4E", "#845E38", "#C2996A"]},
-    "vat_water": {"kind": "vat_water", "ramp": ["#3F76E4", "#2E57B8", "#6AA0F2"]},
+    "vat_side": {"kind": "vat_clay", "size": 32, "ramp": ["#A3814F", "#8A6A47", "#5E3723"]},
+    "vat_water": {"kind": "vat_water", "size": 32, "ramp": ["#3F76E4", "#2E57B8", "#6AA0F2"]},
     "vat_rim": {"kind": "vat_clay", "ramp": ["#C2996A", "#A87C4E", "#D8B183"]},
     "rack_board": {"kind": "plank", "species": "spruce"},
     "jar_side": {"kind": "jar_side", "ramp": WOOD["oak"]},
@@ -729,8 +731,10 @@ def build_containers(textures_dir: Path) -> None:
     jar_height = 7.0
 
 TRAY_TEXTURES = {
-    "tray_glaze": {"kind": "tray_glaze", "ramp": ["#F2F2EC", "#DCDCD4", "#FFFFFF", "#A8CFC8"]},
-    "tray_glaze_dark": {"kind": "tray_glaze_dark", "ramp": ["#E4E6E2", "#CBD0CC", "#F6F8F5", "#A8CFC8"]},
+    "tray_glaze": {"kind": "tray_glaze", "size": 32,
+                   "ramp": ["#EFEEE2", "#DAD7C3", "#F5F5F5", "#A8CFC8"]},
+    "tray_glaze_dark": {"kind": "tray_glaze_dark", "size": 32,
+                        "ramp": ["#DAD7C3", "#C2BFAC", "#EFEEE2"]},
 }
 
 
@@ -799,8 +803,8 @@ def build_tray(textures_dir: Path) -> None:
 # --- dish rack ----------------------------------------------------------------
 
 RACK_TEXTURES = {
-    "rack_wood": {"kind": "plank", "species": "spruce"},
-    "rack_frame": {"kind": "plank", "species": "oak"},
+    "rack_wood": {"kind": "plank", "size": 32, "species": "spruce"},
+    "rack_frame": {"kind": "plank", "size": 32, "species": "dark_oak"},
 }
 
 
@@ -833,13 +837,19 @@ def build_dish_rack(textures_dir: Path) -> None:
             model["y"] = y
         variants[f"facing={facing}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "dish_rack.json", {"variants": variants})
+    # frames in dark oak, trays in spruce: the skill's "build the frame first, then skin it"
     write_json(RES / "assets" / NS / "models" / "item" / "dish_rack.json", {
         "textures": textures,
         "elements": elements,
         "display": {
             "gui": {"rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.7, 0.7, 0.7]},
-            "fixed": {"rotation": [0, 180, 0], "scale": [1.0, 1.0, 1.0]},
-            "ground": {"translation": [0, 3, 0], "scale": [0.25, 0.25, 0.25]},
+            "fixed": {"rotation": [0, 180, 0], "translation": [0, 0, 0], "scale": [1.0, 1.0, 1.0]},
+            "ground": {"rotation": [0, 0, 0], "translation": [0, 3, 0], "scale": [0.25, 0.25, 0.25]},
+            "head": {"rotation": [0, 180, 0], "translation": [0, 0, 0], "scale": [1.0, 1.0, 1.0]},
+            "thirdperson_righthand": {"rotation": [0, 90, 0], "translation": [0, 3, 1], "scale": [0.4, 0.4, 0.4]},
+            "thirdperson_lefthand": {"rotation": [0, 90, 0], "translation": [0, 3, 1], "scale": [0.4, 0.4, 0.4]},
+            "firstperson_righthand": {"rotation": [0, 45, 0], "translation": [0, 2, 0], "scale": [0.45, 0.45, 0.45]},
+            "firstperson_lefthand": {"rotation": [0, 45, 0], "translation": [0, 2, 0], "scale": [0.45, 0.45, 0.45]},
         },
     })
     # contents drop on their own, so the loot table stays empty
