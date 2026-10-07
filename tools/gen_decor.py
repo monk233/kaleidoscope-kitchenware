@@ -733,7 +733,11 @@ def build_containers(textures_dir: Path) -> None:
             box([14, 1, 2], [16, 16, 14], "#0"),
         ]
         if level > 0:
-            elements.append(box([2, water_y, 2], [14, water_y + 0.4, 14], "#water"))
+            elements.append({
+                "from": [2, water_y, 2], "to": [14, water_y + 0.4, 14],
+                "faces": {face: {"uv": [0, 0, 12, 12], "texture": "#water", "tintindex": 0}
+                          for face in ("north", "south", "east", "west", "up", "down")},
+            })
         write_json(RES / "assets" / NS / "models" / "block" / f"water_vat_{level}.json",
                    {"render_type": "minecraft:cutout",
                     "textures": {"0": tex("vat_side"), "water": WATER,
