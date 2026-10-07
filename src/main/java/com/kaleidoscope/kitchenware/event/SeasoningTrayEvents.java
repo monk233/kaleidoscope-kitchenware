@@ -310,7 +310,7 @@ public final class SeasoningTrayEvents {
         shovel.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
     }
 
-    private static boolean hasWater(ItemStack shovel) {
+    public static boolean hasWater(ItemStack shovel) {
         CustomData data = shovel.get(DataComponents.CUSTOM_DATA);
         return data != null && data.copyTag().getBoolean(WATER);
     }
