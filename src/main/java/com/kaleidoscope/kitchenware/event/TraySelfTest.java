@@ -1,12 +1,16 @@
 package com.kaleidoscope.kitchenware.event;
 
 import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
+import com.kaleidoscope.kitchenware.block.SeasoningTrayBlock;
 import com.kaleidoscope.kitchenware.blockentity.SeasoningTrayBlockEntity;
 import com.kaleidoscope.kitchenware.registry.ModBlocks;
 import com.kaleidoscope.kitchenware.registry.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -47,15 +51,40 @@ public final class TraySelfTest {
             unpacked.loadFromItem(travelling, registries);
             boolean roundTrip = unpacked.storedCount(0) == capped;
 
+            // aiming at a compartment must select that compartment, from every facing and both
+            // by its side wall and from above
+            boolean everyCompartmentAimable = true;
+            for (Direction facing : new Direction[]{Direction.NORTH, Direction.SOUTH,
+                    Direction.EAST, Direction.WEST}) {
+                Direction view = facing.getOpposite();
+                Direction right = view.getClockWise();
+                for (int slot = 0; slot < SeasoningTrayBlockEntity.COMPARTMENTS; slot++) {
+                    double left = (slot % 2 == 0) ? -0.25D : 0.25D;
+                    double far = (slot < 2) ? 0.25D : -0.25D;
+                    double x = 0.5D + right.getStepX() * left + view.getStepX() * far;
+                    double z = 0.5D + right.getStepZ() * left + view.getStepZ() * far;
+                    double sideY = (slot < 2) ? 0.7D : 0.3D;
+                    everyCompartmentAimable &= aimSelects(facing, slot,
+                            new Vec3(x, sideY, z), view);
+                    everyCompartmentAimable &= aimSelects(facing, slot,
+                            new Vec3(x, 0.9D, z), Direction.UP);
+                }
+            }
+
             boolean pass = stored && topsUp && nonSeasoningRefused && capped == 1024
-                    && itemCarriesData && roundTrip;
+                    && itemCarriesData && roundTrip && everyCompartmentAimable;
             KaleidoscopeKitchenware.LOGGER.info(
                     "[traytest] {} stored={} topsUp={} nonSeasoningRefused={} capped={} "
-                            + "itemCarriesData={} roundTrip={}",
+                            + "itemCarriesData={} roundTrip={} everyCompartmentAimable={}",
                     pass ? "PASS" : "FAIL", stored, topsUp, nonSeasoningRefused, capped,
-                    itemCarriesData, roundTrip);
+                    itemCarriesData, roundTrip, everyCompartmentAimable);
         } catch (Throwable throwable) {
             KaleidoscopeKitchenware.LOGGER.error("[traytest] FAIL with exception", throwable);
         }
+    }
+
+    private static boolean aimSelects(Direction facing, int slot, Vec3 at, Direction face) {
+        BlockHitResult hit = new BlockHitResult(at, face, BlockPos.ZERO, false);
+        return SeasoningTrayBlock.compartmentAt(hit, BlockPos.ZERO, facing) == slot;
     }
 }

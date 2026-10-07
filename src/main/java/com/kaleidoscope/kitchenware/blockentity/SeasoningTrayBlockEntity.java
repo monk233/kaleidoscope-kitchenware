@@ -28,6 +28,7 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
     public static final int CAPACITY = STACKS_PER_COMPARTMENT * 64;
 
     private final ItemStack[][] contents = new ItemStack[COMPARTMENTS][STACKS_PER_COMPARTMENT];
+    private boolean dropped;
 
     public SeasoningTrayBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.SEASONING_TRAY.get(), pos, state);
@@ -132,9 +133,32 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
     }
 
     /**
-     * Empties a compartment. Returns the contents split into stacks of at most 64, because a single
-     * ItemStack cannot hold more than that once it is saved.
+     * Takes up to {@code amount} items out of one compartment, never mixing into a half stack.
+     * A compartment is handed out a stack at a time because that is all an ItemStack can carry.
      */
+    public ItemStack extractUpTo(int slot, int amount) {
+        slot = clamp(slot);
+        if (level != null && level.isClientSide) {
+            return ItemStack.EMPTY;
+        }
+        for (int index = STACKS_PER_COMPARTMENT - 1; index >= 0; index--) {
+            ItemStack held = contents[slot][index];
+            if (held.isEmpty()) {
+                continue;
+            }
+            int take = Math.min(amount, held.getCount());
+            ItemStack taken = held.copyWithCount(take);
+            held.shrink(take);
+            if (held.isEmpty()) {
+                contents[slot][index] = ItemStack.EMPTY;
+            }
+            changed();
+            return taken;
+        }
+        return ItemStack.EMPTY;
+    }
+
+    /** Empties a compartment, for callers that really want everything. */
     public List<ItemStack> extractAll(int slot) {
         slot = clamp(slot);
         List<ItemStack> drained = new ArrayList<>();
@@ -152,6 +176,15 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
             changed();
         }
         return drained;
+    }
+
+    /** Set once the drop has been produced, so onRemove does not produce a second one. */
+    public boolean isDropped() {
+        return dropped;
+    }
+
+    public void markDropped() {
+        dropped = true;
     }
 
     private void changed() {

@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -68,22 +69,30 @@ public class SeasoningTrayBlock extends HorizontalDirectionalBlock implements En
     }
 
     /**
-     * Compartment 0..3 from the hit position: rows by height, columns by which side of the face was
-     * touched. 0 top-left, 1 top-right, 2 bottom-left, 3 bottom-right as seen by the player.
+     * Compartment 0..3 from the hit position, in the order the player sees the face: 0 top-left,
+     * 1 top-right, 2 bottom-left, 3 bottom-right.
+     *
+     * Left and right follow the player's view rather than world axes, and aiming at the top of the
+     * dish uses depth instead of height, so pointing at a compartment always selects it.
      */
     public static int compartmentAt(BlockHitResult hit, BlockPos pos, Direction facing) {
-        double localY = hit.getLocation().y - pos.getY();
-        int row = localY >= 0.5 ? 0 : 1;
-        double localX = hit.getLocation().x - pos.getX() - 0.5;
-        double localZ = hit.getLocation().z - pos.getZ() - 0.5;
-        double side;
-        switch (facing) {
-            case SOUTH -> side = -localX;
-            case EAST -> side = -localZ;
-            case WEST -> side = localZ;
-            default -> side = localX;
+        Direction view = facing.getOpposite();
+        Direction right = view.getClockWise();
+        Vec3 at = hit.getLocation();
+        double dx = at.x - (pos.getX() + 0.5);
+        double dz = at.z - (pos.getZ() + 0.5);
+        double alongRight = dx * right.getStepX() + dz * right.getStepZ();
+        double height = at.y - pos.getY();
+
+        double vertical;
+        if (hit.getDirection().getAxis().isVertical()) {
+            // looking down into the dish: the far edge is the top row
+            vertical = dx * view.getStepX() + dz * view.getStepZ();
+        } else {
+            vertical = height - 0.5;
         }
-        int column = side < 0 ? 0 : 1;
+        int column = alongRight > 0 ? 1 : 0;
+        int row = vertical > 0 ? 0 : 1;
         return row * 2 + column;
     }
 
@@ -132,15 +141,13 @@ public class SeasoningTrayBlock extends HorizontalDirectionalBlock implements En
             level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 0.9F);
             return ItemInteractionResult.SUCCESS;
         }
-        // emptying a compartment hands back several stacks, since one cannot hold 1024
-        List<ItemStack> drained = tray.extractAll(slot);
-        if (drained.isEmpty()) {
+        // plain take hands over one stack; a compartment holds far more than an ItemStack can
+        ItemStack taken = tray.extractUpTo(slot, 64);
+        if (taken.isEmpty()) {
             tell(player, "state.kaleidoscope_kitchenware.tray_empty");
             return ItemInteractionResult.FAIL;
         }
-        for (ItemStack drainedStack : drained) {
-            player.getInventory().placeItemBackInInventory(drainedStack);
-        }
+        player.getInventory().placeItemBackInInventory(taken);
         level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 0.9F);
         return ItemInteractionResult.SUCCESS;
     }
@@ -156,29 +163,31 @@ public class SeasoningTrayBlock extends HorizontalDirectionalBlock implements En
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof SeasoningTrayBlockEntity tray) {
-            ItemStack drop = new ItemStack(ModItems.SEASONING_TRAY.get());
-            tray.saveToItem(drop, level.registryAccess());
-            KaleidoscopeKitchenware.LOGGER.info("[tray] {} break, drop carries {}",
-                    pos, drop.has(net.minecraft.core.component.DataComponents.CUSTOM_DATA));
-            Block.popResource(level, pos, drop);
+            dropTray(level, pos, tray);
         }
         return super.playerWillDestroy(level, pos, state, player);
     }
 
-    /** Fallback for explosions and pistons. */
+    /** Fallback for explosions and pistons. Guarded so a broken block never drops twice. */
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide
-                && level.getBlockEntity(pos) instanceof SeasoningTrayBlockEntity tray) {
-            ItemStack drop = new ItemStack(ModItems.SEASONING_TRAY.get());
-            tray.saveToItem(drop, level.registryAccess());
-            Block.popResource(level, pos, drop);
+                && level.getBlockEntity(pos) instanceof SeasoningTrayBlockEntity tray
+                && !tray.isDropped()) {
+            dropTray(level, pos, tray);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    /** Loot tables would drop an empty tray; the drop is produced above instead. */
-    public static List<ItemStack> noLoot() {
-        return List.of();
+    private static void dropTray(Level level, BlockPos pos, SeasoningTrayBlockEntity tray) {
+        if (tray.isDropped()) {
+            return;
+        }
+        ItemStack drop = new ItemStack(ModItems.SEASONING_TRAY.get());
+        tray.saveToItem(drop, level.registryAccess());
+        tray.markDropped();
+        KaleidoscopeKitchenware.LOGGER.info("[tray] {} break, drop carries {}",
+                pos, drop.has(net.minecraft.core.component.DataComponents.CUSTOM_DATA));
+        Block.popResource(level, pos, drop);
     }
 }

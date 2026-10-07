@@ -20,39 +20,25 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
     public void render(SeasoningTrayBlockEntity tray, float partialTick, PoseStack pose, MultiBufferSource buffer,
                        int packedLight, int packedOverlay) {
         Direction facing = tray.getBlockState().getValue(SeasoningTrayBlock.FACING);
+        Direction view = facing.getOpposite();
+        Direction right = view.getClockWise();
         for (int slot = 0; slot < SeasoningTrayBlockEntity.COMPARTMENTS; slot++) {
             ItemStack stack = tray.stored(slot);
             if (stack.isEmpty()) {
                 continue;
             }
-            double[] local = compartmentOffset(slot);
-            // rotate the local offset so the icons sit on the face the tray shows
-            double x = local[0];
-            double z = local[1];
-            double rx = switch (facing) {
-                case SOUTH -> -x;
-                case EAST -> -z;
-                case WEST -> z;
-                default -> x;
-            };
-            double rz = switch (facing) {
-                case SOUTH -> -z;
-                case EAST -> x;
-                case WEST -> -x;
-                default -> z;
-            };
+            // same left/right and near/far axes the click uses, so the icon sits in the
+            // compartment the player is aiming at
+            double left = (slot % 2 == 0) ? -0.25D : 0.25D;
+            double far = (slot < 2) ? 0.25D : -0.25D;
+            double x = right.getStepX() * left + view.getStepX() * far;
+            double z = right.getStepZ() * left + view.getStepZ() * far;
             pose.pushPose();
-            pose.translate(0.5D + rx, 0.12D, 0.5D + rz);
+            pose.translate(0.5D + x, 0.12D, 0.5D + z);
             pose.scale(0.30F, 0.30F, 0.30F);
             Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND,
                     packedLight, packedOverlay, pose, buffer, tray.getLevel(), 0);
             pose.popPose();
         }
-    }
-
-    /** x offset, z offset and height of each compartment, in block space from the centre. */
-    private static double[] compartmentOffset(int slot) {
-        double side = (slot % 2 == 0) ? -0.25D : 0.25D;
-        return new double[]{side, -0.25D, 0.0D};
     }
 }
