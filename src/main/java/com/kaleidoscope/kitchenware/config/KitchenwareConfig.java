@@ -8,7 +8,6 @@ public final class KitchenwareConfig {
 
     public static final ModConfigSpec.DoubleValue FUEL_BURN_MULTIPLIER;
     public static final ModConfigSpec.BooleanValue VAT_CONSUMES_LEVEL;
-    public static final ModConfigSpec.IntValue CUPBOARD_CAPACITY;
 
     static {
         BUILDER.push("stove");
@@ -24,9 +23,6 @@ public final class KitchenwareConfig {
         BUILDER.pop();
 
         BUILDER.push("storage");
-        CUPBOARD_CAPACITY = BUILDER
-                .comment("Cupboard slots. Values above 27 are clamped to 27.")
-                .defineInRange("cupboardCapacity", 16, 1, 27);
         BUILDER.pop();
     }
 

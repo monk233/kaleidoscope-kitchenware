@@ -1,9 +1,7 @@
 package com.kaleidoscope.kitchenware.registry;
 
 import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
-import com.kaleidoscope.kitchenware.block.CupboardBlock;
 import com.kaleidoscope.kitchenware.block.FacingThinBlock;
-import com.kaleidoscope.kitchenware.block.FirewoodPileBlock;
 import com.kaleidoscope.kitchenware.block.FirewoodStoveBlock;
 import com.kaleidoscope.kitchenware.block.DishRackBlock;
 import com.kaleidoscope.kitchenware.block.SeasoningTrayBlock;
@@ -48,13 +46,8 @@ public final class ModBlocks {
     public static final DeferredHolder<Block, Block> RAMMED_EARTH_WALL = reg("rammed_earth_wall",
             () -> new Block(earth()));
     public static final DeferredHolder<Block, Block> STONE_FLOOR_TILE = reg("stone_floor_tile", () -> new Block(stone()));
-    public static final DeferredHolder<Block, Block> WOOD_FLOOR_BOARD = reg("wood_floor_board", () -> new Block(wood()));
 
     // --- 木构 / timber ---
-    public static final DeferredHolder<Block, RotatedPillarBlock> WOODEN_BEAM = reg("wooden_beam",
-            () -> new RotatedPillarBlock(wood()));
-    public static final DeferredHolder<Block, RotatedPillarBlock> WOODEN_RAFTER = reg("wooden_rafter",
-            () -> new RotatedPillarBlock(wood()));
     public static final DeferredHolder<Block, FacingThinBlock> LATTICE_WINDOW = reg("lattice_window",
             () -> new FacingThinBlock(thinWood()));
     public static final DeferredHolder<Block, FacingThinBlock> BAMBOO_CURTAIN = reg("bamboo_curtain",
@@ -64,16 +57,8 @@ public final class ModBlocks {
     /** Carries the vanilla LIT property, which is exactly what the base mod checks for a heat source. */
     public static final DeferredHolder<Block, FirewoodStoveBlock> FIREWOOD_STOVE = reg("firewood_stove",
             () -> new FirewoodStoveBlock(stone().randomTicks()));
-    public static final DeferredHolder<Block, FirewoodPileBlock> FIREWOOD_PILE = reg("firewood_pile",
-            () -> new FirewoodPileBlock(wood().noOcclusion().strength(0.6F)));
-    /** Plain pillar block, decorative: keeps the chimney line above a stove looking finished. */
-    public static final DeferredHolder<Block, RotatedPillarBlock> CHIMNEY = reg("chimney",
-            () -> new RotatedPillarBlock(stone()));
     public static final DeferredHolder<Block, WaterVatBlock> WATER_VAT = reg("water_vat",
             () -> new WaterVatBlock(stone().noOcclusion().strength(1.5F, 4.0F)));
-    /** 16 slots of bowls and flower pots, no GUI anywhere. */
-    public static final DeferredHolder<Block, CupboardBlock> CUPBOARD = reg("cupboard",
-            () -> new CupboardBlock(wood().strength(2.0F, 3.0F)));
     /** Two shelf dish rack holding bowls and flower pots, no interface. */
     public static final DeferredHolder<Block, DishRackBlock> DISH_RACK = regNoItem("dish_rack",
             () -> new DishRackBlock(BlockBehaviour.Properties.of()
@@ -89,9 +74,6 @@ public final class ModBlocks {
                     .sound(SoundType.WOOD)
                     .strength(1.5F, 3.0F)
                     .noOcclusion()));
-    /** Plain block; the boards tile so a row of them reads as one continuous counter. */
-    public static final DeferredHolder<Block, Block> KITCHEN_COUNTER = reg("kitchen_counter",
-            () -> new Block(wood().noOcclusion()));
 
     private ModBlocks() {
     }
