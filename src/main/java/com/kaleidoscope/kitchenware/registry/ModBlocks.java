@@ -2,6 +2,7 @@ package com.kaleidoscope.kitchenware.registry;
 
 import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
 import com.kaleidoscope.kitchenware.block.FirewoodStoveBlock;
+import com.kaleidoscope.kitchenware.block.IronWokBlock;
 import com.kaleidoscope.kitchenware.block.DishRackBlock;
 import com.kaleidoscope.kitchenware.block.SeasoningTrayBlock;
 import com.kaleidoscope.kitchenware.block.WaterVatBlock;
@@ -26,6 +27,14 @@ public final class ModBlocks {
      */
     public static final DeferredHolder<Block, FirewoodStoveBlock> FIREWOOD_STOVE = reg("firewood_stove",
             () -> new FirewoodStoveBlock(stone().randomTicks().noOcclusion()));
+    /** The wok that sits on a burner; it hangs into the cavity, so it needs its own shape. */
+    public static final DeferredHolder<Block, IronWokBlock> IRON_WOK = reg("iron_wok",
+            () -> new IronWokBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .sound(SoundType.METAL)
+                    .strength(1.5F, 6.0F)
+                    .noOcclusion()
+                    .requiresCorrectToolForDrops()));
     public static final DeferredHolder<Block, WaterVatBlock> WATER_VAT = reg("water_vat",
             () -> new WaterVatBlock(stone().noOcclusion().strength(1.5F, 4.0F)));
     /** Two shelf dish rack holding bowls and flower pots, no interface. */

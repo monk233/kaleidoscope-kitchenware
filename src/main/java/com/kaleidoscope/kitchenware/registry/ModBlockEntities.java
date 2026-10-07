@@ -2,6 +2,7 @@ package com.kaleidoscope.kitchenware.registry;
 
 import com.kaleidoscope.kitchenware.KaleidoscopeKitchenware;
 import com.kaleidoscope.kitchenware.blockentity.FirewoodStoveBlockEntity;
+import com.kaleidoscope.kitchenware.blockentity.IronWokBlockEntity;
 import com.kaleidoscope.kitchenware.blockentity.DishRackBlockEntity;
 import com.kaleidoscope.kitchenware.blockentity.SeasoningTrayBlockEntity;
 import net.minecraft.core.registries.Registries;
@@ -17,6 +18,11 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FirewoodStoveBlockEntity>> FIREWOOD_STOVE =
             BLOCK_ENTITIES.register("firewood_stove",
                     () -> BlockEntityType.Builder.of(FirewoodStoveBlockEntity::new, ModBlocks.FIREWOOD_STOVE.get())
+                            .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<IronWokBlockEntity>> IRON_WOK =
+            BLOCK_ENTITIES.register("iron_wok",
+                    () -> BlockEntityType.Builder.of(IronWokBlockEntity::new, ModBlocks.IRON_WOK.get())
                             .build(null));
 
 

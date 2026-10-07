@@ -11,6 +11,7 @@
   "state.kaleidoscope_kitchenware.need_fuel": "灶里没有柴火",
   "state.kaleidoscope_kitchenware.pile_take": "取出一根柴",
   "block.kaleidoscope_kitchenware.water_vat": "水缸",
+  "block.kaleidoscope_kitchenware.iron_wok": "大铁锅",
   "block.kaleidoscope_kitchenware.seasoning_tray": "调味盘",
   "block.kaleidoscope_kitchenware.dish_rack": "碗架",
   "state.kaleidoscope_kitchenware.rack_returned": "把 %s 放回了碗架",

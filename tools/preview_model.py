@@ -67,19 +67,20 @@ def texture(ref: str, model: dict) -> Image.Image:
     return Image.open(file).convert("RGBA")
 
 
-def render(models: list[tuple[dict, float]], out: Path) -> None:
+def render(models: list[tuple[dict, float, float]], out: Path) -> None:
     quads = []
-    for model, offset in models:
+    for model, offset_x, offset_y in models:
         for element in model.get("elements", []):
-            box = {"from": [element["from"][0] + offset, element["from"][1], element["from"][2]],
-                   "to": [element["to"][0] + offset, element["to"][1], element["to"][2]]}
+            box = {"from": [element["from"][0] + offset_x, element["from"][1] + offset_y, element["from"][2]],
+                   "to": [element["to"][0] + offset_x, element["to"][1] + offset_y, element["to"][2]]}
             for face, normal in FACES.items():
                 spec = element.get("faces", {}).get(face)
                 if spec is None or face not in VISIBLE:
                     continue
                 corners = face_corners(box, normal)
                 screen = [project(*corner) for corner in corners]
-                depth = max(point[1] for point in corners) + sum(point[2] for point in corners) / 4
+                # camera space depth along (1, 1, 1) after the turn; larger is nearer
+                depth = sum((16 - x) + y + (16 - z) for x, y, z in corners) / 4
                 quads.append((depth, screen, spec, texture(spec["texture"], model)))
     quads.sort(key=lambda quad: quad[0])
 
@@ -134,12 +135,14 @@ def main() -> None:
     index = 0
     while index < len(args):
         model = json.loads(Path(args[index]).read_text(encoding="utf-8"))
-        offset = 0.0
+        offset_x = offset_y = 0.0
         if index + 1 < len(args) and not args[index + 1].endswith(".json"):
-            offset = float(args[index + 1])
+            parts = args[index + 1].split(",")
+            offset_x = float(parts[0])
+            offset_y = float(parts[1]) if len(parts) > 1 else 0.0
             index += 1
         index += 1
-        models.append((model, offset))
+        models.append((model, offset_x, offset_y))
     render(models, out)
 
 

@@ -11,6 +11,7 @@
   "state.kaleidoscope_kitchenware.need_fuel": "No firewood in the stove",
   "state.kaleidoscope_kitchenware.pile_take": "Took one piece of firewood",
   "block.kaleidoscope_kitchenware.water_vat": "Water Vat",
+  "block.kaleidoscope_kitchenware.iron_wok": "Iron Wok",
   "block.kaleidoscope_kitchenware.seasoning_tray": "Seasoning Tray",
   "block.kaleidoscope_kitchenware.dish_rack": "Dish Rack",
   "state.kaleidoscope_kitchenware.rack_returned": "Put %s back on the rack",

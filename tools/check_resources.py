@@ -55,7 +55,10 @@ for name, textures, models in (
         ("firewood_stove",
          ("stove_side", "stove_front", "stove_front_lit", "stove_top", "stove_soot"),
          ("firewood_stove_left", "firewood_stove_right",
-          "firewood_stove_left_lit", "firewood_stove_right_lit")),):
+          "firewood_stove_left_lit", "firewood_stove_right_lit")),
+        ("iron_wok",
+         ("wok_outer", "wok_inner", "wok_bottom"),
+         ("iron_wok",))):
     require(RES / "assets" / NS / "blockstates" / f"{name}.json")
     require(RES / "assets" / NS / "models" / "item" / f"{name}.json")
     require(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json")

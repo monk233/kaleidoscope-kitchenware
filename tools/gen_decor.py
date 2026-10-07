@@ -225,6 +225,46 @@ def draw_stove_soot(img, ramp, rng):
         img.putpixel((rng.randrange(size), rng.randrange(size)), ramp[-1])
 
 
+# --- the iron wok -------------------------------------------------------------
+
+CAST_IRON = ["#3A3B40", "#4A4B51", "#5C5D64", "#75767D", "#8B8C93"]
+
+
+def draw_wok_outer(img, ramp, rng):
+    """Cast iron from outside: hammered bands with soot and wear over them."""
+    size = img.width
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), ramp[1])
+    for x in range(0, size, 5):
+        for y in range(size):
+            img.putpixel((x, y), ramp[0])
+    for _ in range(size * size // 6):
+        x, y = rng.randrange(size), rng.randrange(size)
+        img.putpixel((x, y), ramp[3] if rng.random() < 0.3 else ramp[0])
+
+
+def draw_wok_inner(img, ramp, rng):
+    """The seasoned inside: darker than new iron, with a sheen across the middle."""
+    size = img.width
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), ramp[2])
+    for _ in range(size * size // 5):
+        x, y = rng.randrange(size), rng.randrange(size)
+        img.putpixel((x, y), ramp[1] if rng.random() < 0.7 else ramp[3])
+
+
+def draw_wok_bottom(img, ramp, rng):
+    """The outside of the bottom, which sits closest to the flames and goes black."""
+    size = img.width
+    for y in range(size):
+        for x in range(size):
+            img.putpixel((x, y), ramp[0])
+    for _ in range(size * size // 10):
+        img.putpixel((rng.randrange(size), rng.randrange(size)), ramp[1])
+
+
 def draw_wood_pile(img, ramp, rng):
     """Log ends seen from above: bark ring outside, growth rings inside."""
     size = img.width
@@ -464,6 +504,9 @@ PATTERNS = {
     "stove_front_lit": draw_stove_front_lit,
     "stove_top": draw_stove_top,
     "stove_soot": draw_stove_soot,
+    "wok_outer": draw_wok_outer,
+    "wok_inner": draw_wok_inner,
+    "wok_bottom": draw_wok_bottom,
     "wood_pile": draw_wood_pile,
     "cabinet_front": draw_cabinet_front,
     "cabinet_open": draw_cabinet_open,
@@ -729,6 +772,100 @@ def build_functional(textures_dir: Path) -> None:
     # range hood was removed: venting turned out to be a gimmick nobody asked for
 
 
+# --- the iron wok -------------------------------------------------------------
+
+WOK_TEXTURES = {
+    "wok_outer": {"kind": "wok_outer", "size": 32, "ramp": CAST_IRON},
+    "wok_inner": {"kind": "wok_inner", "size": 32, "ramp": CAST_IRON},
+    "wok_bottom": {"kind": "wok_bottom", "size": 32, "ramp": CAST_IRON},
+}
+
+WOK_CENTRE = 8.0
+# the rim rests on the brick counter, the bowl hangs 6 units into the burner cavity
+WOK_RIM_OUTER = 6.5
+WOK_RIM_INNER = 5.0
+# (bottom y, top y, half width); the bowl tapers as it goes down
+WOK_RINGS = [(-1.5, 0.0, 4.9), (-3.0, -1.5, 4.2), (-4.2, -3.0, 3.4), (-5.2, -4.2, 2.4)]
+WOK_BOTTOM = (-6.0, -5.2, 1.5)
+WOK_WALL = 0.8
+
+
+def wok_ring(y0: float, y1: float, half: float, outer: str, inner: str, hat: str) -> list:
+    """Four walls around the centre, so the inside of the bowl stays visible from above."""
+    lo, hi = WOK_CENTRE - half, WOK_CENTRE + half
+    return [
+        stove_box([lo, y0, lo], [hi, y1, lo + WOK_WALL],
+                  {"north": outer, "up": hat, "down": hat, "south": inner,
+                   "east": hat, "west": hat}),
+        stove_box([lo, y0, hi - WOK_WALL], [hi, y1, hi],
+                  {"south": outer, "up": hat, "down": hat, "north": inner,
+                   "east": hat, "west": hat}),
+        stove_box([lo, y0, lo + WOK_WALL], [lo + WOK_WALL, y1, hi - WOK_WALL],
+                  {"west": outer, "up": hat, "down": hat, "east": inner}),
+        stove_box([hi - WOK_WALL, y0, lo + WOK_WALL], [hi, y1, hi - WOK_WALL],
+                  {"east": outer, "up": hat, "down": hat, "west": inner}),
+    ]
+
+
+def build_iron_wok(textures_dir: Path) -> None:
+    for seed, (name, spec) in enumerate(sorted(WOK_TEXTURES.items())):
+        make_texture(spec, seed=901 + seed * 23).save(textures_dir / f"{name}.png")
+
+    outer, inner, bottom = tex("wok_outer"), tex("wok_inner"), tex("wok_bottom")
+    elements = []
+    # the lip, which is what the player actually sees resting on the brick
+    rim_lo, rim_hi = WOK_CENTRE - WOK_RIM_OUTER, WOK_CENTRE + WOK_RIM_OUTER
+    lip_lo, lip_hi = WOK_CENTRE - WOK_RIM_INNER, WOK_CENTRE + WOK_RIM_INNER
+    elements += [
+        stove_box([rim_lo, 0, rim_lo], [rim_hi, 1.0, lip_lo],
+                  {"north": outer, "up": outer, "south": inner, "down": outer, "east": outer, "west": outer}),
+        stove_box([rim_lo, 0, lip_hi], [rim_hi, 1.0, rim_hi],
+                  {"south": outer, "up": outer, "north": inner, "down": outer, "east": outer, "west": outer}),
+        stove_box([rim_lo, 0, lip_lo], [lip_lo, 1.0, lip_hi],
+                  {"west": outer, "up": outer, "east": inner, "down": outer}),
+        stove_box([lip_hi, 0, lip_lo], [rim_hi, 1.0, lip_hi],
+                  {"east": outer, "up": outer, "west": inner, "down": outer}),
+    ]
+    for index, (y0, y1, half) in enumerate(WOK_RINGS):
+        elements += wok_ring(y0, y1, half, outer, inner, outer if index == 0 else bottom)
+    # the bottom of the bowl: solid, seasoned inside and black underneath
+    lo, hi = WOK_CENTRE - WOK_BOTTOM[2], WOK_CENTRE + WOK_BOTTOM[2]
+    elements.append(stove_box([lo, WOK_BOTTOM[0], lo], [hi, WOK_BOTTOM[1], hi],
+                              {"up": inner, "down": bottom, "north": outer, "south": outer,
+                               "east": outer, "west": outer}))
+
+    write_json(RES / "assets" / NS / "models" / "block" / "iron_wok.json",
+               {"textures": {"particle": outer}, "elements": elements})
+    variants = {}
+    for facing, y in FACING_Y:
+        model = {"model": f"{NS}:block/iron_wok"}
+        if y:
+            model["y"] = y
+        variants[f"facing={facing}"] = model
+    write_json(RES / "assets" / NS / "blockstates" / "iron_wok.json", {"variants": variants})
+    write_json(RES / "assets" / NS / "models" / "item" / "iron_wok.json", {
+        "parent": f"{NS}:block/iron_wok",
+        "display": {
+            "gui": {"rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.7, 0.7, 0.7]},
+            "fixed": {"rotation": [0, 180, 0], "scale": [1, 1, 1]},
+            "ground": {"translation": [0, 3, 0], "scale": [0.3, 0.3, 0.3]},
+            "head": {"rotation": [0, 180, 0], "scale": [1, 1, 1]},
+            "thirdperson_righthand": {"rotation": [0, 90, 0], "translation": [0, 3, 0], "scale": [0.4, 0.4, 0.4]},
+            "firstperson_righthand": {"rotation": [0, 45, 0], "translation": [0, 2, 0], "scale": [0.45, 0.45, 0.45]},
+        },
+    })
+    # the wok hands back its contents itself, so the loot table stays empty
+    write_json(RES / "data" / NS / "loot_table" / "blocks" / "iron_wok.json",
+               {"type": "minecraft:block", "pools": []})
+    write_json(RES / "data" / NS / "recipe" / "iron_wok.json", {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "pattern": ["I I", "III"],
+        "key": {"I": {"item": "minecraft:iron_ingot"}},
+        "result": {"id": f"{NS}:iron_wok", "count": 1},
+    })
+
+
 # --- containers and vat -------------------------------------------------------
 
 CONTAINER_TEXTURES = {
@@ -979,6 +1116,7 @@ def main() -> None:
 
     build_functional(textures_dir)
     build_stove_counter(textures_dir)
+    build_iron_wok(textures_dir)
     build_containers(textures_dir)
     build_tray(textures_dir)
     build_dish_rack(textures_dir)
@@ -996,6 +1134,7 @@ def main() -> None:
                   f"state.{NS}.need_fuel": "灶里没有柴火",
                   f"state.{NS}.pile_take": "取出一根柴",
                   "block." + NS + ".water_vat": "水缸",
+                  "block." + NS + ".iron_wok": "大铁锅",
                   "block." + NS + ".seasoning_tray": "调味盘",
                   "block." + NS + ".dish_rack": "碗架",
                   f"state.{NS}.rack_returned": "把 %s 放回了碗架",
@@ -1049,6 +1188,7 @@ def main() -> None:
                   f"state.{NS}.need_fuel": "No firewood in the stove",
                   f"state.{NS}.pile_take": "Took one piece of firewood",
                   "block." + NS + ".water_vat": "Water Vat",
+                  "block." + NS + ".iron_wok": "Iron Wok",
                   "block." + NS + ".seasoning_tray": "Seasoning Tray",
                   "block." + NS + ".dish_rack": "Dish Rack",
                   f"state.{NS}.rack_returned": "Put %s back on the rack",
