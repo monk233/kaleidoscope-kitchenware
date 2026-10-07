@@ -2,8 +2,11 @@
 
 森罗物语：厨房的附属模组。补齐本体缺少的储物与用水家具，让厨房真正好用起来。
 
-- 目标版本：Minecraft 1.21.1 / NeoForge 21.1.x
-- 前置：[森罗物语：厨房 Kaleidoscope Cookery](https://modrinth.com/mod/kaleidoscope-cookery) 1.6.0（可选依赖：不装本体时模组仍可启动，仅热源联动失效）
+- 目标版本：Minecraft 1.21.1 / NeoForge 21.1.256
+- **必需前置**：[森罗物语：厨房 Kaleidoscope Cookery](https://modrinth.com/mod/kaleidoscope-cookery) 1.6.0 及以上
+
+本体不是可选项：柴火灶的热源判定要读本体的标签，锅铲的舀、倒、盛三条链路全部走本体的锅 API
+（`IPot` / `IStockpot`），调味盘收的也是本体的调料。没有本体，这个附属没有意义。
 
 ## 内容
 
@@ -12,8 +15,8 @@
 | 方块 | 说明 |
 | --- | --- |
 | 柴火灶 | 投入燃料后可用打火石点燃，上方放本体的炒锅 / 汤锅 / 蒸笼 / 茶壶即可直接开火。燃料分文火（木板）、中火（煤炭）、猛火（烈焰粉）三档，影响燃烧时长与消耗速度。雨天无遮挡会自灭，烧尽自动熄灭 |
-| 水缸 | 陶土大水缸，四档水位。手持空桶或空瓶右键即可打水，默认作为无限水源；锅铲也能舀水。缸口是空的，可以跳进去 |
-| 调味盘 | 青瓷四格浅盘，一格见方。每格只收一种调料、可存 1024 个，右键某格存取、无界面；打掉只掉一个调味盘，内容随物品走，换位置放下仍在 |
+| 水缸 | 陶土鼓腹大水缸，四档水位，缸中有水时才显示水面。手持空桶或空瓶右键即可打水，默认作为无限水源；锅铲也能舀水。缸口是空的，可以跳进去 |
+| 调味盘 | 白瓷四格浅盘，一格见方。每格只收一种调料、可存 1024 个，右键某格存取、无界面；打掉只掉一个调味盘，内容随物品走，换位置放下仍在 |
 | 碗架 | 上下两层的木架，每层收 64 个碗或花盆。碗与花盆竖立朝外、从左边依次排开；右键放入、空手取出一层、潜行取一个 |
 
 ## 交互
@@ -50,9 +53,9 @@
 
 ## 数据包扩展
 
-调味盘的调料白名单走标签 kaleidoscope_kitchenware:seasoning，默认包含本体油脂与青红辣椒、原版糖。
+调味盘的调料白名单走物品标签 `kaleidoscope_kitchenware:seasoning`，默认包含本体的油脂、青红辣椒与原版糖。整合包作者可以追加别的调料。
 
-碗架的物品白名单走物品标签 `kaleidoscope_kitchenware:cupboard_storable`，默认包含 `minecraft:bowl` 与 `minecraft:flower_pot`。整合包作者可以通过数据包追加其他碗类或盆类物品。
+碗架的可放物品走物品标签 `kaleidoscope_kitchenware:cupboard_storable`，默认是 `minecraft:bowl` 与 `minecraft:flower_pot`。想让它收别的东西就改这个标签。
 
 ## 构建
 
@@ -60,24 +63,32 @@
 ./gradlew build
 ```
 
-开发环境需要把本体 jar 放到 `libs/kaleidoscopecookery-1.6.0.jar`（不随本仓库分发）。
+开发环境需要把本体 jar 放到 `libs/` 下，命名必须与 `gradle.properties` 里的 `deps.kaleidoscope_cookery`
+一致（当前为 `kaleidoscopecookery-1.6.0-neoforge+mc1.21.1.jar`）。该 jar 不随本仓库分发。
 
-本模组的贴图与模型由 `tools/gen_decor.py` 生成，风格规则见 skill `kaleidoscope-art-style`：
+本模组的贴图与模型由 `tools/gen_decor.py` 生成，风格规则见仓库内的 skill
+`.agents/skills/kaleidoscope-art-style`：
 
 ```bash
-python tools/gen_decor.py      # 重新生成贴图与全部资源 JSON
+python tools/gen_decor.py       # 重新生成贴图与全部资源 JSON
 python tools/check_resources.py # 自检：JSON 合法性、文件齐全、语言条目一致
 ```
+
+改贴图先读那个 skill —— 它写清了色板、尺寸、绘制规则，以及三条踩过的坑（贴图必须均匀，
+否则会被各面裁剪出杂色块；模型元素的旋转只有 ±45° 与 ±22.5°；不复制本体素材，见 skill 第 0 节）。
 
 ## 已知限制
 
 - 本体判定热源时只检查锅具正下方一格，因此一灶多锅与"火力档影响熟制速度"需要 Mixin 修改本体，本版本不做。
-- 未安装本体时可以正常启动与建造，只是柴火灶不再被任何锅具识别。
+- 方块模型做不出真正的圆形，水缸的"鼓腹"是靠多层渐缩逼近的。
+- 柴火灶目前没有合成配方，等重构后再补。
 
 ## 许可
 
 - 代码：[BSD 3-Clause](LICENSE)
 - 资源（贴图、模型、语言文件）：CC BY-NC-SA 4.0
+- 美术风格参考自 [Kaleidoscope 森罗物语系列](https://modrinth.com/mod/kaleidoscope-cookery)，其美术资源同为 CC BY-NC-SA 4.0；
+  本模组未使用其任何素材文件，仅遵循同一套风格规则
 
 本项目为社区附属，与森罗物语系列官方无关联。贴图仅参考系列风格规则新绘，不含本体素材。
 

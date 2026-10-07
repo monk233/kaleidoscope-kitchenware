@@ -8,7 +8,10 @@ version = "0.1.0"
 displayName = "Kaleidoscope Kitchenware"
 authors = "kaleidoscope_kitchenware contributors"
 description = '''
-A traditional Chinese kitchen furniture and building blocks addon for Kaleidoscope Cookery.
+A traditional Chinese kitchen furniture addon for Kaleidoscope Cookery.
+
+Requires Kaleidoscope Cookery: the stove has to know what a heat source is, and the kitchen shovel
+scoops, pours and serves through the base mod's own pot API.
 '''
 
 [[dependencies.kaleidoscope_kitchenware]]
@@ -27,7 +30,7 @@ side = "BOTH"
 
 [[dependencies.kaleidoscope_kitchenware]]
 modId = "kaleidoscope_cookery"
-type = "optional"
+type = "required"
 versionRange = "[1.6.0,)"
 ordering = "AFTER"
 side = "BOTH"
