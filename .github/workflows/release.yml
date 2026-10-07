@@ -1,0 +1,61 @@
+name: Build and release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+
+      # The base mod jar is not redistributed here, so CI fetches the newest 1.21.1 NeoForge build
+      # from Modrinth and files it under the name gradle.properties expects.
+      - name: Fetch Kaleidoscope Cookery
+        run: |
+          set -euo pipefail
+          mkdir -p libs
+          PROJECT=kaleidoscope-cookery
+          TARGET="libs/kaleidoscopecookery-$(grep '^deps.kaleidoscope_cookery=' gradle.properties | cut -d= -f2).jar"
+          URL=$(curl -sSL "https://api.modrinth.com/v2/project/${PROJECT}/version?loaders=%5B%22neoforge%22%5D&game_versions=%5B%221.21.1%22%5D" \
+            | python3 -c "import sys,json; v=json.load(sys.stdin)[0]; print(v['files'][0]['url'])")
+          echo "fetching $URL"
+          curl -sSL -o "$TARGET" "$URL"
+          ls -l libs
+
+      - name: Build
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build --no-daemon
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaleidoscope-kitchenware
+          path: build/libs/*.jar
+          if-no-files-found: error
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/libs/*.jar
+          generate_release_notes: true
+          body: |
+            Requires [Kaleidoscope Cookery](https://modrinth.com/mod/kaleidoscope-cookery) 1.6.0
+            or above — it is a hard dependency, not an optional one.
+
+            需要 [森罗物语：厨房](https://modrinth.com/mod/kaleidoscope-cookery) 1.6.0 及以上版本，
+            这是必需前置。
