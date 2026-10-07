@@ -194,15 +194,26 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
     }
 
     /**
-     * Pushes the contents to clients. Called on every change, and once more on the entity's first
-     * tick: a tray filled while it was being placed sent its update before the client had the
-     * entity, so the client kept showing an empty tray until the chunk reloaded.
+     * Pushes the contents to clients.
+     *
+     * Not sendBlockUpdated: that only makes a client re-read the entity when the block state
+     * changed, and taking the last item out of a compartment changes the data and nothing else.
+     * The client therefore kept rendering what it had, which is exactly the reported "shows the
+     * item after the compartment is empty".
      */
     public void syncNow() {
         setChanged();
-        if (level != null && !level.isClientSide) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(),
-                    net.minecraft.world.level.block.Block.UPDATE_ALL);
+        if (!(level instanceof net.minecraft.server.level.ServerLevel server)) {
+            return;
+        }
+        net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket packet = getUpdatePacket();
+        if (packet == null) {
+            return;
+        }
+        for (net.minecraft.server.level.ServerPlayer player
+                : server.getChunkSource().chunkMap.getPlayers(new net.minecraft.world.level.ChunkPos(worldPosition),
+                        false)) {
+            player.connection.send(packet);
         }
     }
 
