@@ -107,6 +107,9 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
             }
         }
         if (moved > 0) {
+            com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                    "[tray] {} insert slot={} moved={} now={}",
+                    worldPosition, slot, moved, storedCount(slot));
             changed();
         }
         return moved;
@@ -154,6 +157,9 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
             if (held.isEmpty()) {
                 contents[slot][index] = ItemStack.EMPTY;
             }
+            com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                    "[tray] {} extractUpTo slot={} took={} left={}",
+                    worldPosition, slot, take, held.getCount());
             changed();
             return taken;
         }
@@ -210,11 +216,16 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
         if (packet == null) {
             return;
         }
+        int sent = 0;
         for (net.minecraft.server.level.ServerPlayer player
                 : server.getChunkSource().chunkMap.getPlayers(new net.minecraft.world.level.ChunkPos(worldPosition),
                         false)) {
             player.connection.send(packet);
+            sent++;
         }
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                "[tray] {} sync sent={} counts={},{},{},{}", worldPosition, sent,
+                storedCount(0), storedCount(1), storedCount(2), storedCount(3));
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, SeasoningTrayBlockEntity tray) {
@@ -271,6 +282,20 @@ public class SeasoningTrayBlockEntity extends BlockEntity {
     @Override
     public net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket getUpdatePacket() {
         return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    /**
+     * Applies server updates even when the tag is empty.
+     *
+     * Vanilla's default skips empty tags, but for a tray an empty tag is meaningful: it says
+     * nothing is left. Taking the last item out of the last stocked compartment sent an empty tag,
+     * the client ignored it, and the compartment went on rendering an item that was already gone.
+     */
+    @Override
+    public void onDataPacket(net.minecraft.network.Connection connection,
+                             net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket packet,
+                             HolderLookup.Provider registries) {
+        loadAdditional(packet.getTag(), registries);
     }
 
     @Override
