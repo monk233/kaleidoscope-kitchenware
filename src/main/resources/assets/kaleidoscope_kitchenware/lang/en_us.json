@@ -1,7 +1,6 @@
 {
   "itemGroup.kaleidoscope_kitchenware.kitchen": "Kaleidoscope Kitchenware",
   "block.kaleidoscope_kitchenware.firewood_stove": "Firewood Stove",
-  "block.kaleidoscope_kitchenware.firewood_pile": "Firewood Pile",
   "tier.kaleidoscope_kitchenware.low": "Low heat",
   "tier.kaleidoscope_kitchenware.mid": "Medium heat",
   "tier.kaleidoscope_kitchenware.high": "High heat",
@@ -11,7 +10,6 @@
   "state.kaleidoscope_kitchenware.need_fuel": "No firewood in the stove",
   "state.kaleidoscope_kitchenware.pile_take": "Took one piece of firewood",
   "block.kaleidoscope_kitchenware.water_vat": "Water Vat",
-  "block.kaleidoscope_kitchenware.cupboard": "Cupboard",
   "block.kaleidoscope_kitchenware.seasoning_tray": "Seasoning Tray",
   "block.kaleidoscope_kitchenware.dish_rack": "Dish Rack",
   "state.kaleidoscope_kitchenware.rack_returned": "Put %s back on the rack",
@@ -37,7 +35,6 @@
   "state.kaleidoscope_kitchenware.tray_scooped": "Scooped up %s",
   "state.kaleidoscope_kitchenware.tray_poured": "Added %s to the wok",
   "state.kaleidoscope_kitchenware.tray_wok_refused": "The wok will not take %s yet",
-  "block.kaleidoscope_kitchenware.kitchen_counter": "Kitchen Counter",
   "state.kaleidoscope_kitchenware.storage_full": "It is full",
   "state.kaleidoscope_kitchenware.storage_empty": "It is empty",
   "state.kaleidoscope_kitchenware.storage_rejects": "That does not belong in here",

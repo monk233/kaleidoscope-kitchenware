@@ -643,29 +643,6 @@ def build_functional(textures_dir: Path) -> None:
             stove_variants[f"facing={facing},lit={'true' if lit else 'false'}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "firewood_stove.json", {"variants": stove_variants})
 
-    # firewood pile: one box per stack height, log ends on top
-    for count, height in PILE_HEIGHTS.items():
-        write_json(RES / "assets" / NS / "models" / "block" / f"firewood_pile_{count}.json", {
-            "textures": {"0": tex("pile_side"), "1": tex("pile_top"), "particle": tex("pile_side")},
-            "elements": [{
-                "from": [0.5, 0, 0.5],
-                "to": [15.5, height, 15.5],
-                "faces": {"up": {"uv": [0, 0, 16, 16], "texture": "#1"},
-                          "down": {"uv": [0, 0, 16, 16], "texture": "#0"},
-                          "north": {"uv": [0, 16 - height, 16, 16], "texture": "#0"},
-                          "south": {"uv": [0, 16 - height, 16, 16], "texture": "#0"},
-                          "east": {"uv": [0, 16 - height, 16, 16], "texture": "#0"},
-                          "west": {"uv": [0, 16 - height, 16, 16], "texture": "#0"}},
-            }],
-        })
-    pile_variants = {}
-    for facing, y in FACING_Y:
-        for count in PILE_HEIGHTS:
-            model = {"model": f"{NS}:block/firewood_pile_{count}"}
-            if y:
-                model["y"] = y
-            pile_variants[f"facing={facing},count={count}"] = model
-    write_json(RES / "assets" / NS / "blockstates" / "firewood_pile.json", {"variants": pile_variants})
 
     write_json(RES / "assets" / NS / "models" / "item" / "firewood_stove.json",
                {"parent": f"{NS}:block/firewood_stove"})
@@ -681,12 +658,7 @@ CONTAINER_TEXTURES = {
     "vat_side": {"kind": "vat_clay", "ramp": ["#A87C4E", "#845E38", "#C2996A"]},
     "vat_water": {"kind": "vat_water", "ramp": ["#3F76E4", "#2E57B8", "#6AA0F2"]},
     "vat_rim": {"kind": "vat_clay", "ramp": ["#C2996A", "#A87C4E", "#D8B183"]},
-    "cupboard_side": {"kind": "plank", "species": "spruce"},
-    "cupboard_front": {"kind": "cabinet_front", "species": "oak"},
-    "cupboard_front_open": {"kind": "cabinet_open", "species": "oak"},
     "rack_board": {"kind": "plank", "species": "spruce"},
-    "counter_top": {"kind": "counter_top", "ramp": ["#B9B4A5", "#93A3A3", "#55636C", "#3F4447"]},
-    "counter_side": {"kind": "counter_side", "species": "spruce"},
     "jar_side": {"kind": "jar_side", "ramp": WOOD["oak"]},
     "jar_side_filled": {"kind": "jar_side_filled", "ramp": WOOD["oak"]},
     "jar_top": {"kind": "jar_top", "ramp": WOOD["oak"]},
@@ -749,21 +721,6 @@ def build_containers(textures_dir: Path) -> None:
         },
     })
 
-    # cupboard: closed shows the doors, open shows a dark shelf instead
-    for opened in (False, True):
-        write_json(RES / "assets" / NS / "models" / "block" / f"cupboard{'_open' if opened else ''}.json",
-                   cube_model({"up": tex("cupboard_side"), "down": tex("cupboard_side"),
-                               "north": tex("cupboard_front_open" if opened else "cupboard_front"),
-                               "south": tex("cupboard_side"), "east": tex("cupboard_side"),
-                               "west": tex("cupboard_side")}, tex("cupboard_side")))
-    cupboard_variants = {}
-    for facing, y in FACING_Y:
-        for opened in (False, True):
-            model = {"model": f"{NS}:block/cupboard{'_open' if opened else ''}"}
-            if y:
-                model["y"] = y
-            cupboard_variants[f"facing={facing},open={'true' if opened else 'false'}"] = model
-    write_json(RES / "assets" / NS / "blockstates" / "cupboard.json", {"variants": cupboard_variants})
 
     # spice jars: four aligned jars, one per corner, no rotation at all.
     # Presence is per corner so the blockstate can be a multipart; the contents are shown
@@ -931,7 +888,6 @@ def main() -> None:
                {f"block.{NS}.{n}": zh for n, zh, _, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "森罗物语：家什"}
                | {"block." + NS + ".firewood_stove": "柴火灶",
-                  "block." + NS + ".firewood_pile": "柴火堆",
                   f"tier.{NS}.low": "文火",
                   f"tier.{NS}.mid": "中火",
                   f"tier.{NS}.high": "猛火",
@@ -941,7 +897,6 @@ def main() -> None:
                   f"state.{NS}.need_fuel": "灶里没有柴火",
                   f"state.{NS}.pile_take": "取出一根柴",
                   "block." + NS + ".water_vat": "水缸",
-                  "block." + NS + ".cupboard": "碗柜",
                   "block." + NS + ".seasoning_tray": "调味盘",
                   "block." + NS + ".dish_rack": "碗架",
                   f"state.{NS}.rack_returned": "把 %s 放回了碗架",
@@ -967,7 +922,6 @@ def main() -> None:
                   f"state.{NS}.tray_scooped": "舀起了一份 %s",
                   f"state.{NS}.tray_poured": "把 %s 下锅了",
                   f"state.{NS}.tray_wok_refused": "锅还收不了 %s",
-                  "block." + NS + ".kitchen_counter": "料理台",
                   f"state.{NS}.storage_full": "已经塞满了",
                   f"state.{NS}.storage_empty": "里面是空的",
                   f"state.{NS}.storage_rejects": "这个放不进去",
@@ -986,7 +940,6 @@ def main() -> None:
                {f"block.{NS}.{n}": en for n, _, en, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "Kaleidoscope Kitchenware"}
                | {"block." + NS + ".firewood_stove": "Firewood Stove",
-                  "block." + NS + ".firewood_pile": "Firewood Pile",
                   f"tier.{NS}.low": "Low heat",
                   f"tier.{NS}.mid": "Medium heat",
                   f"tier.{NS}.high": "High heat",
@@ -996,7 +949,6 @@ def main() -> None:
                   f"state.{NS}.need_fuel": "No firewood in the stove",
                   f"state.{NS}.pile_take": "Took one piece of firewood",
                   "block." + NS + ".water_vat": "Water Vat",
-                  "block." + NS + ".cupboard": "Cupboard",
                   "block." + NS + ".seasoning_tray": "Seasoning Tray",
                   "block." + NS + ".dish_rack": "Dish Rack",
                   f"state.{NS}.rack_returned": "Put %s back on the rack",
@@ -1022,7 +974,6 @@ def main() -> None:
                   f"state.{NS}.tray_scooped": "Scooped up %s",
                   f"state.{NS}.tray_poured": "Added %s to the wok",
                   f"state.{NS}.tray_wok_refused": "The wok will not take %s yet",
-                  "block." + NS + ".kitchen_counter": "Kitchen Counter",
                   f"state.{NS}.storage_full": "It is full",
                   f"state.{NS}.storage_empty": "It is empty",
                   f"state.{NS}.storage_rejects": "That does not belong in here",

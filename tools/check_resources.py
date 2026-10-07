@@ -51,7 +51,7 @@ for name, zh, en, shape, _spec in DECOR:
 zh_lang = json.loads((RES / "assets" / NS / "lang" / "zh_cn.json").read_text(encoding="utf-8"))
 en_lang = json.loads((RES / "assets" / NS / "lang" / "en_us.json").read_text(encoding="utf-8"))
 
-for name, texture in (("firewood_stove", "stove_side"), ("firewood_pile", "pile_side")):
+for name, texture in (("firewood_stove", "stove_side"),):
     require(RES / "assets" / NS / "blockstates" / f"{name}.json")
     require(RES / "assets" / NS / "models" / "item" / f"{name}.json")
     require(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json")

@@ -1,7 +1,6 @@
 {
   "itemGroup.kaleidoscope_kitchenware.kitchen": "森罗物语：家什",
   "block.kaleidoscope_kitchenware.firewood_stove": "柴火灶",
-  "block.kaleidoscope_kitchenware.firewood_pile": "柴火堆",
   "tier.kaleidoscope_kitchenware.low": "文火",
   "tier.kaleidoscope_kitchenware.mid": "中火",
   "tier.kaleidoscope_kitchenware.high": "猛火",
@@ -11,7 +10,6 @@
   "state.kaleidoscope_kitchenware.need_fuel": "灶里没有柴火",
   "state.kaleidoscope_kitchenware.pile_take": "取出一根柴",
   "block.kaleidoscope_kitchenware.water_vat": "水缸",
-  "block.kaleidoscope_kitchenware.cupboard": "碗柜",
   "block.kaleidoscope_kitchenware.seasoning_tray": "调味盘",
   "block.kaleidoscope_kitchenware.dish_rack": "碗架",
   "state.kaleidoscope_kitchenware.rack_returned": "把 %s 放回了碗架",
@@ -37,7 +35,6 @@
   "state.kaleidoscope_kitchenware.tray_scooped": "舀起了一份 %s",
   "state.kaleidoscope_kitchenware.tray_poured": "把 %s 下锅了",
   "state.kaleidoscope_kitchenware.tray_wok_refused": "锅还收不了 %s",
-  "block.kaleidoscope_kitchenware.kitchen_counter": "料理台",
   "state.kaleidoscope_kitchenware.storage_full": "已经塞满了",
   "state.kaleidoscope_kitchenware.storage_empty": "里面是空的",
   "state.kaleidoscope_kitchenware.storage_rejects": "这个放不进去",
