@@ -34,12 +34,12 @@ public final class ShovelCarriedDecorator implements IItemDecorator {
 
     @SubscribeEvent
     public static void onRegisterDecorators(RegisterItemDecorationsEvent event) {
-        // the base mod may ship more than one shovel, so every item on the tag gets the decoration
-        var shovels = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM,
-                KITCHEN_SHOVEL);
-        for (var item : BuiltInRegistries.ITEM) {
-            if (new ItemStack(item).is(shovels)) {
-                event.register(item, new ShovelCarriedDecorator());
+        // Item tags are not loaded while registrations run, so tagging would match nothing here.
+        // Match on the registry names instead: every shovel the base mod ships.
+        for (var entry : BuiltInRegistries.ITEM.entrySet()) {
+            ResourceLocation id = entry.getKey().location();
+            if (id.getNamespace().equals("kaleidoscope_cookery") && id.getPath().contains("shovel")) {
+                event.register(entry.getValue(), new ShovelCarriedDecorator());
             }
         }
     }

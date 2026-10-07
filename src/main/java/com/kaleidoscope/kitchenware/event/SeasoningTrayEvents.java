@@ -294,12 +294,10 @@ public final class SeasoningTrayEvents {
         CompoundTag tag = new CompoundTag();
         tag.put(SCOOPED, seasoning.save(access));
         shovel.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-        shovel.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
     }
 
     private static void clearCarried(ItemStack shovel) {
         shovel.remove(DataComponents.CUSTOM_DATA);
-        shovel.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
     }
 
     /** Marks the shovel as carrying water. */
@@ -307,7 +305,6 @@ public final class SeasoningTrayEvents {
         CompoundTag tag = new CompoundTag();
         tag.putBoolean(WATER, true);
         shovel.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-        shovel.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
     }
 
     public static boolean hasWater(ItemStack shovel) {

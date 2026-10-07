@@ -34,7 +34,12 @@ public class WaterVatBlock extends HorizontalDirectionalBlock {
     public static final MapCodec<WaterVatBlock> CODEC = simpleCodec(WaterVatBlock::new);
     /** 0 = empty, 3 = full. */
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 3);
-    private static final VoxelShape SHAPE = Shapes.box(0.125, 0, 0.125, 0.875, 0.75, 0.875);
+    /** A ring, like a cauldron: hollow, so a player can stand inside it. */
+    private static final VoxelShape SHAPE = Shapes.or(
+            Block.box(1, 0, 1, 15, 16, 3),
+            Block.box(1, 0, 13, 15, 16, 15),
+            Block.box(1, 0, 3, 3, 16, 13),
+            Block.box(13, 0, 3, 15, 16, 13));
 
     public WaterVatBlock(Properties properties) {
         super(properties);

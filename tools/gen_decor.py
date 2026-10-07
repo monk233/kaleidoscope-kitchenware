@@ -681,7 +681,6 @@ def build_functional(textures_dir: Path) -> None:
 CONTAINER_TEXTURES = {
     "vat_side": {"kind": "vat_clay", "ramp": ["#A87C4E", "#845E38", "#C2996A"]},
     "vat_rim": {"kind": "vat_clay", "ramp": ["#C2996A", "#A87C4E", "#D8B183"]},
-    "vat_top": {"kind": "plaster", "ramp": ["#4FA3D1", "#3B82AC", "#2A5F80"]},
     "cupboard_side": {"kind": "plank", "species": "spruce"},
     "cupboard_front": {"kind": "cabinet_front", "species": "oak"},
     "cupboard_front_open": {"kind": "cabinet_open", "species": "oak"},
@@ -694,6 +693,8 @@ CONTAINER_TEXTURES = {
 }
 
 VAT_WATER_HEIGHT = {0: 4, 1: 8, 2: 12, 3: 14}
+# the surface reuses vanilla's water, which is what a cauldron shows
+WATER = "minecraft:block/water_still"
 JAR_SPOTS = [(x, y) for y in (4.0, 10.0) for x in (1.5, 5.5, 9.5, 13.5)]
 
 
@@ -708,29 +709,21 @@ def build_containers(textures_dir: Path) -> None:
     for seed, (name, spec) in enumerate(sorted(CONTAINER_TEXTURES.items())):
         make_texture(spec, seed=401 + seed * 11).save(textures_dir / f"{name}.png")
 
-    # water vat: rings of narrowing clay give the thrown pot its belly, the rim is a ring rather
-    # than a lid so the water inside stays visible, and the surface rises with the level
-    vat_rings = [(0.0, 1.0, 3.0), (1.0, 3.0, 4.0), (3.0, 6.0, 5.0), (6.0, 9.0, 4.6)]
+    # water vat: hollow like a cauldron, so the water inside is visible and a player can stand in
+    # it. Full block footprint, the vanilla water texture for the surface, and the level decides
+    # how high that surface sits.
     for level, water_y in VAT_WATER_HEIGHT.items():
-        elements = []
-        for y0, y1, half in vat_rings:
-            elements.append(box([8 - half, y0, 8 - half], [8 + half, y1, 8 + half], "#0"))
-        # the shoulder, whose top face is the water itself: a separate surface element would sit
-        # inside the solid body and the model checker rightly rejects that
-        shoulder = {"from": [4.0, 9.0, 4.0], "to": [12.0, 11.0, 12.0],
-                    "faces": {face: {"uv": [0, 0, 8, 8], "texture": "#0"}
-                              for face in ("north", "south", "east", "west", "down")}}
-        shoulder["faces"]["up"] = {"uv": [0, 0, 8, 8],
-                                   "texture": "#2" if level > 0 else "#0"}
-        elements.append(shoulder)
-        elements += [
-            box([3, 11, 3], [13, 12, 4], "#1"),
-            box([3, 11, 12], [13, 12, 13], "#1"),
-            box([3, 11, 4], [4, 12, 12], "#1"),
-            box([12, 11, 4], [13, 12, 12], "#1"),
+        elements = [
+            box([1, 0, 1], [15, 1, 15], "#0"),
+            box([1, 1, 1], [15, 16, 3], "#0"),
+            box([1, 1, 13], [15, 16, 15], "#0"),
+            box([1, 1, 3], [3, 16, 13], "#0"),
+            box([13, 1, 3], [15, 16, 13], "#0"),
         ]
+        if level > 0:
+            elements.append(box([3, water_y, 3], [13, water_y + 0.4, 13], WATER))
         write_json(RES / "assets" / NS / "models" / "block" / f"water_vat_{level}.json",
-                   {"textures": {"0": tex("vat_side"), "1": tex("vat_rim"), "2": tex("vat_top"),
+                   {"textures": {"0": tex("vat_side"), "1": tex("vat_rim"),
                                  "particle": tex("vat_side")}, "elements": elements})
     vat_variants = {}
     for facing, y in FACING_Y:
