@@ -35,5 +35,7 @@
   "state.kaleidoscope_kitchenware.storage_empty": "里面是空的",
   "state.kaleidoscope_kitchenware.storage_rejects": "这个放不进去",
   "state.kaleidoscope_kitchenware.vat_empty": "缸里没水了",
-  "state.kaleidoscope_kitchenware.vat_hint": "拿空桶或空瓶来打水"
+  "state.kaleidoscope_kitchenware.vat_hint": "拿空桶或空瓶来打水",
+  "state.kaleidoscope_kitchenware.jar_missing": "这个角上没有罐子",
+  "state.kaleidoscope_kitchenware.jar_taken": "这个角上已经有罐子了"
 }

@@ -612,7 +612,6 @@ CONTAINER_TEXTURES = {
     "counter_side": {"kind": "counter_side", "species": "spruce"},
     "jar_side": {"kind": "tile_floor", "ramp": WOOD["oak"]},
     "jar_top": {"kind": "jar_top", "ramp": WOOD["oak"]},
-    "jar_top_filled": {"kind": "jar_top_filled", "ramp": WOOD["oak"]},
 }
 
 VAT_WATER_HEIGHT = {0: 4, 1: 8, 2: 12, 3: 14}
@@ -664,46 +663,40 @@ def build_containers(textures_dir: Path) -> None:
             cupboard_variants[f"facing={facing},open={'true' if opened else 'false'}"] = model
     write_json(RES / "assets" / NS / "blockstates" / "cupboard.json", {"variants": cupboard_variants})
 
-    # spice jars: up to four small jars share a block, each turned a little, like teacups.
-    # A 5px jar rotated 22.5 degrees needs ~6.5px; spots below stay 8px apart so the
-    # rotated bounding boxes never touch. Minecraft only accepts -45/-22.5/0/22.5/45.
+    # spice jars: four aligned jars, one per corner, no rotation at all.
+    # Presence is per corner so the blockstate can be a multipart; the contents are shown
+    # by a block entity renderer, not by the model.
     jar_size = 5.0
     jar_height = 4.0
-    jar_spots = {
-        1: [(5.5, 5.5, 22.5)],
-        2: [(1.5, 5.5, 22.5), (9.5, 5.5, -22.5)],
-        3: [(1.5, 1.5, 22.5), (9.5, 2.0, -22.5), (5.0, 9.5, 0)],
-        4: [(1.5, 1.5, 22.5), (9.5, 1.5, -22.5), (1.5, 9.5, 0), (9.5, 9.5, -45)],
+    jar_corners = {
+        "nw": (1.5, 1.5),
+        "ne": (9.5, 1.5),
+        "sw": (1.5, 9.5),
+        "se": (9.5, 9.5),
     }
 
-    def jar_element(x: float, z: float, angle: float) -> dict:
-        # uv covers the whole 16x16 texture so the art is not stretched into blocks
+    def jar_element(x: float, z: float) -> dict:
         faces = {face: {"uv": [0, 0, 16, 16], "texture": "#0"}
                  for face in ("north", "south", "east", "west", "down")}
         faces["up"] = {"uv": [0, 0, 16, 16], "texture": "#1"}
-        return {"from": [x, 0, z], "to": [x + jar_size, jar_height, z + jar_size],
-                "rotation": {"angle": angle, "axis": "y",
-                             "origin": [x + jar_size / 2, 0, z + jar_size / 2]},
-                "faces": faces}
+        return {"from": [x, 0, z], "to": [x + jar_size, jar_height, z + jar_size], "faces": faces}
 
-    for filled in (False, True):
-        for count, spots in jar_spots.items():
-            suffix = "_filled" if filled else ""
-            write_json(RES / "assets" / NS / "models" / "block" / f"spice_jar_{count}{suffix}.json", {
-                "render_type": "minecraft:cutout",
-                "textures": {"0": tex("jar_side"), "1": tex("jar_top_filled" if filled else "jar_top"),
-                             "particle": tex("jar_side")},
-                "elements": [jar_element(x, z, angle) for x, z, angle in spots],
-            })
-    jar_variants = {}
-    for count in sorted(jar_spots):
-        for filled in (False, True):
-            jar_variants[f"count={count},filled={'true' if filled else 'false'}"] = {
-                "model": f"{NS}:block/spice_jar_{count}{'_filled' if filled else ''}"}
-    write_json(RES / "assets" / NS / "blockstates" / "spice_jar.json", {"variants": jar_variants})
+    for corner, (x, z) in jar_corners.items():
+        write_json(RES / "assets" / NS / "models" / "block" / f"spice_jar_{corner}.json", {
+            "render_type": "minecraft:cutout",
+            "textures": {"0": tex("jar_side"), "1": tex("jar_top"), "particle": tex("jar_side")},
+            "elements": [jar_element(x, z)],
+        })
+
+    write_json(RES / "assets" / NS / "blockstates" / "spice_jar.json", {
+        "multipart": [
+            {"when": {f"jar_{corner}": "true"}, "apply": {"model": f"{NS}:block/spice_jar_{corner}"}}
+            for corner in jar_corners
+        ],
+    })
 
     write_json(RES / "assets" / NS / "models" / "item" / "spice_jar.json",
-               {"parent": f"{NS}:block/spice_jar_1"})
+               {"parent": f"{NS}:block/spice_jar_nw"})
     # drops are produced by the block itself so the stored contents survive; no loot pool here
     write_json(RES / "data" / NS / "loot_table" / "blocks" / "spice_jar.json",
                {"type": "minecraft:block", "pools": []})
@@ -791,7 +784,9 @@ def main() -> None:
                   f"state.{NS}.storage_empty": "里面是空的",
                   f"state.{NS}.storage_rejects": "这个放不进去",
                   f"state.{NS}.vat_empty": "缸里没水了",
-                  f"state.{NS}.vat_hint": "拿空桶或空瓶来打水"})
+                  f"state.{NS}.vat_hint": "拿空桶或空瓶来打水",
+                  f"state.{NS}.jar_missing": "这个角上没有罐子",
+                  f"state.{NS}.jar_taken": "这个角上已经有罐子了"})
     write_json(RES / "assets" / NS / "lang" / "en_us.json",
                {f"block.{NS}.{n}": en for n, _, en, _, _ in DECOR}
                | {f"itemGroup.{NS}.kitchen": "Kaleidoscope Kitchenware"}
@@ -813,7 +808,9 @@ def main() -> None:
                   f"state.{NS}.storage_empty": "It is empty",
                   f"state.{NS}.storage_rejects": "That does not belong in here",
                   f"state.{NS}.vat_empty": "The vat is empty",
-                  f"state.{NS}.vat_hint": "Bring a bucket or a bottle"})
+                  f"state.{NS}.vat_hint": "Bring a bucket or a bottle",
+                  f"state.{NS}.jar_missing": "No jar in this corner",
+                  f"state.{NS}.jar_taken": "This corner already has a jar"})
 
     print(f"generated {len(DECOR)} decorative blocks and 4 functional blocks into {RES}")
 

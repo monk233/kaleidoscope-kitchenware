@@ -1,28 +1,36 @@
 {
-  "variants": {
-    "count=1,filled=false": {
-      "model": "kaleidoscope_kitchenware:block/spice_jar_1"
+  "multipart": [
+    {
+      "when": {
+        "jar_nw": "true"
+      },
+      "apply": {
+        "model": "kaleidoscope_kitchenware:block/spice_jar_nw"
+      }
     },
-    "count=1,filled=true": {
-      "model": "kaleidoscope_kitchenware:block/spice_jar_1_filled"
+    {
+      "when": {
+        "jar_ne": "true"
+      },
+      "apply": {
+        "model": "kaleidoscope_kitchenware:block/spice_jar_ne"
+      }
     },
-    "count=2,filled=false": {
-      "model": "kaleidoscope_kitchenware:block/spice_jar_2"
+    {
+      "when": {
+        "jar_sw": "true"
+      },
+      "apply": {
+        "model": "kaleidoscope_kitchenware:block/spice_jar_sw"
+      }
     },
-    "count=2,filled=true": {
-      "model": "kaleidoscope_kitchenware:block/spice_jar_2_filled"
-    },
-    "count=3,filled=false": {
-      "model": "kaleidoscope_kitchenware:block/spice_jar_3"
-    },
-    "count=3,filled=true": {
-      "model": "kaleidoscope_kitchenware:block/spice_jar_3_filled"
-    },
-    "count=4,filled=false": {
-      "model": "kaleidoscope_kitchenware:block/spice_jar_4"
-    },
-    "count=4,filled=true": {
-      "model": "kaleidoscope_kitchenware:block/spice_jar_4_filled"
+    {
+      "when": {
+        "jar_se": "true"
+      },
+      "apply": {
+        "model": "kaleidoscope_kitchenware:block/spice_jar_se"
+      }
     }
-  }
+  ]
 }

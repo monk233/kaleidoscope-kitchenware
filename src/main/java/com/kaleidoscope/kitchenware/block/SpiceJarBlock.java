@@ -4,23 +4,18 @@ import com.kaleidoscope.kitchenware.blockentity.SpiceJarBlockEntity;
 import com.kaleidoscope.kitchenware.item.SpiceJarItem;
 import com.kaleidoscope.kitchenware.registry.ModBlockEntities;
 import com.kaleidoscope.kitchenware.registry.ModItems;
-import com.kaleidoscope.kitchenware.util.NoGuiStorage;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -28,49 +23,55 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Spice jars: up to four squat jars share one block, the way teacups stack.
+ * Four aligned spice jars, one per corner of the block. Which jar you touch is decided by
+ * where on the block you are aiming.
  *
- * Right-click with a jar to add another one, store and take seasonings with plain
- * right-clicks (no GUI), and scoop the whole lot back up with the kitchen shovel.
+ * Right-click with seasoning stores one, shift stores the whole stack, an empty hand takes
+ * one, shift takes a whole stack. The kitchen shovel picks everything up and is handled in
+ * {@code SpiceJarEvents} because the base mod's shovel swallows the block interaction.
  */
-public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityBlock {
+public class SpiceJarBlock extends Block implements EntityBlock {
     public static final MapCodec<SpiceJarBlock> CODEC = simpleCodec(SpiceJarBlock::new);
-    public static final int MAX_COUNT = 4;
-    public static final IntegerProperty COUNT = IntegerProperty.create("count", 1, MAX_COUNT);
-    /** Set while the stack holds anything, so the models can show filled jars. */
-    public static final BooleanProperty FILLED = BooleanProperty.create("filled");
-
-    private static final TagKey<Item> KITCHEN_SHOVEL = TagKey.create(Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath("kaleidoscope_cookery", "kitchen_shovel"));
-    private static final VoxelShape SHAPE = Block.box(1, 0, 1, 15, 5, 15);
+    /** Jar presence per corner, in the order north-west, north-east, south-west, south-east. */
+    public static final BooleanProperty[] JARS = {
+            BooleanProperty.create("jar_nw"),
+            BooleanProperty.create("jar_ne"),
+            BooleanProperty.create("jar_sw"),
+            BooleanProperty.create("jar_se"),
+    };
+    private static final VoxelShape SHAPE = Shapes.or(
+            Block.box(1, 0, 1, 6, 5, 6), Block.box(10, 0, 1, 15, 5, 6),
+            Block.box(1, 0, 10, 6, 5, 15), Block.box(10, 0, 10, 15, 5, 15));
 
     public SpiceJarBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any()
-                .setValue(COUNT, 1)
-                .setValue(FILLED, false));
+        BlockState state = stateDefinition.any();
+        for (BooleanProperty jar : JARS) {
+            state = state.setValue(jar, false);
+        }
+        registerDefaultState(state);
     }
 
     @Override
-    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
+    protected MapCodec<? extends Block> codec() {
         return CODEC;
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(COUNT, FILLED);
+        builder.add(JARS);
     }
 
     @Override
@@ -80,7 +81,20 @@ public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityB
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState();
+        BlockState state = defaultBlockState();
+        return state.setValue(JARS[jarIndexAt(context.getClickLocation(), context.getClickedPos())], true);
+    }
+
+    /** Corner index 0..3 from the hit position, matching {@link #JARS}. */
+    public static int jarIndexAt(Vec3 hit, BlockPos pos) {
+        double localX = hit.x - pos.getX();
+        double localZ = hit.z - pos.getZ();
+        boolean east = localX >= 0.5;
+        boolean south = localZ >= 0.5;
+        if (!south) {
+            return east ? 1 : 0;
+        }
+        return east ? 3 : 2;
     }
 
     @Nullable
@@ -95,44 +109,71 @@ public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityB
         if (hand == InteractionHand.OFF_HAND || !(level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
+        int index = jarIndexAt(hitResult.getLocation(), pos);
+        boolean hasJar = state.getValue(JARS[index]);
+        boolean wholeStack = player.isShiftKeyDown();
 
-        // stack another jar onto the block, like adding a teacup
+        // a jar in hand goes down as a new jar when the corner is free
         if (stack.getItem() instanceof SpiceJarItem) {
-            int count = state.getValue(COUNT);
-            if (count >= MAX_COUNT) {
-                return ItemInteractionResult.CONSUME;
-            }
-            level.setBlockAndUpdate(pos, state.setValue(COUNT, count + 1));
-            level.playSound(null, pos, SoundEvents.GLASS_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
-            if (!player.getAbilities().instabuild) {
-                stack.shrink(1);
-            }
-            return ItemInteractionResult.SUCCESS;
-        }
-
-        // scoop every jar up, contents included
-        if (stack.is(KITCHEN_SHOVEL) || stack.is(ItemTags.SHOVELS)) {
-            if (!level.isClientSide) {
-                int count = state.getValue(COUNT);
-                Block.popResource(level, pos, jarStack(jar, level.registryAccess()));
-                for (int i = 1; i < count; i++) {
-                    Block.popResource(level, pos, new ItemStack(ModItems.SPICE_JAR.get()));
+            if (!hasJar) {
+                level.setBlockAndUpdate(pos, state.setValue(JARS[index], true));
+                level.playSound(null, pos, SoundEvents.GLASS_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
+                if (!player.getAbilities().instabuild) {
+                    stack.shrink(1);
                 }
-                level.removeBlock(pos, false);
-                level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.7F, 1.2F);
+                return ItemInteractionResult.SUCCESS;
+            }
+            tell(player, "state.kaleidoscope_kitchenware.jar_taken");
+            return ItemInteractionResult.FAIL;
+        }
+
+        if (!stack.isEmpty()) {
+            if (!hasJar) {
+                tell(player, "state.kaleidoscope_kitchenware.jar_missing");
+                return ItemInteractionResult.FAIL;
+            }
+            if (!jar.insert(index, stack, wholeStack)) {
+                tell(player, "state.kaleidoscope_kitchenware.storage_full");
+                return ItemInteractionResult.FAIL;
+            }
+            level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.4F);
+            if (!player.getAbilities().instabuild) {
+                stack.shrink(wholeStack ? stack.getCount() : 1);
             }
             return ItemInteractionResult.SUCCESS;
         }
 
-        return NoGuiStorage.interact(stack, level, pos, player, hand, jar);
+        if (!hasJar) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        ItemStack taken = jar.extract(index, wholeStack);
+        if (taken.isEmpty()) {
+            tell(player, "state.kaleidoscope_kitchenware.storage_empty");
+            return ItemInteractionResult.FAIL;
+        }
+        player.getInventory().placeItemBackInInventory(taken);
+        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 0.9F);
+        return ItemInteractionResult.SUCCESS;
+    }
+
+    private static void tell(Player player, String key) {
+        player.displayClientMessage(Component.translatable(key), true);
+    }
+
+    /** How many jars stand in this block. */
+    public static int jarCount(BlockState state) {
+        int count = 0;
+        for (BooleanProperty jar : JARS) {
+            if (state.getValue(jar)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /**
-     * One jar as an item, carrying whatever the block holds.
-     *
-     * An empty jar stays a plain stack so it stacks normally. A stocked one carries the
-     * block entity data, which must include the block entity id or saving the player
-     * inventory blows up.
+     * The block as an item. An empty jar stays a plain stack so it stacks normally; a stocked
+     * jar carries block entity data, which must include the block entity id.
      */
     public static ItemStack jarStack(SpiceJarBlockEntity jar, RegistryAccess access) {
         ItemStack stack = new ItemStack(ModItems.SPICE_JAR.get());
@@ -150,7 +191,7 @@ public class SpiceJarBlock extends HorizontalDirectionalBlock implements EntityB
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide
                 && level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar) {
-            int count = state.getValue(COUNT);
+            int count = Math.max(1, jarCount(state));
             Block.popResource(level, pos, jarStack(jar, level.registryAccess()));
             for (int i = 1; i < count; i++) {
                 Block.popResource(level, pos, new ItemStack(ModItems.SPICE_JAR.get()));
