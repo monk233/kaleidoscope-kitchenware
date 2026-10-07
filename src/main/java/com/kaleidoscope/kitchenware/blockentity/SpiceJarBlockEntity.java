@@ -76,6 +76,7 @@ public class SpiceJarBlockEntity extends BlockEntity {
         for (int corner = 0; corner < JAR_COUNT; corner++) {
             jars[corner] = ItemStack.EMPTY;
         }
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info("[jaraudit] clearAll");
     }
 
     /** Stores seasoning, returning how many actually went in. One jar holds one kind of thing. */
@@ -98,6 +99,8 @@ public class SpiceJarBlockEntity extends BlockEntity {
         } else {
             held.grow(moved);
         }
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                "[jaraudit] insert corner={} moved={} now={}", corner, moved, carryingCount(corner));
         setChangedAndSynced();
         return moved;
     }
@@ -114,6 +117,9 @@ public class SpiceJarBlockEntity extends BlockEntity {
         if (held.isEmpty()) {
             jars[corner] = ItemStack.EMPTY;
         }
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                "[jaraudit] extract corner={} took={} now={}", corner, taken.getCount(),
+                carryingCount(corner));
         setChangedAndSynced();
         return taken;
     }
@@ -127,6 +133,8 @@ public class SpiceJarBlockEntity extends BlockEntity {
         }
         jars[to] = jars[from];
         jars[from] = ItemStack.EMPTY;
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                "[jaraudit] move {}->{} count={}", from, to, carryingCount(to));
         setChangedAndSynced();
     }
 
@@ -135,6 +143,9 @@ public class SpiceJarBlockEntity extends BlockEntity {
         corner = clampCorner(corner);
         ItemStack carried = ItemStack.parseOptional(registries, jarTag.getCompound("Jar"));
         jars[corner] = carried.isEmpty() ? ItemStack.EMPTY : carried;
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                "[jaraudit] absorb corner={} got={} keys={}", corner, carryingCount(corner),
+                jarTag.getAllKeys());
         setChangedAndSynced();
     }
 
@@ -187,6 +198,9 @@ public class SpiceJarBlockEntity extends BlockEntity {
                 tag.put("Jar" + corner, jars[corner].save(registries));
             }
         }
+        com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
+                "[jaraudit] save total={} counts={},{},{},{}", carryingTotal(), carryingCount(0),
+                carryingCount(1), carryingCount(2), carryingCount(3));
     }
 
     @Override
@@ -200,7 +214,7 @@ public class SpiceJarBlockEntity extends BlockEntity {
             }
         }
         com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                "[jardbg] loadAdditional keys={} stored={} counts={},{},{},{}",
+                "[jaraudit] load keys={} total={} counts={},{},{},{}",
                 tag.getAllKeys(), carryingTotal(), carryingCount(0), carryingCount(1),
                 carryingCount(2), carryingCount(3));
     }
