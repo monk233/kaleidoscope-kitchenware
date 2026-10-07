@@ -158,8 +158,10 @@ public class IronWokBlockEntity extends BlockEntity implements IPot {
 
     /** What the renderer draws: the ingredients while it cooks, the dish once it is done. */
     public List<ItemStack> displayedStacks() {
+        boolean done = (mode == Mode.SOUP && status == SOUP_FINISHED)
+                || (mode == Mode.STIR_FRY && (status == IPot.FINISHED || status == IPot.BURNT));
         List<ItemStack> shown = new ArrayList<>();
-        if (!result.isEmpty()) {
+        if (done && !result.isEmpty()) {
             shown.add(result);
             return shown;
         }
