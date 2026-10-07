@@ -86,6 +86,10 @@ public class SpiceJarBlockEntity extends BlockEntity {
         if (stack.isEmpty() || !accepts(stack)) {
             return 0;
         }
+        if (level != null && level.isClientSide) {
+            // the server owns the contents; the client waits for the update
+            return 0;
+        }
         ItemStack held = jars[corner];
         if (!held.isEmpty() && !ItemStack.isSameItemSameComponents(held, stack)) {
             return 0;
@@ -101,7 +105,8 @@ public class SpiceJarBlockEntity extends BlockEntity {
             held.grow(moved);
         }
         com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                "[jaraudit] insert corner={} moved={} now={}", corner, moved, carryingCount(corner));
+                "[jaraudit] {} insert corner={} moved={} now={}", worldPosition, corner, moved,
+                carryingCount(corner));
         setChangedAndSynced();
         return moved;
     }
@@ -109,6 +114,9 @@ public class SpiceJarBlockEntity extends BlockEntity {
     /** Takes a whole jar's worth, or a single item. */
     public ItemStack extract(int corner, boolean wholeStack) {
         corner = clampCorner(corner);
+        if (level != null && level.isClientSide) {
+            return ItemStack.EMPTY;
+        }
         ItemStack held = jars[corner];
         if (held.isEmpty()) {
             return ItemStack.EMPTY;
@@ -119,8 +127,8 @@ public class SpiceJarBlockEntity extends BlockEntity {
             jars[corner] = ItemStack.EMPTY;
         }
         com.kaleidoscope.kitchenware.KaleidoscopeKitchenware.LOGGER.info(
-                "[jaraudit] extract corner={} took={} now={}", corner, taken.getCount(),
-                carryingCount(corner));
+                "[jaraudit] {} extract corner={} took={} now={}", worldPosition, corner,
+                taken.getCount(), carryingCount(corner));
         setChangedAndSynced();
         return taken;
     }

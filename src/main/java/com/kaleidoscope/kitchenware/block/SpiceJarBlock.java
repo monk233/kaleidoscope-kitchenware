@@ -218,6 +218,11 @@ public class SpiceJarBlock extends Block implements EntityBlock {
         if (hand == InteractionHand.OFF_HAND || !(level.getBlockEntity(pos) instanceof SpiceJarBlockEntity jar)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
+        if (level.isClientSide) {
+            // the server owns the contents and answers with a block update; predicting here only
+            // produces misleading "it is empty" messages
+            return ItemInteractionResult.SUCCESS;
+        }
         int index = resolveJarIndex(state, hitResult.getLocation(), pos);
         boolean hasJar = index >= 0;
         boolean takeOne = player.isShiftKeyDown();
