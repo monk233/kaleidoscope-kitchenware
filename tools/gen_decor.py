@@ -51,13 +51,7 @@ DECOR = [
     ("blue_roof_tile_stairs", "青瓦楼梯", "Blue Roof Tile Stairs", "stairs", None),
     ("blue_roof_tile_slab", "青瓦台阶", "Blue Roof Tile Slab", "slab", None),
     ("roof_ridge_tile", "屋脊瓦", "Roof Ridge Tile", "block", {"kind": "roof_tile", "ramp": RIDGE}),
-    ("chimney", "烟囱", "Chimney", "pillar", {"kind": "brick", "ramp": BRICK}),
-    ("plaster_wall", "抹灰墙", "Plaster Wall", "block", {"kind": "plaster", "ramp": PLASTER}),
-    ("rammed_earth_wall", "夯土墙", "Rammed Earth Wall", "block", {"kind": "plaster", "ramp": EARTH}),
     ("stone_floor_tile", "青石地砖", "Stone Floor Tile", "block", {"kind": "tile_floor", "ramp": FLOOR_TILE}),
-    ("wood_floor_board", "木地板", "Wood Floor Board", "block", {"kind": "plank", "species": "oak"}),
-    ("wooden_beam", "木梁", "Wooden Beam", "pillar", {"kind": "plank", "species": "spruce"}),
-    ("wooden_rafter", "椽木", "Wooden Rafter", "pillar", {"kind": "plank", "species": "oak"}),
     ("lattice_window", "木格窗", "Lattice Window", "thin", {"kind": "lattice", "species": "oak"}),
     ("bamboo_curtain", "竹帘", "Bamboo Curtain", "thin", {"kind": "curtain", "species": "bamboo"}),
 ]
@@ -668,10 +662,8 @@ def build_functional(textures_dir: Path) -> None:
 
     write_json(RES / "assets" / NS / "models" / "item" / "firewood_stove.json",
                {"parent": f"{NS}:block/firewood_stove"})
-    write_json(RES / "assets" / NS / "models" / "item" / "firewood_pile.json",
-               {"parent": f"{NS}:block/firewood_pile_4"})
-    for name in ("firewood_stove", "firewood_pile"):
-        write_json(RES / "data" / NS / "loot_table" / "blocks" / f"{name}.json", loot_table(name))
+    write_json(RES / "data" / NS / "loot_table" / "blocks" / "firewood_stove.json",
+               loot_table("firewood_stove"))
 
     # range hood was removed: venting turned out to be a gimmick nobody asked for
 
