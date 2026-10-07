@@ -20,13 +20,13 @@ import net.minecraft.world.item.ItemStack;
  * would no longer change, so that is the cap.
  */
 public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayBlockEntity> {
-    /** Height of the first layer inside the dish. */
-    private static final float BASE_HEIGHT = 0.05F;
+    /** Height of the first layer inside the dish. Clear of the well floor, not buried in it. */
+    private static final float BASE_HEIGHT = 0.12F;
     /** How much each further layer rises; sixteen layers end up just proud of the dish rim. */
     private static final float LAYER_STEP = 0.0125F;
     /** Twist of the first pair of layers; each pair opens a little wider than the last. */
     private static final float LAYER_TWIST = 16.0F;
-    private static final float SCALE = 0.32F;
+    private static final float SCALE = 0.4F;
     /**
      * Distance from the dish centre to a compartment centre. The dish is a 16px model whose four
      * wells sit at 4.5px and 11.5px, which is 0.22 blocks from the middle: aiming at 0.25 put
@@ -73,7 +73,9 @@ public class SeasoningTrayRenderer implements BlockEntityRenderer<SeasoningTrayB
             for (int layer = 0; layer < layers; layer++) {
                 pose.pushPose();
                 pose.translate(x, BASE_HEIGHT + layer * LAYER_STEP, z);
-                pose.mulPose(Axis.XP.rotationDegrees(90.0F));
+                // -90 puts the item's face up: +90 turned it face down, so a flat item showed its
+                // back to the sky
+                pose.mulPose(Axis.XP.rotationDegrees(-90.0F));
                 // every other layer is flipped end for end, so the pile looks interleaved rather
                 // than like one item rotated a little
                 if (layer % 2 == 1) {
